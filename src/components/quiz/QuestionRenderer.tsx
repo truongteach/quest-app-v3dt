@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, ArrowUp, ArrowDown, CheckCircle2, Link2, XCircle, GripVertical, Info } from "lucide-react";
+import { Star, ArrowUp, ArrowDown, CheckCircle2, Link2, XCircle, GripVertical, Info, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
 }
 
 export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
-  // --- TOP LEVEL HOOKS (Must always be called in the same order) ---
+  // --- TOP LEVEL HOOKS ---
   
   // 1. General Options
   const options = useMemo(() => 
@@ -39,7 +39,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
 
   const leftItems = useMemo(() => matchingPairs.map(p => p.left), [matchingPairs]);
   
-  // 3. Randomization state (to avoid hydration mismatch)
+  // 3. Shuffling for Matching
   const [shuffledRightItems, setShuffledRightItems] = useState<string[]>([]);
   useEffect(() => {
     if (question.question_type === 'matching') {
@@ -48,11 +48,18 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
     }
   }, [matchingPairs, question.question_type]);
 
-  // 4. Interactive states
-  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  // 4. Ordering initialization
+  const initialOrderItems = useMemo(() => 
+    question.order_group?.split(',').map(i => i.trim()) || [],
+    [question.order_group]
+  );
+
+  // 5. Interactive states
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
+  const [draggedMatchingItem, setDraggedMatchingItem] = useState<string | null>(null);
   const [selectedPoolItem, setSelectedPoolItem] = useState<string | null>(null);
 
-  // 5. Correct answers for matching
+  // 6. Correct answers for matching
   const correctMatchingPairs = useMemo(() => {
     if (question.question_type !== 'matching') return [];
     return question.correct_answer?.split(',').map(p => {
@@ -63,6 +70,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
 
   // --- DERIVED DATA ---
   const matches = (value as Record<string, string>) || {};
+  const currentOrder = (value as string[]) || initialOrderItems;
 
   // --- INTERACTION HANDLERS ---
   const handleMatchingDrop = (prompt: string, answer: string) => {
@@ -70,7 +78,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
     const newMatches = { ...matches };
     newMatches[prompt] = answer;
     onChange(newMatches);
-    setDraggedItem(null);
+    setDraggedMatchingItem(null);
     setSelectedPoolItem(null);
   };
 
@@ -150,40 +158,88 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   };
 
   const renderOrdering = () => {
-    const items = (value as string[]) || question.order_group?.split(',').map(i => i.trim()) || [];
     const correctOrder = question.correct_answer?.split(',').map(i => i.trim()) || [];
 
-    const move = (index: number, direction: 'up' | 'down') => {
+    const handleDragStart = (e: React.DragEvent, index: number) => {
       if (reviewMode) return;
-      const next = [...items];
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= items.length) return;
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      onChange(next);
+      setDraggedItemIndex(index);
+      e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+      e.preventDefault();
+      if (draggedItemIndex === null || draggedItemIndex === index || reviewMode) return;
+      
+      const newOrder = [...currentOrder];
+      const itemToMove = newOrder.splice(draggedItemIndex, 1)[0];
+      newOrder.splice(index, 0, itemToMove);
+      
+      setDraggedItemIndex(index);
+      onChange(newOrder);
+    };
+
+    const handleDragEnd = () => {
+      setDraggedItemIndex(null);
     };
 
     return (
-      <div className="space-y-2">
-        {items.map((item, idx) => {
-          const isCorrectPos = reviewMode && item === correctOrder[idx];
-          return (
-            <div key={idx} className={`flex items-center space-x-3 p-3 rounded-lg border bg-card ${reviewMode ? (isCorrectPos ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50') : 'border-border'}`}>
-              <div className="flex flex-col space-y-1">
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => move(idx, 'up')} disabled={idx === 0 || reviewMode}>
-                  <ArrowUp className="w-4 h-4" />
-                </Button>
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => move(idx, 'down')} disabled={idx === items.length - 1 || reviewMode}>
-                  <ArrowDown className="w-4 h-4" />
-                </Button>
+      <div className="space-y-3">
+        {!reviewMode && (
+          <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-xl border border-primary/10 text-xs font-medium text-primary mb-2">
+            <Info className="w-4 h-4" />
+            <span>Drag items to reorder them into the correct sequence.</span>
+          </div>
+        )}
+        <div className="space-y-2">
+          {currentOrder.map((item, idx) => {
+            const isCorrectPos = reviewMode && item === correctOrder[idx];
+            const isDragging = draggedItemIndex === idx;
+
+            return (
+              <div 
+                key={`${item}-${idx}`}
+                draggable={!reviewMode}
+                onDragStart={(e) => handleDragStart(e, idx)}
+                onDragOver={(e) => handleDragOver(e, idx)}
+                onDragEnd={handleDragEnd}
+                className={cn(
+                  "flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200 group select-none",
+                  isDragging ? "opacity-40 bg-slate-100 border-primary border-dashed scale-[0.98]" : "bg-white border-slate-200 shadow-sm",
+                  !reviewMode && !isDragging && "hover:border-primary/40 hover:shadow-md cursor-grab active:cursor-grabbing",
+                  reviewMode && isCorrectPos && "border-green-500 bg-green-50",
+                  reviewMode && !isCorrectPos && "border-destructive bg-destructive/5"
+                )}
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 font-bold text-slate-500 text-sm shrink-0">
+                  {idx + 1}
+                </div>
+                
+                <div className="flex-1 font-medium text-slate-700">
+                  {item}
+                </div>
+
+                {reviewMode ? (
+                  <div className="flex items-center gap-3">
+                    {!isCorrectPos && (
+                      <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-tighter text-destructive/60 leading-none mb-1">Correct Item</p>
+                        <p className="text-sm font-bold text-slate-900">{correctOrder[idx]}</p>
+                      </div>
+                    )}
+                    <div className={cn(
+                      "p-1.5 rounded-full",
+                      isCorrectPos ? "bg-green-100 text-green-600" : "bg-destructive/10 text-destructive"
+                    )}>
+                      {isCorrectPos ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                    </div>
+                  </div>
+                ) : (
+                  <GripVertical className="w-5 h-5 text-slate-300 group-hover:text-primary transition-colors shrink-0" />
+                )}
               </div>
-              <span className="font-medium text-lg min-w-[1.5rem]">{idx + 1}.</span>
-              <span className="flex-1">{item}</span>
-              {reviewMode && !isCorrectPos && (
-                <span className="text-xs font-bold text-red-600">Correct: {correctOrder[idx]}</span>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -275,7 +331,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                     draggable={!used && !reviewMode}
                     onDragStart={(e) => {
                       e.dataTransfer.setData("text/plain", answer);
-                      setDraggedItem(answer);
+                      setDraggedMatchingItem(answer);
                     }}
                     onClick={() => {
                       if (!used && !reviewMode) {
