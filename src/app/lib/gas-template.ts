@@ -1,7 +1,7 @@
 
 export const GAS_CODE = `
 /**
- * QUESTFLOW BACKEND v14.0 - IDENTITY & LOGGING UPDATE
+ * QUESTFLOW BACKEND v15.0 - SUBMISSION SYNC FIX
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions
@@ -70,19 +70,23 @@ function doPost(e) {
 
     if (action === 'submitResponse') {
       let sheet = ss.getSheetByName('Responses') || ss.insertSheet('Responses');
+      const headers = ['Timestamp', 'User Name', 'User Email', 'Test ID', 'Score', 'Total', 'Duration (ms)', 'Raw Responses'];
       if (sheet.getLastRow() === 0) {
-        sheet.appendRow(['Timestamp', 'User Name', 'User Email', 'Test ID', 'Score', 'Total', 'Duration (ms)', 'Raw Responses']);
+        sheet.appendRow(headers);
       }
-      sheet.appendRow([
+      
+      const rowData = [
         new Date(), 
         payload.userName || 'Guest',
         payload.userEmail || 'Anonymous', 
-        payload.testId, 
-        payload.score, 
-        payload.total, 
-        payload.duration, 
-        JSON.stringify(payload.responses)
-      ]);
+        payload.testId || 'Unknown', 
+        payload.score || 0, 
+        payload.total || 0, 
+        payload.duration || 0, 
+        JSON.stringify(payload.responses || [])
+      ];
+      
+      sheet.appendRow(rowData);
       return createResponse({ status: 'success' });
     }
 

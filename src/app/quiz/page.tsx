@@ -143,6 +143,9 @@ function QuizContent() {
 
   const submit = async () => {
     const finalScore = calculateTotalScore(quiz.questions, quiz.responses);
+    const finalName = user?.displayName || guestName?.trim() || 'Guest User';
+    const finalEmail = user?.email || 'Anonymous';
+    
     setQuiz({ ...quiz, isSubmitted: true, score: finalScore, endTime: Date.now() });
 
     if (API_URL) {
@@ -153,8 +156,8 @@ function QuizContent() {
           body: JSON.stringify({
             action: 'submitResponse',
             testId,
-            userName: user?.displayName || guestName || 'Guest User',
-            userEmail: user?.email || 'Anonymous',
+            userName: finalName,
+            userEmail: finalEmail,
             score: finalScore,
             total: quiz.questions.length,
             duration: Date.now() - quiz.startTime,
