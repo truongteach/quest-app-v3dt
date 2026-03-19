@@ -1,15 +1,30 @@
-
 "use client";
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, XCircle, AlertCircle, RotateCcw, Home } from "lucide-react";
+import { 
+  CheckCircle2, 
+  XCircle, 
+  AlertCircle, 
+  RotateCcw, 
+  Home, 
+  ChevronDown,
+  Zap,
+  Trophy,
+  ArrowRight
+} from "lucide-react";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { Question, UserResponse } from '@/types/quiz';
 import { QuestionRenderer } from './QuestionRenderer';
 import { calculateScoreForQuestion } from '@/lib/quiz-utils';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface QuizResultsProps {
   title: string;
@@ -29,62 +44,116 @@ export function QuizResults({
   onRestart
 }: QuizResultsProps) {
   const hasCorrectAnswers = questions.some(q => q.correct_answer);
+  const percentage = Math.round((score / totalQuestions) * 100);
+  const isPassing = percentage >= 70;
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <Card className="text-center py-8 shadow-2xl border-none">
-          <CardHeader>
-            <div className="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
-              <CheckCircle2 className="w-14 h-14 text-green-600" />
-            </div>
-            <CardTitle className="text-4xl font-extrabold tracking-tight">Quiz Complete!</CardTitle>
-            <p className="text-2xl font-bold text-primary mt-2">{title}</p>
-          </CardHeader>
-          <CardContent>
-            {hasCorrectAnswers && (
-              <div className="mb-8 p-6 bg-slate-50 rounded-2xl border">
-                <p className="text-6xl font-black text-primary">{score} <span className="text-3xl text-muted-foreground font-normal">/ {totalQuestions}</span></p>
-                <p className="text-muted-foreground font-semibold uppercase tracking-widest text-xs mt-3">Final Score</p>
+    <div className="min-h-screen bg-slate-50/50 flex flex-col items-center py-12 px-4 md:px-8">
+      <div className="w-full max-w-4xl space-y-10">
+        
+        {/* Main Result Card */}
+        <Card className="border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] rounded-[3rem] overflow-hidden bg-white">
+          <div className={cn("h-4", isPassing ? "bg-green-500" : "bg-primary")} />
+          <CardHeader className="text-center pt-16 pb-10">
+            <div className="flex justify-center mb-8">
+              <div className={cn(
+                "w-24 h-24 rounded-[2rem] flex items-center justify-center shadow-2xl rotate-3 transition-transform hover:rotate-0",
+                isPassing ? "bg-green-100 text-green-600" : "bg-primary/10 text-primary"
+              )}>
+                {isPassing ? <Trophy className="w-12 h-12" /> : <Zap className="w-12 h-12 fill-current" />}
               </div>
-            )}
-            <p className="text-lg text-muted-foreground">Review your performance details below.</p>
+            </div>
+            <CardTitle className="text-5xl font-black tracking-tighter text-slate-900 uppercase">
+              Assessment {isPassing ? 'Cleared' : 'Complete'}
+            </CardTitle>
+            <p className="text-lg font-bold text-slate-400 mt-2 uppercase tracking-[0.2em]">{title}</p>
+          </CardHeader>
+          
+          <CardContent className="px-10 pb-12">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="bg-slate-50 p-10 rounded-[2.5rem] border-2 border-slate-100 text-center relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-5">
+                  <Zap className="w-32 h-32 fill-slate-900" />
+                </div>
+                <p className="text-8xl font-black text-slate-900 tracking-tighter leading-none">
+                  {score}<span className="text-3xl text-slate-300 ml-2">/ {totalQuestions}</span>
+                </p>
+                <div className="mt-6 flex flex-col items-center">
+                  <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Efficiency Rating</span>
+                  <div className="px-4 py-1.5 bg-white rounded-full shadow-sm border border-slate-200 text-primary font-black text-sm">
+                    {percentage}% Accurate
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">Next Actions</h4>
+                  <p className="text-slate-500 font-medium leading-relaxed">
+                    Intelligence data has been committed to the DNTRNG core. You can now review individual steps or return to the module library.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Button onClick={onRestart} variant="outline" className="h-14 rounded-full font-black border-2 hover:bg-slate-50 transition-all group">
+                    <RotateCcw className="w-4 h-4 mr-2 transition-transform group-hover:-rotate-45" />
+                    RE-INITIALIZE
+                  </Button>
+                  <Link href="/tests" className="w-full">
+                    <Button className="w-full h-14 rounded-full font-black shadow-xl bg-slate-900 hover:bg-slate-800 transition-all">
+                      LIBRARY ACCESS
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </CardContent>
-          <CardFooter className="justify-center gap-4 pt-4">
-            <Button onClick={onRestart} variant="outline" className="rounded-full px-8 h-12 font-bold">
-              <RotateCcw className="w-5 h-5 mr-2" /> Retake
-            </Button>
-            <Link href="/">
-              <Button className="rounded-full px-8 h-12 font-bold shadow-lg">
-                <Home className="w-5 h-5 mr-2" /> Home
-              </Button>
-            </Link>
-          </CardFooter>
         </Card>
 
-        <div className="pt-12 pb-6">
-          <h3 className="text-3xl font-black tracking-tight mb-2">Detailed Review</h3>
-          <p className="text-muted-foreground">Analyze your results by question.</p>
-        </div>
-        
-        <div className="space-y-6 pb-20">
-          {questions.map((q) => {
-            const userResp = responses.find(r => r.questionId === q.id)?.answer;
-            const isCorrect = calculateScoreForQuestion(q, userResp);
-            return (
-              <Card key={q.id} className={cn("border-l-8 overflow-hidden", isCorrect ? "border-l-green-500" : "border-l-red-500")}>
-                <CardContent className="pt-8 px-6 md:px-10">
-                  <div className="flex items-start gap-6">
-                    <div className="shrink-0 mt-1">
-                      {q.correct_answer ? (
-                        isCorrect ? 
-                        <div className="bg-green-100 p-2 rounded-full"><CheckCircle2 className="w-6 h-6 text-green-600" /></div> : 
-                        <div className="bg-red-100 p-2 rounded-full"><XCircle className="w-6 h-6 text-red-600" /></div>
-                      ) : (
-                        <div className="bg-slate-100 p-2 rounded-full"><AlertCircle className="w-6 h-6 text-slate-400" /></div>
-                      )}
+        {/* Detailed Review Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-4">
+            <div>
+              <h3 className="text-2xl font-black tracking-tight text-slate-900 uppercase">Step Analytics</h3>
+              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Detailed Response Review</p>
+            </div>
+            <div className="h-px flex-1 mx-8 bg-slate-200 hidden md:block" />
+          </div>
+
+          <Accordion type="single" collapsible className="space-y-4">
+            {questions.map((q, idx) => {
+              const userResp = responses.find(r => r.questionId === q.id)?.answer;
+              const isCorrect = calculateScoreForQuestion(q, userResp);
+              const hasAnswered = userResp !== undefined && userResp !== null;
+
+              return (
+                <AccordionItem 
+                  key={q.id} 
+                  value={`item-${idx}`}
+                  className={cn(
+                    "border-none rounded-[2rem] overflow-hidden bg-white shadow-sm transition-all hover:shadow-md",
+                    isCorrect ? "ring-1 ring-green-100" : (hasAnswered ? "ring-1 ring-destructive/10" : "ring-1 ring-slate-100")
+                  )}
+                >
+                  <AccordionTrigger className="px-8 py-6 hover:no-underline group">
+                    <div className="flex items-center gap-6 text-left">
+                      <div className={cn(
+                        "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
+                        !q.correct_answer ? "bg-slate-100 text-slate-400" : (isCorrect ? "bg-green-100 text-green-600" : "bg-destructive/10 text-destructive")
+                      )}>
+                        {!q.correct_answer ? <AlertCircle className="w-6 h-6" /> : (isCorrect ? <CheckCircle2 className="w-6 h-6" /> : <XCircle className="w-6 h-6" />)}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Step {idx + 1}</span>
+                        <h4 className="font-bold text-slate-700 text-lg leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                          {q.question_text}
+                        </h4>
+                      </div>
                     </div>
-                    <div className="flex-1">
+                  </AccordionTrigger>
+                  <AccordionContent className="px-8 pb-8 pt-0">
+                    <div className="h-px w-full bg-slate-100 mb-8" />
+                    <div className="px-4 sm:px-8">
                       <QuestionRenderer 
                         question={q} 
                         value={userResp} 
@@ -92,11 +161,21 @@ export function QuizResults({
                         reviewMode={true} 
                       />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        </div>
+
+        {/* Bottom Navigation */}
+        <div className="flex justify-center pt-8 pb-20">
+          <Link href="/">
+            <Button variant="ghost" className="rounded-full font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-[0.3em] text-[10px]">
+              <Home className="w-3 h-3 mr-2" />
+              Terminate Console Session
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
