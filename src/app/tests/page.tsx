@@ -272,8 +272,3 @@ export default function TestsLibrary() {
     </div>
   );
 }
-
-// Utility for cleaner class joining (if needed elsewhere)
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
-}
