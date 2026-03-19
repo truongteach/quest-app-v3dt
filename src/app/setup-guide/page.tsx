@@ -20,7 +20,9 @@ import {
   ExternalLink,
   ChevronRight,
   Globe,
-  Languages
+  Languages,
+  ShieldCheck,
+  Cpu
 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -35,112 +37,112 @@ export default function SetupGuide() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: lang === 'en' ? "Copied!" : "Đã sao chép!", description: lang === 'en' ? "Protocol metadata copied to clipboard." : "Dữ liệu giao thức đã được sao chép." });
+    toast({ 
+      title: lang === 'en' ? "DNTRNG Metadata Copied" : "Đã sao chép dữ liệu DNTRNG", 
+      description: lang === 'en' ? "Protocol headers committed to clipboard." : "Tiêu đề giao thức đã được lưu vào bộ nhớ tạm." 
+    });
   };
 
   const content = {
     en: {
-      title: "Setup Protocol",
+      title: "DNTRNG Protocol",
       subtitle: "Intelligence Initialization v17.0",
-      returnBase: "Return to Base",
-      launchConsole: "Launch Console",
+      returnBase: "Return to DNTRNG Home",
+      launchConsole: "Launch DNTRNG Console",
       step1: {
         num: "01",
-        title: "Sheet Architecture",
-        desc: "Provision your database structure in Google Sheets.",
+        title: "DNTRNG Sheet Architecture",
+        desc: "Provision your database structure in Google Sheets™.",
         alertTitle: "Protocol Requirement",
-        alertDesc: "Create a new Google Sheet. You will need to create at least three core tabs named exactly as shown below. Each tab must have the specific headers provided.",
+        alertDesc: "To initialize the DNTRNG engine, create a new Google Sheet. You MUST create the following three core tabs named EXACTLY as shown. Each requires specific headers to function.",
         tabTests: "Tests (Registry)",
         tabUsers: "Users (Identity)",
         tabResponses: "Responses (Logs)",
-        testsTitle: "Tab: Tests",
-        testsDesc: "This sheet acts as the master catalog for all assessment modules.",
+        testsTitle: "Core Tab: Tests",
+        testsDesc: "Acts as the master catalog for all DNTRNG assessment modules.",
         testsHeaders: "id, title, description, category, difficulty, duration, image_url",
-        usersTitle: "Tab: Users",
+        usersTitle: "Core Tab: Users",
         usersHeaders: "id, name, email, role, password",
-        responsesTitle: "Tab: Responses",
-        responsesDesc: "Leave this sheet blank; the engine will auto-populate logs.",
+        responsesTitle: "Core Tab: Responses",
+        responsesDesc: "The DNTRNG engine will auto-populate this tab with submission logs.",
         responsesHeaders: "Timestamp, User Name, User Email, Test ID, Score, Total, Duration (ms), Raw Responses",
-        dynamicTitle: "Dynamic Question Tabs",
-        dynamicDesc: "For every test added to the Tests tab, you must create a new tab named exactly after that test's id.",
+        dynamicTitle: "Module-Specific Sheets",
+        dynamicDesc: "For every entry in the Tests tab, you must create a corresponding tab named after that module's unique 'id'.",
         dynamicHeaders: "id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required"
       },
       step2: {
         num: "02",
-        title: "Intelligence Bridge",
-        desc: "Deploy the Google Apps Script backend.",
-        codeTitle: "Code Injection",
-        codeDesc: "Open Extensions > Apps Script in your Google Sheet. Delete any existing code and paste the content from the DNTRNG template.",
+        title: "DNTRNG Intelligence Bridge",
+        desc: "Deploy the high-performance Apps Script backend.",
+        codeTitle: "DNTRNG Logic Injection",
+        codeDesc: "Navigate to Extensions > Apps Script in your Sheet. Wipe existing code and inject the DNTRNG backend template.",
         deployTitle: "Cloud Deployment",
-        deploy1: "New Deployment > Web App",
-        deploy2: "Execute as: Me",
-        deploy3: "Who has access: Anyone",
-        deployFooter: "Copy the generated Web App URL for the final integration step."
+        deploy1: "Type: Web App",
+        deploy2: "Execute as: Me (Your Account)",
+        deploy3: "Access: Anyone (Required)",
+        deployFooter: "The DNTRNG engine requires the generated Web App URL for Phase 3."
       },
       step3: {
         num: "03",
-        title: "Handshake",
-        desc: "Connect the DNTRNG frontend to your new bridge.",
-        logicTitle: "Integration Logic",
-        logicDesc: "Update src/lib/api-config.ts with your Web App URL.",
-        ready: "Protocol Ready",
-        launch: "Launch System"
+        title: "DNTRNG System Handshake",
+        desc: "Finalize the link between DNTRNG UI and your data.",
+        logicTitle: "API Synchronization",
+        logicDesc: "Inject your Web App URL into the DNTRNG configuration file located at src/lib/api-config.ts.",
+        ready: "DNTRNG Protocol Active",
+        launch: "Initialize Console"
       }
     },
     vi: {
-      title: "Giao Thức Thiết Lập",
+      title: "Giao Thức DNTRNG",
       subtitle: "Khởi Tạo Trí Tuệ v17.0",
-      returnBase: "Trở về Trang chủ",
-      launchConsole: "Mở Bảng Điều Khiển",
+      returnBase: "Về Trang Chủ DNTRNG",
+      launchConsole: "Mở Bảng Điều Khiển DNTRNG",
       step1: {
         num: "01",
-        title: "Kiến Trúc Bảng Tính",
-        desc: "Thiết lập cấu trúc cơ sở dữ liệu trên Google Sheets.",
+        title: "Kiến Trúc Bảng Tính DNTRNG",
+        desc: "Thiết lập cấu trúc cơ sở dữ liệu trên Google Sheets™.",
         alertTitle: "Yêu Cầu Giao Thức",
-        alertDesc: "Tạo một Google Sheet mới. Bạn cần tạo ít nhất ba tab chính với tên chính xác như dưới đây. Mỗi tab phải có các tiêu đề cột cụ thể.",
+        alertDesc: "Để khởi động hệ thống DNTRNG, hãy tạo một Google Sheet mới. Bạn PHẢI tạo 3 tab chính với tên CHÍNH XÁC như sau. Mỗi tab yêu cầu các tiêu đề cột cụ thể.",
         tabTests: "Tests (Đăng ký)",
         tabUsers: "Users (Danh tính)",
         tabResponses: "Responses (Nhật ký)",
-        testsTitle: "Tab: Tests",
-        testsDesc: "Trang này đóng vai trò là danh mục chính cho tất cả các bài kiểm tra.",
+        testsTitle: "Tab Chính: Tests",
+        testsDesc: "Đóng vai trò là danh mục tổng cho tất cả các mô-đun DNTRNG.",
         testsHeaders: "id, title, description, category, difficulty, duration, image_url",
-        usersTitle: "Tab: Users",
+        usersTitle: "Tab Chính: Users",
         usersHeaders: "id, name, email, role, password",
-        responsesTitle: "Tab: Responses",
-        responsesDesc: "Để trống trang này; hệ thống sẽ tự động điền nhật ký khi hoàn thành bài kiểm tra.",
+        responsesTitle: "Tab Chính: Responses",
+        responsesDesc: "Hệ thống DNTRNG sẽ tự động ghi nhật ký vào tab này.",
         responsesHeaders: "Timestamp, User Name, User Email, Test ID, Score, Total, Duration (ms), Raw Responses",
-        dynamicTitle: "Tab Câu Hỏi Động",
-        dynamicDesc: "Với mỗi bài kiểm tra được thêm vào tab Tests, bạn phải tạo một tab mới được đặt tên chính xác theo id của bài kiểm tra đó.",
+        dynamicTitle: "Tab Câu Hỏi Riêng Biệt",
+        dynamicDesc: "Với mỗi bài kiểm tra trong tab Tests, bạn cần tạo một tab tương ứng đặt tên theo 'id' của bài đó.",
         dynamicHeaders: "id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required"
       },
       step2: {
         num: "02",
-        title: "Cầu Nối Trí Tuệ",
-        desc: "Triển khai backend bằng Google Apps Script.",
-        codeTitle: "Nhúng Mã Nguồn",
-        codeDesc: "Mở Tiện ích mở rộng > Apps Script trong Google Sheet. Xóa mã hiện có và dán nội dung từ mẫu DNTRNG.",
+        title: "Cầu Nối Trí Tuệ DNTRNG",
+        desc: "Triển khai backend Google Apps Script hiệu suất cao.",
+        codeTitle: "Nhúng Logic DNTRNG",
+        codeDesc: "Vào Tiện ích mở rộng > Apps Script. Xóa mã cũ và dán mẫu backend DNTRNG vào.",
         deployTitle: "Triển Khai Đám Mây",
-        deploy1: "Triển khai mới > Ứng dụng Web",
-        deploy2: "Thực thi dưới tên: Tôi (Me)",
-        deploy3: "Ai có quyền truy cập: Mọi người (Anyone)",
-        deployFooter: "Sao chép URL Ứng dụng Web để thực hiện bước tích hợp cuối cùng."
+        deploy1: "Loại: Ứng dụng Web",
+        deploy2: "Thực thi: Tôi (Tài khoản của bạn)",
+        deploy3: "Truy cập: Mọi người (Bắt buộc)",
+        deployFooter: "Hệ thống DNTRNG cần URL Ứng dụng Web để hoàn tất Giai đoạn 3."
       },
       step3: {
         num: "03",
-        title: "Cái Bắt Tay",
-        desc: "Kết nối frontend DNTRNG với cầu nối mới của bạn.",
-        logicTitle: "Logic Tích Hợp",
-        logicDesc: "Cập nhật src/lib/api-config.ts với URL Ứng dụng Web của bạn.",
-        ready: "Giao Thức Sẵn Sàng",
-        launch: "Kích Hoạt Hệ Thống"
+        title: "Kết Nối Hệ Thống DNTRNG",
+        desc: "Hoàn tất liên kết giữa giao diện DNTRNG và dữ liệu của bạn.",
+        logicTitle: "Đồng Bộ Hóa API",
+        logicDesc: "Cập nhật URL Ứng dụng Web vào tệp cấu hình DNTRNG tại src/lib/api-config.ts.",
+        ready: "Giao Thức DNTRNG Sẵn Sàng",
+        launch: "Khởi Chạy Hệ Thống"
       }
     }
   };
 
   const t = content[lang];
-
-  const SAMPLE_TESTS = `id	title	description	category	difficulty	duration	image_url
-demo-full	The Ultimate Feature Tour	Experience every single question type.	Product Tour	Beginner	10 mins	https://picsum.photos/seed/mountain1/800/450`;
 
   return (
     <div className="min-h-screen bg-white selection:bg-primary selection:text-white">
@@ -158,7 +160,10 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
                 <Zap className="text-primary w-6 h-6 fill-current" />
               </div>
               <div>
-                <h1 className="text-4xl font-black tracking-tighter text-slate-900 uppercase">{t.title}</h1>
+                <h1 className="text-4xl font-black tracking-tighter text-slate-900 uppercase flex items-center gap-2">
+                  {t.title}
+                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-md align-top">TM</span>
+                </h1>
                 <p className="text-sm font-bold text-primary uppercase tracking-[0.2em] mt-1">{t.subtitle}</p>
               </div>
             </div>
@@ -196,7 +201,7 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
 
       <main className="max-w-5xl mx-auto px-6 py-20 space-y-24">
         
-        {/* Step 1: Google Sheets */}
+        {/* Step 1: Google Sheets Architecture */}
         <section className="space-y-10">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">{t.step1.num}</div>
@@ -208,7 +213,7 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
 
           <div className="space-y-8">
             <Alert className="bg-primary/5 border-primary/20 rounded-[2rem] p-8">
-              <Info className="h-6 w-6 text-primary" />
+              <ShieldCheck className="h-6 w-6 text-primary" />
               <AlertTitle className="text-lg font-black uppercase tracking-tight text-primary mb-2">{t.step1.alertTitle}</AlertTitle>
               <AlertDescription className="text-slate-600 font-medium leading-relaxed">
                 {t.step1.alertDesc}
@@ -230,25 +235,28 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
                         <LayoutGrid className="w-5 h-5 text-primary" />
                         <CardTitle className="text-lg font-black uppercase">{t.step1.testsTitle}</CardTitle>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.testsHeaders)} className="rounded-full font-bold h-9 border-2">Copy Headers</Button>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.testsHeaders)} className="rounded-full font-bold h-9 border-2">Copy DNTRNG Headers</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
                     <p className="text-sm text-slate-500 font-medium mb-6">{t.step1.testsDesc}</p>
-                    <div className="bg-slate-900 p-6 rounded-2xl overflow-hidden relative">
-                      <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">Header Definition</div>
+                    <div className="bg-slate-900 p-6 rounded-2xl overflow-hidden relative group">
+                      <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">DNTRNG Registry Headers</div>
                       <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap pb-2">{t.step1.testsHeaders}</code>
+                      <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-100 transition-opacity">
+                        <Copy className="w-4 h-4 text-white cursor-pointer" onClick={() => copyToClipboard(t.step1.testsHeaders)} />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Alert className="border-dashed border-2 rounded-3xl p-6 bg-slate-50">
-                  <TableIcon className="w-5 h-5 text-slate-400" />
+                  <Cpu className="w-5 h-5 text-slate-400" />
                   <AlertTitle className="font-black text-sm uppercase mb-1">{t.step1.dynamicTitle}</AlertTitle>
                   <AlertDescription className="text-xs text-slate-500 font-medium">
                     {t.step1.dynamicDesc}
                     <br/><br/>
-                    <strong>Headers:</strong> <code className="bg-white px-2 py-0.5 rounded border font-mono">{t.step1.dynamicHeaders}</code>
+                    <strong>DNTRNG Module Headers:</strong> <code className="bg-white px-2 py-0.5 rounded border font-mono">{t.step1.dynamicHeaders}</code>
                   </AlertDescription>
                 </Alert>
               </TabsContent>
@@ -261,12 +269,12 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
                         <Users className="w-5 h-5 text-primary" />
                         <CardTitle className="text-lg font-black uppercase">{t.step1.usersTitle}</CardTitle>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.usersHeaders)} className="rounded-full font-bold h-9 border-2">Copy Headers</Button>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.usersHeaders)} className="rounded-full font-bold h-9 border-2">Copy Identity Headers</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
                     <div className="bg-slate-900 p-6 rounded-2xl overflow-hidden">
-                      <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">Header Definition</div>
+                      <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">DNTRNG Identity Headers</div>
                       <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap">{t.step1.usersHeaders}</code>
                     </div>
                   </CardContent>
@@ -281,13 +289,13 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
                         <Database className="w-5 h-5 text-primary" />
                         <CardTitle className="text-lg font-black uppercase">{t.step1.responsesTitle}</CardTitle>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.responsesHeaders)} className="rounded-full font-bold h-9 border-2">Copy Headers</Button>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.responsesHeaders)} className="rounded-full font-bold h-9 border-2">Copy Log Headers</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
                     <p className="text-sm text-slate-500 font-medium mb-6">{t.step1.responsesDesc}</p>
                     <div className="bg-slate-900 p-6 rounded-2xl overflow-hidden">
-                      <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">Required Headers</div>
+                      <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">DNTRNG Intelligence Logs</div>
                       <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap">{t.step1.responsesHeaders}</code>
                     </div>
                   </CardContent>
@@ -297,7 +305,7 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
           </div>
         </section>
 
-        {/* Step 2: Apps Script */}
+        {/* Step 2: Apps Script Intelligence Bridge */}
         <section className="space-y-10">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">{t.step2.num}</div>
@@ -318,10 +326,10 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
                 variant="outline" 
                 className="w-full rounded-full font-black text-[10px] uppercase tracking-widest border-2 h-12"
                 onClick={() => {
-                   toast({ title: "Template Reference", description: "Reference src/app/lib/gas-template.ts" });
+                   toast({ title: "DNTRNG Logic Ready", description: "Template accessed via src/app/lib/gas-template.ts" });
                 }}
               >
-                Access Template
+                Access DNTRNG Template
               </Button>
             </Card>
 
@@ -352,7 +360,7 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
           </div>
         </section>
 
-        {/* Step 3: Frontend Config */}
+        {/* Step 3: Frontend Handshake Config */}
         <section className="space-y-10">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">{t.step3.num}</div>
@@ -372,19 +380,23 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
                 <p className="text-sm text-slate-500 font-medium leading-relaxed mb-8">
                   {t.step3.logicDesc}
                 </p>
-                <div className="p-6 bg-slate-900 rounded-2xl">
+                <div className="p-6 bg-slate-900 rounded-2xl relative group">
                   <pre className="text-xs text-blue-400 font-mono">
                     export const API_URL = "https://script.google.com/..."
                   </pre>
+                  <Copy 
+                    className="absolute top-4 right-4 w-4 h-4 text-white/20 group-hover:text-white cursor-pointer transition-colors" 
+                    onClick={() => copyToClipboard('export const API_URL = "YOUR_DEPLOYED_URL_HERE"')}
+                  />
                 </div>
               </div>
               <div className="w-full md:w-80 bg-slate-50 p-12 flex flex-col justify-center">
                 <div className="space-y-6">
                   <div className="text-center">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">{t.step3.ready}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">{t.ready}</p>
                     <Link href="/login">
                       <Button className="w-full h-14 rounded-full font-black uppercase tracking-tighter bg-primary shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
-                        {t.step3.launch}
+                        {t.launch}
                         <ChevronRight className="w-4 h-4 ml-2" />
                       </Button>
                     </Link>
@@ -409,10 +421,15 @@ demo-full	The Ultimate Feature Tour	Experience every single question type.	Produ
 
       {/* Footer */}
       <footer className="py-20 border-t border-slate-100 bg-white">
-        <div className="max-w-5xl mx-auto px-6 text-center">
+        <div className="max-w-5xl mx-auto px-6 text-center space-y-4">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
-            © {new Date().getFullYear()} DNTRNG PLATFORM • INITIALIZATION PROTOCOL COMPLETED
+            © {new Date().getFullYear()} DNTRNG™ PLATFORM • INITIALIZATION PROTOCOL COMPLETED
           </p>
+          <div className="flex items-center justify-center gap-4 opacity-20 grayscale">
+            <Zap className="w-4 h-4" />
+            <Globe className="w-4 h-4" />
+            <Database className="w-4 h-4" />
+          </div>
         </div>
       </footer>
     </div>
