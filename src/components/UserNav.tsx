@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import React from 'react';
 import { useUser, useAuth } from '@/firebase';
@@ -14,13 +14,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, LayoutGrid, ShieldCheck, LogIn } from "lucide-react";
+import { LogOut, LayoutGrid, ShieldCheck, LogIn } from "lucide-react";
 import Link from 'next/link';
 import { useUserRole } from '@/hooks/use-user-role';
 
 export function UserNav() {
   const { user } = useUser();
-  const { auth } = useAuth();
+  const auth = useAuth();
   const { role } = useUserRole();
 
   const handleLogout = async () => {
