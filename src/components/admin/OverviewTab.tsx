@@ -12,7 +12,8 @@ import {
   Plus, 
   Zap, 
   RefreshCcw,
-  Database
+  Database,
+  Clock
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import { AdminTab } from '@/components/admin/AdminSidebar';
 
 interface OverviewTabProps {
   data: { tests: any[], users: any[], responses: any[] };
+  lastSync: Date | null;
   onNewTest: () => void;
   onManageContent: () => void;
   onSync: () => void;
@@ -38,7 +40,7 @@ interface OverviewTabProps {
   setActiveTab: (tab: AdminTab) => void;
 }
 
-export function OverviewTab({ data, onNewTest, onManageContent, onSync, onSeed, setActiveTab }: OverviewTabProps) {
+export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync, onSeed, setActiveTab }: OverviewTabProps) {
   const chartData = useMemo(() => {
     if (!data.responses.length) return [];
     const counts: Record<string, number> = {};
@@ -58,6 +60,26 @@ export function OverviewTab({ data, onNewTest, onManageContent, onSync, onSeed, 
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+            </span>
+            <span className="text-xs font-black uppercase tracking-widest text-slate-400">System Online</span>
+          </div>
+          {lastSync && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border shadow-sm">
+              <Clock className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                Last Sync: {lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard icon={LayoutGrid} label="Assessments" value={data.tests.length} color="blue" />
         <StatCard icon={UsersIcon} label="Students" value={data.users.length} color="green" />

@@ -11,6 +11,7 @@ import { DEMO_QUESTIONS, AVAILABLE_TESTS } from '@/app/lib/demo-data';
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
   const [data, setData] = useState<{ tests: any[], users: any[], responses: any[] }>({
     tests: [],
     users: [],
@@ -47,6 +48,7 @@ export default function AdminDashboard() {
         users: Array.isArray(usersData) ? usersData : [],
         responses: Array.isArray(responsesData) ? responsesData : []
       });
+      setLastSync(new Date());
     } catch (err) {
       toast({ variant: "destructive", title: "Sync Error", description: "Could not fetch data." });
     } finally {
@@ -113,6 +115,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <OverviewTab 
         data={data} 
+        lastSync={lastSync}
         onNewTest={() => setDialogs({ ...dialogs, test: true })}
         onManageContent={() => router.push('/admin/tests')}
         onSync={fetchData}
