@@ -39,10 +39,11 @@ export default function NewTestPage() {
       
       toast({ 
         title: "Intelligence Module Created", 
-        description: "The new assessment registry is now active." 
+        description: "The new assessment registry is now active. Directing to question bank..." 
       });
       
-      router.push('/admin/tests');
+      // Redirect directly to the management page for this new test
+      router.push(`/admin/tests/${data.id}`);
     } catch (err) {
       toast({ 
         variant: "destructive", 
@@ -147,7 +148,7 @@ export default function NewTestPage() {
               <Sparkles className="w-8 h-8 text-primary mb-6 animate-pulse" />
               <h3 className="text-xl font-black uppercase tracking-tight mb-4">Architecture Pro-Tip</h3>
               <p className="text-sm text-slate-400 font-medium leading-relaxed">
-                DNTRNG modules are instantly synchronized with your Google Sheets. Once you commit this registry, a new tab will be automatically generated to hold your question bank.
+                DNTRNG modules are instantly synchronized with your Google Sheets. Once you commit this registry, you'll be taken straight to the question bank to start building content.
               </p>
             </Card>
             
