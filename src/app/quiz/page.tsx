@@ -12,49 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { cn } from "@/lib/utils";
-
-const DEMO_QUESTIONS: Question[] = [
-  {
-    id: "m1",
-    question_text: "Match the programming languages to their primary use cases:",
-    question_type: "matching",
-    order_group: "TypeScript|Web Development,Python|Data Science,Swift|iOS Apps,SQL|Databases",
-    correct_answer: "TypeScript|Web Development,Python|Data Science,Swift|iOS Apps,SQL|Databases",
-    required: true
-  },
-  {
-    id: "1",
-    question_text: "What is the primary benefit of using QuestFlow?",
-    question_type: "single_choice",
-    options: "No coding required, High performance, Google Sheets integration, All of the above",
-    correct_answer: "All of the above",
-    required: true
-  },
-  {
-    id: "2",
-    question_text: "Which technologies power the QuestFlow frontend?",
-    question_type: "multiple_choice",
-    options: "Next.js, React, Tailwind CSS, Shadcn/UI, Vue.js",
-    correct_answer: "Next.js, React, Tailwind CSS, Shadcn/UI",
-    required: true
-  },
-  {
-    id: "4",
-    question_text: "Rank these steps to set up QuestFlow in the correct order:",
-    question_type: "ordering",
-    order_group: "Connect API URL, Create Google Sheet, Deploy Apps Script, Share Sheet",
-    correct_answer: "Create Google Sheet, Share Sheet, Deploy Apps Script, Connect API URL",
-    required: true
-  },
-  {
-    id: "5",
-    question_text: "Locate the peak of the mountain in this image.",
-    question_type: "hotspot",
-    image_url: "https://picsum.photos/seed/mountain1/800/450",
-    metadata: JSON.stringify([{ id: 'peak', label: 'Mountain Peak', x: 50, y: 35, radius: 10 }]),
-    required: false
-  }
-];
+import { DEMO_QUESTIONS } from '@/app/lib/demo-data';
 
 function QuizContent() {
   const searchParams = useSearchParams();

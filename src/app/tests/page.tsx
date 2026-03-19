@@ -8,69 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Play, Clock, BarChart, ListChecks, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
-const AVAILABLE_TESTS = [
-  {
-    id: "demo-1",
-    title: "QuestFlow Essentials",
-    description: "Learn the basics of our interactive quiz platform and master the standard question types.",
-    category: "Product Tour",
-    difficulty: "Beginner",
-    questions: 8,
-    duration: "5 mins",
-    image: "https://picsum.photos/seed/mountain1/800/450"
-  },
-  {
-    id: "demo-logic",
-    title: "Logic & Associations",
-    description: "Challenge your mind with our new Matching and Ordering question types. Perfect for language and logic testing.",
-    category: "Specialized",
-    difficulty: "Intermediate",
-    questions: 5,
-    duration: "8 mins",
-    image: "https://picsum.photos/seed/brain/800/450"
-  },
-  {
-    id: "demo-2",
-    title: "Advanced Interactions",
-    description: "A deep dive into hotspots, ordering, and complex logic patterns for power users.",
-    category: "Technical",
-    difficulty: "Advanced",
-    questions: 12,
-    duration: "15 mins",
-    image: "https://picsum.photos/seed/ui/800/450"
-  },
-  {
-    id: "demo-3",
-    title: "Data Insights Challenge",
-    description: "Test your knowledge on interpreting complex charts, graphs, and data sets.",
-    category: "Analytics",
-    difficulty: "Intermediate",
-    questions: 10,
-    duration: "10 mins",
-    image: "https://picsum.photos/seed/data/800/450"
-  },
-  {
-    id: "demo-4",
-    title: "Ecosystems & Environment",
-    description: "An educational survey regarding global ecosystems, climate data, and sustainability.",
-    category: "Education",
-    difficulty: "Beginner",
-    questions: 6,
-    duration: "4 mins",
-    image: "https://picsum.photos/seed/nature/800/450"
-  },
-  {
-    id: "demo-5",
-    title: "Web Tech Quiz",
-    description: "Evaluate your understanding of modern web technologies, from CSS to Server Components.",
-    category: "Development",
-    difficulty: "Intermediate",
-    questions: 15,
-    duration: "12 mins",
-    image: "https://picsum.photos/seed/code/800/450"
-  }
-];
+import { AVAILABLE_TESTS } from '@/app/lib/demo-data';
 
 export default function TestsLibrary() {
   const [search, setSearch] = useState("");
