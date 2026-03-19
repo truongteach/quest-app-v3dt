@@ -1,21 +1,50 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Play, Clock, BarChart, ListChecks, Search, Filter } from "lucide-react";
+import { ArrowLeft, Play, Clock, BarChart, ListChecks, Search, Filter, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { AVAILABLE_TESTS } from '@/app/lib/demo-data';
+import { API_URL } from '@/lib/api-config';
+import { AVAILABLE_TESTS as DEMO_TESTS } from '@/app/lib/demo-data';
 
 export default function TestsLibrary() {
   const [search, setSearch] = useState("");
+  const [tests, setTests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredTests = AVAILABLE_TESTS.filter(t => 
-    t.title.toLowerCase().includes(search.toLowerCase()) || 
-    t.category.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    fetchTests();
+  }, []);
+
+  const fetchTests = async () => {
+    setLoading(true);
+    try {
+      if (API_URL) {
+        const res = await fetch(`${API_URL}?action=getTests`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setTests(data);
+        } else {
+          setTests(DEMO_TESTS);
+        }
+      } else {
+        setTests(DEMO_TESTS);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tests", err);
+      setTests(DEMO_TESTS);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredTests = tests.filter(t => 
+    (t.title?.toLowerCase() || "").includes(search.toLowerCase()) || 
+    (t.category?.toLowerCase() || "").includes(search.toLowerCase())
   );
 
   return (
@@ -45,8 +74,8 @@ export default function TestsLibrary() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="icon" className="rounded-full md:hidden">
-                <Filter className="w-4 h-4" />
+              <Button variant="outline" size="icon" onClick={fetchTests} className="rounded-full">
+                <Loader2 className={loading ? "animate-spin w-4 h-4" : "w-4 h-4"} />
               </Button>
             </div>
           </div>
@@ -54,78 +83,79 @@ export default function TestsLibrary() {
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTests.map((test) => (
-            <Card key={test.id} className="group flex flex-col overflow-hidden border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="relative aspect-video overflow-hidden">
-                <img 
-                  src={test.image} 
-                  alt={test.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute top-3 left-3">
-                  <Badge className="bg-white/95 text-primary hover:bg-white shadow-sm border-none backdrop-blur-sm">
-                    {test.category}
-                  </Badge>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+            <p className="font-bold text-slate-400">Syncing Library...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTests.map((test) => (
+              <Card key={test.id} className="group flex flex-col overflow-hidden border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="relative aspect-video overflow-hidden bg-slate-100">
+                  <img 
+                    src={test.image_url || `https://picsum.photos/seed/${test.id}/800/450`} 
+                    alt={test.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <Badge className="bg-white/95 text-primary hover:bg-white shadow-sm border-none backdrop-blur-sm">
+                      {test.category || "General"}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
 
-              <CardHeader className="flex-1 pb-2">
-                <div className="flex justify-between items-start">
+                <CardHeader className="flex-1 pb-2">
                   <CardTitle className="text-xl font-bold group-hover:text-primary transition-colors line-clamp-1">
                     {test.title}
                   </CardTitle>
-                </div>
-                <CardDescription className="line-clamp-2 mt-2 text-slate-600">
-                  {test.description}
-                </CardDescription>
-              </CardHeader>
+                  <CardDescription className="line-clamp-2 mt-2 text-slate-600">
+                    {test.description}
+                  </CardDescription>
+                </CardHeader>
 
-              <CardContent className="pb-4">
-                <div className="flex flex-wrap items-center gap-y-3 gap-x-6 text-sm text-slate-500 font-medium">
-                  <div className="flex items-center gap-1.5">
-                    <ListChecks className="w-4 h-4 text-primary" />
-                    <span>{test.questions} Questions</span>
+                <CardContent className="pb-4">
+                  <div className="flex flex-wrap items-center gap-y-3 gap-x-6 text-sm text-slate-500 font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <ListChecks className="w-4 h-4 text-primary" />
+                      <span>{test.questions_count || '--'} Questions</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-primary" />
+                      <span>{test.duration || '5m'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <BarChart className="w-4 h-4 text-primary" />
+                      <span className={cn(
+                        test.difficulty === 'Beginner' ? 'text-green-600' :
+                        test.difficulty === 'Intermediate' ? 'text-orange-600' : 'text-red-600'
+                      )}>
+                        {test.difficulty || 'Beginner'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span>{test.duration}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <BarChart className="w-4 h-4 text-primary" />
-                    <span className={
-                      test.difficulty === 'Beginner' ? 'text-green-600' :
-                      test.difficulty === 'Intermediate' ? 'text-orange-600' : 'text-red-600'
-                    }>
-                      {test.difficulty}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
+                </CardContent>
 
-              <CardFooter className="pt-0 border-t border-slate-50 bg-slate-50/30">
-                <Link href={`/quiz?id=${test.id}`} className="w-full pt-4">
-                  <Button className="w-full rounded-full font-semibold shadow-sm group-hover:shadow-md transition-all">
-                    <Play className="w-4 h-4 mr-2 fill-current" />
-                    Start Assessment
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                <CardFooter className="pt-0 border-t border-slate-50 bg-slate-50/30">
+                  <Link href={`/quiz?id=${test.id}`} className="w-full pt-4">
+                    <Button className="w-full rounded-full font-semibold shadow-sm group-hover:shadow-md transition-all">
+                      <Play className="w-4 h-4 mr-2 fill-current" />
+                      Start Assessment
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
 
-        {filteredTests.length === 0 && (
+        {!loading && filteredTests.length === 0 && (
           <div className="text-center py-24 bg-white rounded-2xl border border-dashed border-slate-300">
             <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-10 h-10 text-slate-400" />
             </div>
             <h3 className="text-2xl font-bold text-slate-900">No quizzes found</h3>
-            <p className="text-slate-500 mt-2 max-w-xs mx-auto">We couldn't find any results for "{search}". Try checking your spelling or using different keywords.</p>
-            <Button variant="link" onClick={() => setSearch("")} className="mt-4 text-primary font-semibold">
-              Clear all filters
-            </Button>
+            <p className="text-slate-500 mt-2 max-w-xs mx-auto">Try checking your spelling or using different keywords.</p>
           </div>
         )}
       </main>
