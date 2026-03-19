@@ -1,13 +1,26 @@
 
 export const GAS_CODE = `
 /**
- * QUESTFLOW BACKEND v3.0 - SHEET AUTH MODE
+ * QUESTFLOW BACKEND v4.0 - SIMPLE SHEET AUTH
  * 
+ * SETUP INSTRUCTIONS:
  * 1. Create a Google Sheet.
- * 2. Tab "Questions": test_id, id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required
- * 3. Tab "Users": email, role
- * 4. Tab "Responses": Timestamp, Test ID, Score, Total, Duration (ms), Raw Responses
- * 5. Deploy as Web App (Access: Anyone).
+ * 2. Create THREE tabs with these EXACT names:
+ *    - "Questions"
+ *    - "Users"
+ *    - "Responses"
+ * 
+ * 3. Add Headers to "Questions": 
+ *    test_id, id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required
+ * 
+ * 4. Add Headers to "Users":
+ *    email, role
+ * 
+ * 5. Add Headers to "Responses":
+ *    Timestamp, Test ID, Score, Total, Duration (ms), Raw Responses
+ * 
+ * 6. Replace 'YOUR_SPREADSHEET_ID' below with your actual ID from the URL.
+ * 7. Deploy as Web App (Execute as: Me, Access: Anyone).
  */
 
 const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
@@ -16,18 +29,16 @@ function doGet(e) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const action = e.parameter.action;
 
-  // Handle Role Checking & Login
+  // --- ACTION: login / getRole ---
   if (action === 'getRole' || action === 'login') {
     const email = e.parameter.email;
-    if (!email) return createResponse({ error: 'Email is required' }, 400);
+    if (!email) return createResponse({ error: 'Email required' }, 400);
 
     const usersSheet = ss.getSheetByName('Users');
-    if (!usersSheet) {
-      return createResponse({ role: 'user' }); // Default to user if no sheet exists
-    }
+    if (!usersSheet) return createResponse({ error: 'Users tab not found' }, 404);
     
     const data = usersSheet.getDataRange().getValues();
-    data.shift(); // Remove headers
+    const headers = data.shift();
     
     const userRow = data.find(row => String(row[0]).toLowerCase() === email.toLowerCase());
     
@@ -37,17 +48,15 @@ function doGet(e) {
         role: userRow[1] || 'user'
       });
     } else {
-      return createResponse({ error: 'User not found' }, 404);
+      return createResponse({ error: 'User not authorized' }, 403);
     }
   }
 
-  // Handle Question Fetching
+  // --- DEFAULT ACTION: Get Questions ---
   const testId = e.parameter.id;
   const sheet = ss.getSheetByName('Questions');
   
-  if (!sheet) {
-    return createResponse({ error: 'Questions sheet not found' }, 404);
-  }
+  if (!sheet) return createResponse({ error: 'Questions tab not found' }, 404);
 
   const data = sheet.getDataRange().getValues();
   const headers = data.shift();
@@ -88,9 +97,9 @@ function doPost(e) {
       JSON.stringify(responses)
     ]);
     
-    return createResponse({ status: 'success', message: 'Response recorded' });
+    return createResponse({ status: 'success' });
   } catch (err) {
-    return createResponse({ status: 'error', message: err.toString() }, 500);
+    return createResponse({ error: err.toString() }, 500);
   }
 }
 
