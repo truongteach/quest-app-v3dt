@@ -1,0 +1,23 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "landscape-1",
+      "description": "A beautiful mountain landscape for hotspot testing.",
+      "imageUrl": "https://picsum.photos/seed/mountain1/800/450",
+      "imageHint": "mountain landscape"
+    },
+    {
+      "id": "ui-concept",
+      "description": "A mobile UI concept for hotspot testing.",
+      "imageUrl": "https://picsum.photos/seed/ui/800/450",
+      "imageHint": "mobile app ui"
+    },
+    {
+      "id": "code-editor",
+      "description": "A code editor background.",
+      "imageUrl": "https://picsum.photos/seed/code/800/450",
+      "imageHint": "coding programming"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -9,46 +10,68 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { ChevronRight, ChevronLeft, Send, RotateCcw, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { PlaceHolderImages } from '@/app/lib/placeholder-images';
 
-// FALLBACK / DEMO DATA if no API is provided
 const DEMO_QUESTIONS: Question[] = [
   {
     id: "1",
-    question_text: "What is the capital of France?",
+    question_text: "What is the primary benefit of using QuestFlow?",
     question_type: "single_choice",
-    options: "London, Paris, Berlin, Madrid",
-    correct_answer: "Paris",
+    options: "No coding required, High performance, Google Sheets integration, All of the above",
+    correct_answer: "All of the above",
     required: true
   },
   {
     id: "2",
-    question_text: "Which of these are programming languages?",
+    question_text: "Which technologies power the QuestFlow frontend?",
     question_type: "multiple_choice",
-    options: "Python, HTML, CSS, JavaScript, MySQL",
-    correct_answer: "Python, JavaScript",
+    options: "Next.js, React, Tailwind CSS, Shadcn/UI, Vue.js",
+    correct_answer: "Next.js, React, Tailwind CSS, Shadcn/UI",
     required: true
   },
   {
     id: "3",
-    question_text: "Rate your experience with Next.js",
-    question_type: "rating",
-    required: false
-  },
-  {
-    id: "4",
-    question_text: "Sort these numbers in ascending order.",
-    question_type: "ordering",
-    order_group: "5, 2, 8, 1",
-    correct_answer: "1, 2, 5, 8",
+    question_text: "Is Google Apps Script required for QuestFlow to work with live data?",
+    question_type: "true_false",
+    correct_answer: "True",
     required: true
   },
   {
-     id: "5",
-     question_text: "Locate the main focus in this landscape.",
-     question_type: "hotspot",
-     image_url: "https://picsum.photos/seed/questflow/800/450",
-     metadata: JSON.stringify([{ id: 'z1', label: 'Mountain', x: 50, y: 40, radius: 15 }]),
-     required: false
+    id: "4",
+    question_text: "Rank these steps to set up QuestFlow in the correct order:",
+    question_type: "ordering",
+    order_group: "Connect API URL, Create Google Sheet, Deploy Apps Script, Share Sheet",
+    correct_answer: "Create Google Sheet, Share Sheet, Deploy Apps Script, Connect API URL",
+    required: true
+  },
+  {
+    id: "5",
+    question_text: "Locate the peak of the mountain in this image.",
+    question_type: "hotspot",
+    image_url: "https://picsum.photos/seed/mountain1/800/450",
+    metadata: JSON.stringify([{ id: 'peak', label: 'Mountain Peak', x: 50, y: 35, radius: 10 }]),
+    required: false
+  },
+  {
+    id: "6",
+    question_text: "Which programming language is used for Google Apps Script?",
+    question_type: "dropdown",
+    options: "Python, JavaScript, Ruby, PHP",
+    correct_answer: "JavaScript",
+    required: true
+  },
+  {
+    id: "7",
+    question_text: "What is the capital of the country where Google was founded?",
+    question_type: "short_text",
+    correct_answer: "Washington D.C.",
+    required: true
+  },
+  {
+    id: "8",
+    question_text: "How would you rate your experience with this demo so far?",
+    question_type: "rating",
+    required: false
   }
 ];
 
@@ -135,9 +158,9 @@ export default function QuizPage() {
       if (!q.correct_answer || !response) return;
 
       if (q.question_type === 'single_choice' || q.question_type === 'true_false' || q.question_type === 'short_text' || q.question_type === 'dropdown') {
-        if (response.toString().toLowerCase() === q.correct_answer.toLowerCase()) score++;
+        if (response.toString().toLowerCase().trim() === q.correct_answer.toLowerCase().trim()) score++;
       } else if (q.question_type === 'multiple_choice') {
-        const resArr = (response as string[]).sort();
+        const resArr = (response as string[]).map(r => r.trim()).sort();
         const correctArr = q.correct_answer.split(',').map(c => c.trim()).sort();
         if (JSON.stringify(resArr) === JSON.stringify(correctArr)) score++;
       } else if (q.question_type === 'ordering') {
@@ -282,9 +305,9 @@ export default function QuizPage() {
   function calculateScoreForQuestion(q: Question, response: any): boolean {
     if (!q.correct_answer || !response) return false;
     if (q.question_type === 'single_choice' || q.question_type === 'true_false' || q.question_type === 'short_text' || q.question_type === 'dropdown') {
-      return response.toString().toLowerCase() === q.correct_answer.toLowerCase();
+      return response.toString().toLowerCase().trim() === q.correct_answer.toLowerCase().trim();
     } else if (q.question_type === 'multiple_choice') {
-      const resArr = (response as string[]).sort();
+      const resArr = (response as string[]).map(r => r.trim()).sort();
       const correctArr = q.correct_answer.split(',').map(c => c.trim()).sort();
       return JSON.stringify(resArr) === JSON.stringify(correctArr);
     } else if (q.question_type === 'ordering') {
