@@ -1,7 +1,7 @@
 
 export const GAS_CODE = `
 /**
- * QUESTFLOW BACKEND v10.0 - FULL CRUD ARCHITECTURE
+ * QUESTFLOW BACKEND v11.0 - MULTI-SHEET CRUD ARCHITECTURE
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions
@@ -52,7 +52,7 @@ function doGet(e) {
     if (action === 'getQuestions') {
       const testId = e.parameter.id;
       const sheet = ss.getSheetByName(testId);
-      if (!sheet) return createResponse({ error: 'Test sheet not found' }, 404);
+      if (!sheet) return createResponse([]);
       return createResponse(getRowsAsObjects(sheet));
     }
 
@@ -79,6 +79,7 @@ function doPost(e) {
       const sheet = ss.getSheetByName('Tests') || ss.insertSheet('Tests');
       const data = payload.data;
       upsertRow(sheet, 'id', data.id, data);
+      
       // Create questions sheet if it doesn't exist
       if (!ss.getSheetByName(data.id)) {
         const qSheet = ss.insertSheet(data.id);
@@ -109,15 +110,19 @@ function doPost(e) {
     }
 
     if (action === 'saveQuestions') {
-      const sheet = ss.getSheetByName(payload.testId);
-      if (!sheet) return createResponse({ error: 'Sheet not found' }, 404);
+      const sheet = ss.getSheetByName(payload.testId) || ss.insertSheet(payload.testId);
       sheet.clear();
+      
       const questions = payload.questions;
-      if (questions.length > 0) {
-        const headers = Object.keys(questions[0]);
-        sheet.appendRow(headers);
+      const headers = ['id', 'question_text', 'question_type', 'options', 'correct_answer', 'order_group', 'image_url', 'metadata', 'required'];
+      sheet.appendRow(headers);
+      
+      if (Array.isArray(questions) && questions.length > 0) {
         questions.forEach(q => {
-          const row = headers.map(h => q[h]);
+          const row = headers.map(h => {
+            const val = q[h];
+            return (val !== undefined && val !== null) ? val : "";
+          });
           sheet.appendRow(row);
         });
       }
@@ -134,6 +139,7 @@ function doPost(e) {
 
 function getRowsAsObjects(sheet, excludeKeys = []) {
   const data = sheet.getDataRange().getValues();
+  if (data.length < 1) return [];
   const headers = data.shift();
   return data.map(row => {
     const obj = {};
@@ -144,6 +150,7 @@ function getRowsAsObjects(sheet, excludeKeys = []) {
 
 function upsertRow(sheet, idKey, idValue, data) {
   const values = sheet.getDataRange().getValues();
+  if (values.length === 0) return;
   const headers = values[0];
   const idIdx = headers.indexOf(idKey);
   let rowIndex = -1;
@@ -163,6 +170,7 @@ function upsertRow(sheet, idKey, idValue, data) {
 
 function deleteRow(sheet, idKey, idValue) {
   const values = sheet.getDataRange().getValues();
+  if (values.length < 2) return;
   const headers = values[0];
   const idIdx = headers.indexOf(idKey);
   for (let i = values.length - 1; i >= 1; i--) {

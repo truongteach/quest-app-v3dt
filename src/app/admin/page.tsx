@@ -203,14 +203,29 @@ export default function AdminDashboard() {
 
   const saveQuestion = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedTestId) {
+      toast({ variant: "destructive", title: "Selection Required", description: "Please select a test first." });
+      return;
+    }
+
     const formData = new FormData(e.currentTarget as HTMLFormElement);
     const qData = Object.fromEntries(formData.entries());
     
+    // Checkbox and default ID handling
+    const isRequired = formData.get('required') === 'on';
+    const newQuestionId = (qData.id as string) || `q_${Date.now()}`;
+    
+    const preparedQuestion = {
+      ...qData,
+      id: newQuestionId,
+      required: isRequired ? "TRUE" : "FALSE"
+    };
+
     let updatedQuestions = [...questions];
     if (editingItem) {
-      updatedQuestions = updatedQuestions.map(q => q.id === editingItem.id ? { ...q, ...qData } : q);
+      updatedQuestions = updatedQuestions.map(q => q.id === editingItem.id ? { ...preparedQuestion } : q);
     } else {
-      updatedQuestions.push({ ...qData } as any);
+      updatedQuestions.push(preparedQuestion as any);
     }
     
     handlePost('saveQuestions', { testId: selectedTestId, questions: updatedQuestions });
@@ -327,7 +342,7 @@ export default function AdminDashboard() {
               {questions.map((q, i) => (
                 <TableRow key={i}>
                   <TableCell className="text-xs font-mono">{q.id}</TableCell>
-                  <TableCell><Badge variant="secondary" className="capitalize">{q.question_type.replace('_', ' ')}</Badge></TableCell>
+                  <TableCell><Badge variant="secondary" className="capitalize">{q.question_type?.replace('_', ' ') || 'Unknown'}</Badge></TableCell>
                   <TableCell className="max-w-md truncate font-medium">{q.question_text}</TableCell>
                   <TableCell className="text-right flex justify-end gap-2">
                     <Button variant="ghost" size="sm" onClick={() => { setEditingItem(q); setIsQuestionDialogOpen(true); }} className="rounded-full"><Edit className="w-4 h-4" /></Button>
@@ -427,7 +442,7 @@ export default function AdminDashboard() {
           </SidebarContent>
           <SidebarFooter className="p-4 border-t bg-slate-50/50">
             <div className="p-4 bg-white rounded-2xl border flex items-center justify-between">
-              <div className="flex flex-col"><span className="text-xs font-black">{user.displayName || 'Admin'}</span><span className="text-[10px] text-muted-foreground font-medium truncate w-24">{user.email}</span></div>
+              <div className="flex flex-col"><span className="text-xs font-black">{user?.displayName || 'Admin'}</span><span className="text-[10px] text-muted-foreground font-medium truncate w-24">{user?.email}</span></div>
               <Button variant="ghost" size="icon" onClick={logout} className="rounded-full text-destructive hover:bg-destructive/10"><LogOut className="w-4 h-4" /></Button>
             </div>
           </SidebarFooter>
@@ -471,10 +486,16 @@ export default function AdminDashboard() {
       {/* Question Dialog */}
       <Dialog open={isQuestionDialogOpen} onOpenChange={setIsQuestionDialogOpen}>
         <DialogContent className="sm:max-w-[550px] rounded-[2rem] max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editingItem ? 'Edit Question' : 'Add Question'}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editingItem ? 'Edit Question' : 'Add Question'}</DialogTitle>
+            <DialogDescription>Modify fields for the assessment: {selectedTestId}</DialogDescription>
+          </DialogHeader>
           <form onSubmit={saveQuestion} className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Question ID</Label><Input name="id" defaultValue={editingItem?.id} required /></div>
+              <div className="space-y-2">
+                <Label>Question ID (Optional)</Label>
+                <Input name="id" defaultValue={editingItem?.id} placeholder="e.g. q1" />
+              </div>
               <div className="space-y-2"><Label>Type</Label>
                 <select name="question_type" defaultValue={editingItem?.question_type || 'single_choice'} className="w-full h-10 px-3 rounded-md border bg-background text-sm">
                   <option value="single_choice">Single Choice</option>
