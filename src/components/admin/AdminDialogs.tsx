@@ -14,8 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save } from "lucide-react";
-import { Question } from '@/types/quiz';
+import { Save, HelpCircle, CheckCircle2, Image as ImageIcon, Layers, ListOrdered, Type, Hash, Star } from "lucide-react";
+import { Question, QuestionType } from '@/types/quiz';
+import { cn } from "@/lib/utils";
 
 interface AdminDialogsProps {
   dialogs: {
@@ -46,12 +47,33 @@ export function AdminDialogs({
   onSaveBulk 
 }: AdminDialogsProps) {
   const [questionJson, setQuestionJson] = useState("");
+  const [selectedType, setSelectedType] = useState<QuestionType>('single_choice');
 
   useEffect(() => {
     if (dialogs.bulk) {
       setQuestionJson(JSON.stringify(questions, null, 2));
     }
   }, [dialogs.bulk, questions]);
+
+  useEffect(() => {
+    if (dialogs.question && editingItem) {
+      setSelectedType(editingItem.question_type as QuestionType);
+    } else if (dialogs.question && !editingItem) {
+      setSelectedType('single_choice');
+    }
+  }, [dialogs.question, editingItem]);
+
+  const QUESTION_TYPES = [
+    { value: 'single_choice', label: 'Single Choice', icon: CheckCircle2, desc: 'One correct answer from a list.' },
+    { value: 'multiple_choice', label: 'Multiple Choice', icon: Layers, desc: 'Multiple correct answers allowed.' },
+    { value: 'true_false', label: 'True/False', icon: CheckCircle2, desc: 'Binary choice interaction.' },
+    { value: 'short_text', label: 'Short Text', icon: Type, desc: 'Free text entry for answers.' },
+    { value: 'dropdown', label: 'Dropdown', icon: ListOrdered, desc: 'Select one from a collapsed menu.' },
+    { value: 'ordering', label: 'Ordering', icon: ListOrdered, desc: 'Drag items into the correct sequence.' },
+    { value: 'matching', icon: Layers, label: 'Matching', desc: 'Associate items from two columns.' },
+    { value: 'hotspot', icon: ImageIcon, label: 'Hotspot', desc: 'Select a location on an image.' },
+    { value: 'rating', icon: Star, label: 'Rating', desc: 'Star-based satisfaction scale.' },
+  ];
 
   return (
     <>
@@ -71,7 +93,7 @@ export function AdminDialogs({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-bold">Test ID</Label>
-                <Input name="id" defaultValue={editingItem?.id} placeholder="Auto-generated if empty" disabled={!!editingItem} className="rounded-xl h-11" />
+                <Input name="id" defaultValue={editingItem?.id} placeholder="Auto-generated" disabled={!!editingItem} className="rounded-xl h-11" />
               </div>
               <div className="space-y-2"><Label className="font-bold">Category</Label><Input name="category" defaultValue={editingItem?.category} className="rounded-xl h-11" /></div>
             </div>
@@ -89,45 +111,129 @@ export function AdminDialogs({
 
       {/* Question Dialog */}
       <Dialog open={dialogs.question} onOpenChange={(val) => setDialogs({...dialogs, question: val})}>
-        <DialogContent className="sm:max-w-[550px] rounded-[2rem] max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl bg-white">
-          <div className="bg-slate-900 p-8 text-white">
-            <DialogTitle className="text-2xl font-black">{editingItem ? 'Edit Question' : 'New Question'}</DialogTitle>
-            <DialogDescription className="text-white/60">Configuring item for: <span className="text-white font-bold">{selectedTestId}</span></DialogDescription>
+        <DialogContent className="sm:max-w-[650px] rounded-[2.5rem] max-h-[90vh] overflow-hidden p-0 border-none shadow-2xl bg-white flex flex-col">
+          <div className="bg-slate-900 p-8 text-white shrink-0">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="bg-primary p-2 rounded-lg">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <DialogTitle className="text-2xl font-black">{editingItem ? 'Edit Question' : 'Add Question'}</DialogTitle>
+            </div>
+            <DialogDescription className="text-white/60">Configuring content for: <span className="text-white font-bold">{selectedTestId}</span></DialogDescription>
           </div>
+          
           <form onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             onSaveQuestion(Object.fromEntries(formData.entries()), formData.get('required') === 'on');
             setDialogs({...dialogs, question: false});
-          }} className="p-8 space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label className="font-bold">Type</Label>
-                <select name="question_type" defaultValue={editingItem?.question_type || 'single_choice'} className="w-full h-11 px-3 rounded-xl border bg-slate-50 font-bold text-sm outline-none">
-                  <option value="single_choice">Single Choice</option>
-                  <option value="multiple_choice">Multiple Choice</option>
-                  <option value="true_false">True/False</option>
-                  <option value="short_text">Short Text</option>
-                  <option value="ordering">Ordering</option>
-                  <option value="matching">Matching</option>
-                  <option value="hotspot">Hotspot</option>
-                  <option value="rating">Rating</option>
-                  <option value="dropdown">Dropdown</option>
-                </select>
+          }} className="flex-1 overflow-y-auto p-8 space-y-8">
+            
+            <div className="space-y-4">
+              <Label className="font-black text-sm uppercase tracking-widest text-slate-400">Interaction Type</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {QUESTION_TYPES.map((type) => (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => setSelectedType(type.value as QuestionType)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left",
+                      selectedType === type.value 
+                        ? "bg-primary/5 border-primary shadow-md ring-4 ring-primary/5" 
+                        : "bg-slate-50 border-slate-100 hover:border-slate-300"
+                    )}
+                  >
+                    <type.icon className={cn("w-5 h-5", selectedType === type.value ? "text-primary" : "text-slate-400")} />
+                    <span className={cn("text-xs font-black", selectedType === type.value ? "text-primary" : "text-slate-600")}>{type.label}</span>
+                    <input type="radio" name="question_type" value={type.value} checked={selectedType === type.value} readOnly className="hidden" />
+                  </button>
+                ))}
               </div>
+              <p className="text-[10px] text-muted-foreground font-medium px-2 italic">
+                {QUESTION_TYPES.find(t => t.value === selectedType)?.desc}
+              </p>
+            </div>
+
+            <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="font-bold">Question ID</Label>
-                <Input name="id" defaultValue={editingItem?.id} placeholder="Auto-generated if empty" className="rounded-xl h-11" disabled={!!editingItem} />
+                <Label className="font-bold flex items-center justify-between">
+                  Question Prompt
+                  <span className="text-[10px] font-black text-slate-400 uppercase">Required</span>
+                </Label>
+                <Textarea name="question_text" defaultValue={editingItem?.question_text} required placeholder="What would you like to ask?" className="rounded-xl min-h-[100px] text-lg font-medium" />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-bold">Internal Reference ID</Label>
+                  <Input name="id" defaultValue={editingItem?.id} placeholder="Auto-generated" className="rounded-xl h-11 font-mono text-xs" disabled={!!editingItem} />
+                </div>
+                <div className="flex items-end pb-1">
+                  <div className="flex items-center space-x-3 py-2.5 bg-slate-50 rounded-xl px-4 border w-full">
+                    <input type="checkbox" name="required" id="q_required" className="w-5 h-5 rounded-md border-2 border-slate-300 accent-primary" defaultChecked={editingItem?.required === "TRUE" || editingItem?.required === true} />
+                    <Label htmlFor="q_required" className="font-black cursor-pointer text-xs">Compulsory</Label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Conditional: Options for choices/dropdown */}
+              {(['single_choice', 'multiple_choice', 'dropdown'].includes(selectedType)) && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Label className="font-bold">Available Choices</Label>
+                  <Input name="options" defaultValue={editingItem?.options} placeholder="Option 1, Option 2, Option 3..." className="rounded-xl h-11" />
+                  <p className="text-[10px] text-muted-foreground font-medium">Separate each choice with a comma.</p>
+                </div>
+              )}
+
+              {/* Conditional: Order Group for ordering/matching */}
+              {(['ordering', 'matching'].includes(selectedType)) && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Label className="font-bold">
+                    {selectedType === 'ordering' ? 'Sequence Items' : 'Matching Pairs'}
+                  </Label>
+                  <Input 
+                    name="order_group" 
+                    defaultValue={editingItem?.order_group} 
+                    placeholder={selectedType === 'ordering' ? "Item 1, Item 2, Item 3" : "LeftA|RightA, LeftB|RightB"} 
+                    className="rounded-xl h-11" 
+                  />
+                  <p className="text-[10px] text-muted-foreground font-medium">
+                    {selectedType === 'ordering' ? 'Comma separated items in ANY order (shuffled for users).' : 'Formatted as Left|Right, separated by commas.'}
+                  </p>
+                </div>
+              )}
+
+              {/* Conditional: Correct Answer */}
+              {selectedType !== 'rating' && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Label className="font-bold">Correct Solution / Answer Key</Label>
+                  <Input name="correct_answer" defaultValue={editingItem?.correct_answer} placeholder="Type the correct answer(s) here" className="rounded-xl h-11 font-mono text-xs bg-slate-50 border-primary/20" />
+                  <p className="text-[10px] text-muted-foreground font-medium">For multiple choice, use comma separation. For matching, use Left|Right,Left|Right.</p>
+                </div>
+              )}
+
+              {/* Conditional: Media & Metadata */}
+              {(selectedType === 'hotspot' || editingItem?.image_url) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
+                    <Label className="font-bold">Media URL</Label>
+                    <Input name="image_url" defaultValue={editingItem?.image_url} placeholder="https://..." className="rounded-xl h-11" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold">Metadata JSON</Label>
+                    <Input name="metadata" defaultValue={editingItem?.metadata} placeholder='[{"id": "zone1", ...}]' className="rounded-xl h-11 font-mono text-[10px]" />
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="space-y-2"><Label className="font-bold">Prompt Text</Label><Textarea name="question_text" defaultValue={editingItem?.question_text} required className="rounded-xl min-h-[100px]" /></div>
-            <div className="space-y-2"><Label className="font-bold">Choices (Comma separated)</Label><Input name="options" defaultValue={editingItem?.options} placeholder="Choice A, Choice B..." className="rounded-xl h-11" /></div>
-            <div className="space-y-2"><Label className="font-bold">Correct Key</Label><Input name="correct_answer" defaultValue={editingItem?.correct_answer} className="rounded-xl h-11 font-mono text-xs" /></div>
-            <div className="space-y-2"><Label className="font-bold">Reference Media URL</Label><Input name="image_url" defaultValue={editingItem?.image_url} className="rounded-xl h-11" /></div>
-            <div className="flex items-center space-x-3 py-3 bg-slate-50 rounded-xl px-4 border">
-               <input type="checkbox" name="required" id="q_required" className="w-5 h-5 rounded-md border-2 border-slate-300 accent-primary" defaultChecked={editingItem?.required === "TRUE" || editingItem?.required === true} />
-               <Label htmlFor="q_required" className="font-black cursor-pointer">Compulsory Question</Label>
-            </div>
-            <DialogFooter><Button type="submit" className="rounded-full w-full h-12 font-black text-lg shadow-xl">Commit Question</Button></DialogFooter>
+
+            <DialogFooter className="pt-4 border-t sticky bottom-0 bg-white pb-2 mt-auto">
+              <Button type="submit" className="rounded-full w-full h-12 font-black text-lg shadow-xl hover:scale-[1.02] transition-transform">
+                <Save className="w-5 h-5 mr-2" />
+                Commit to Question Bank
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
