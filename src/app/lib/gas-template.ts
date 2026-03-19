@@ -1,7 +1,7 @@
 
 export const GAS_CODE = `
 /**
- * QUESTFLOW BACKEND v8.0 - MULTI-SHEET ARCHITECTURE
+ * QUESTFLOW BACKEND v9.0 - MULTI-VIEW ADMIN ARCHITECTURE
  * 
  * SETUP INSTRUCTIONS:
  * 1. Open your Google Sheet.
@@ -48,10 +48,40 @@ function doGet(e) {
     return createResponse({ error: 'User not found' }, 403);
   }
 
+  // --- ACTION: getUsers (Admin Only) ---
+  if (action === 'getUsers') {
+    const sheet = ss.getSheetByName('Users');
+    if (!sheet) return createResponse([]);
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    const users = data.map(row => {
+      const obj = {};
+      headers.forEach((h, i) => {
+        if (h !== 'password') obj[h] = row[i]; // Don't send passwords back to UI
+      });
+      return obj;
+    });
+    return createResponse(users);
+  }
+
+  // --- ACTION: getResponses (Admin Only) ---
+  if (action === 'getResponses') {
+    const sheet = ss.getSheetByName('Responses');
+    if (!sheet) return createResponse([]);
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    const responses = data.map(row => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = row[i]);
+      return obj;
+    }).reverse(); // Latest first
+    return createResponse(responses.slice(0, 100)); // Limit to last 100
+  }
+
   // --- ACTION: getTests ---
   if (action === 'getTests') {
     const sheet = ss.getSheetByName('Tests');
-    if (!sheet) return createResponse({ error: 'Tests tab not found' }, 404);
+    if (!sheet) return createResponse([]);
     
     const data = sheet.getDataRange().getValues();
     const headers = data.shift();
