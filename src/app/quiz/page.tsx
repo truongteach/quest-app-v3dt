@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
-import { QuizState, QuizMode } from '@/types/quiz';
+import { QuizState, QuizMode, Question } from '@/types/quiz';
 import { QuizStart } from '@/components/quiz/QuizStart';
 import { QuizResults } from '@/components/quiz/QuizResults';
 import { QuizActive } from '@/components/quiz/QuizActive';
@@ -31,6 +31,9 @@ function QuizContent() {
   const [guestName, setGuestName] = useState("");
   const [timeLeft, setTimeLeft] = useState(900); // 15 minutes default
   const [isWrongInRace, setIsWrongInRace] = useState(false);
+  
+  // Master registry to keep the original order for Training/Race
+  const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
   
   const [quiz, setQuiz] = useState<QuizState>({
     questions: [],
@@ -67,18 +70,22 @@ function QuizContent() {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
+      let fetched: Question[] = [];
       if (API_URL) {
         const res = await fetch(`${API_URL}?action=getQuestions&id=${testId}`);
         const data = await res.json();
         if (data && Array.isArray(data) && data.length > 0) {
-          setQuiz(prev => ({ ...prev, questions: data, startTime: Date.now() }));
+          fetched = data;
         } else {
-          setQuiz(prev => ({ ...prev, questions: DEMO_QUESTIONS, startTime: Date.now() }));
+          fetched = DEMO_QUESTIONS;
         }
       } else {
-        setQuiz(prev => ({ ...prev, questions: DEMO_QUESTIONS, startTime: Date.now() }));
+        fetched = DEMO_QUESTIONS;
       }
+      setOriginalQuestions(fetched);
+      setQuiz(prev => ({ ...prev, questions: fetched, startTime: Date.now() }));
     } catch (err) {
+      setOriginalQuestions(DEMO_QUESTIONS);
       setQuiz(prev => ({ ...prev, questions: DEMO_QUESTIONS, startTime: Date.now() }));
     } finally {
       setLoading(false);
@@ -184,8 +191,21 @@ function QuizContent() {
     }
   };
 
+  const shuffleQuestions = (arr: Question[]) => {
+    const shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   const restart = () => {
     setTimeLeft(900);
+    let q = [...originalQuestions];
+    if (quiz.mode === 'test') {
+      q = shuffleQuestions(q);
+    }
     setQuiz({
       ...quiz,
       currentQuestionIndex: 0,
@@ -195,7 +215,7 @@ function QuizContent() {
       startTime: Date.now(),
       mode: quiz.mode,
       highestStepReached: 0,
-      questions: quiz.questions
+      questions: q
     });
   };
 
@@ -206,8 +226,13 @@ function QuizContent() {
 
   const handleStart = (mode: QuizMode) => {
     setIsStarted(true);
+    let q = [...originalQuestions];
+    if (mode === 'test') {
+      q = shuffleQuestions(q);
+    }
     setQuiz(prev => ({ 
       ...prev, 
+      questions: q,
       startTime: Date.now(),
       mode: mode 
     }));
