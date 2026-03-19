@@ -3,62 +3,82 @@ import { Question } from "@/types/quiz";
 
 export const DEMO_QUESTIONS: Question[] = [
   {
+    id: "tf1",
+    question_text: "QuestFlow is built with Next.js and Google Sheets.",
+    question_type: "true_false",
+    correct_answer: "True",
+    required: true
+  },
+  {
+    id: "st1",
+    question_text: "What is the primary language used to write Google Apps Script?",
+    question_type: "short_text",
+    correct_answer: "JavaScript",
+    required: true
+  },
+  {
+    id: "dd1",
+    question_text: "Select the most popular JavaScript framework used in QuestFlow:",
+    question_type: "dropdown",
+    options: "React, Vue, Angular, Svelte",
+    correct_answer: "React",
+    required: false
+  },
+  {
+    id: "rt1",
+    question_text: "How would you rate the speed of this assessment platform?",
+    question_type: "rating",
+    required: false
+  },
+  {
     id: "m1",
-    question_text: "Match the programming languages to their primary use cases:",
+    question_text: "Match the technologies to their roles:",
     question_type: "matching",
-    order_group: "TypeScript|Web Development,Python|Data Science,Swift|iOS Apps,SQL|Databases",
-    correct_answer: "TypeScript|Web Development,Python|Data Science,Swift|iOS Apps,SQL|Databases",
+    order_group: "Next.js|Frontend Framework,Tailwind|CSS Styling,Sheets|Database,Lucide|Icon Set",
+    correct_answer: "Next.js|Frontend Framework,Tailwind|CSS Styling,Sheets|Database,Lucide|Icon Set",
     required: true
   },
   {
-    id: "1",
-    question_text: "What is the primary benefit of using QuestFlow?",
-    question_type: "single_choice",
-    options: "No coding required, High performance, Google Sheets integration, All of the above",
-    correct_answer: "All of the above",
-    required: true
-  },
-  {
-    id: "2",
-    question_text: "Which technologies power the QuestFlow frontend?",
+    id: "q1",
+    question_text: "Which of these are valid question types in QuestFlow?",
     question_type: "multiple_choice",
-    options: "Next.js, React, Tailwind CSS, Shadcn/UI, Vue.js",
-    correct_answer: "Next.js, React, Tailwind CSS, Shadcn/UI",
+    options: "Hotspot, Matching, Ordering, AI Voice, Binary Search",
+    correct_answer: "Hotspot, Matching, Ordering",
     required: true
   },
   {
-    id: "4",
-    question_text: "Rank these steps to set up QuestFlow in the correct order:",
+    id: "o1",
+    question_text: "Rank these steps to set up a new test in the correct order:",
     question_type: "ordering",
-    order_group: "Connect API URL, Create Google Sheet, Deploy Apps Script, Share Sheet",
-    correct_answer: "Create Google Sheet, Share Sheet, Deploy Apps Script, Connect API URL",
+    order_group: "Add Questions, Define Test Metadata, Share with Users, Review Results",
+    correct_answer: "Define Test Metadata, Add Questions, Share with Users, Review Results",
     required: true
   },
   {
-    id: "5",
-    question_text: "Locate the peak of the mountain in this image.",
+    id: "h1",
+    question_text: "Identify the 'Settings' icon in the mobile interface.",
     question_type: "hotspot",
-    image_url: "https://picsum.photos/seed/mountain1/800/450",
-    metadata: JSON.stringify([{ id: 'peak', label: 'Mountain Peak', x: 50, y: 35, radius: 10 }]),
+    image_url: "https://picsum.photos/seed/ui/800/450",
+    metadata: JSON.stringify([{ id: 'settings', label: 'Settings Icon', x: 85, y: 15, radius: 10 }]),
     required: false
   }
 ];
 
 export const AVAILABLE_TESTS = [
   {
-    id: "demo-1",
-    title: "QuestFlow Essentials",
-    description: "Learn the basics of our interactive quiz platform and master the standard question types.",
+    id: "demo-full",
+    title: "The Ultimate Feature Tour",
+    description: "Experience every single question type supported by QuestFlow in one comprehensive test.",
     category: "Product Tour",
     difficulty: "Beginner",
     questions: 8,
-    duration: "5 mins",
+    duration: "10 mins",
     image: "https://picsum.photos/seed/mountain1/800/450"
   },
   {
-    id: "demo-logic",
+    id: "logic-master",
     title: "Logic & Associations",
-    description: "Challenge your mind with our new Matching and Ordering question types. Perfect for language and logic testing.",
+    description: "Challenge your mind with advanced Matching and Ordering question types.",
     category: "Specialized",
     difficulty: "Intermediate",
     questions: 5,
@@ -66,17 +86,7 @@ export const AVAILABLE_TESTS = [
     image: "https://picsum.photos/seed/brain/800/450"
   },
   {
-    id: "demo-2",
-    title: "Advanced Interactions",
-    description: "A deep dive into hotspots, ordering, and complex logic patterns for power users.",
-    category: "Technical",
-    difficulty: "Advanced",
-    questions: 12,
-    duration: "15 mins",
-    image: "https://picsum.photos/seed/ui/800/450"
-  },
-  {
-    id: "demo-3",
+    id: "data-viz",
     title: "Data Insights Challenge",
     description: "Test your knowledge on interpreting complex charts, graphs, and data sets.",
     category: "Analytics",
@@ -84,25 +94,5 @@ export const AVAILABLE_TESTS = [
     questions: 10,
     duration: "10 mins",
     image: "https://picsum.photos/seed/data/800/450"
-  },
-  {
-    id: "demo-4",
-    title: "Ecosystems & Environment",
-    description: "An educational survey regarding global ecosystems, climate data, and sustainability.",
-    category: "Education",
-    difficulty: "Beginner",
-    questions: 6,
-    duration: "4 mins",
-    image: "https://picsum.photos/seed/nature/800/450"
-  },
-  {
-    id: "demo-5",
-    title: "Web Tech Quiz",
-    description: "Evaluate your understanding of modern web technologies, from CSS to Server Components.",
-    category: "Development",
-    difficulty: "Intermediate",
-    questions: 15,
-    duration: "12 mins",
-    image: "https://picsum.photos/seed/code/800/450"
   }
 ];

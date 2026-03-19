@@ -77,7 +77,7 @@ export default function AdminDashboard() {
   };
 
   const handleSeedData = async () => {
-    toast({ title: "Seeding Started", description: "Pushing demo content to your Google Sheet..." });
+    toast({ title: "Seeding Started", description: "Pushing full feature demo to your Google Sheet..." });
     
     try {
       // 1. Seed Tests
@@ -93,15 +93,14 @@ export default function AdminDashboard() {
         }});
       }
 
-      // 2. Seed Questions for specific demo tests
-      // We'll seed the 'demo-1' and 'demo-logic' with specific sets
+      // 2. Seed Questions for the tour test
       await handlePost('saveQuestions', { 
-        testId: 'demo-1', 
+        testId: 'demo-full', 
         questions: DEMO_QUESTIONS 
       });
 
       toast({ title: "Success", description: "Demo library populated successfully." });
-      fetchData();
+      setTimeout(fetchData, 2000); // Wait for GAS to finalize
     } catch (error) {
       toast({ variant: "destructive", title: "Seed Failed", description: "Some content could not be pushed." });
     }
