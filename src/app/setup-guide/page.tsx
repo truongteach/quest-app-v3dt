@@ -2,6 +2,7 @@
 "use client";
 
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -22,16 +23,16 @@ export default function SetupGuide() {
     });
   };
 
-  const SAMPLE_USERS = `id\tname\temail\trole\tpassword
-U001\tAdmin User\tadmin@example.com\tadmin\tadmin123
-U002\tJane Smith\tuser@example.com\tuser\tpass123
-U003\tJohn Doe\tjohn@example.com\tuser\tjohn123`;
+  const SAMPLE_USERS = `id	name	email	role	password
+U001	Admin User	admin@example.com	admin	admin123
+U002	Jane Smith	user@example.com	user	pass123
+U003	John Doe	john@example.com	user	john123`;
 
-  const SAMPLE_QUESTIONS = `test_id\tid\tquestion_text\tquestion_type\toptions\tcorrect_answer\torder_group\timage_url\tmetadata\trequired
-demo-1\tq1\tWhat is QuestFlow?\tsingle_choice\tA Tool,A Framework,A Platform,All of the above\tAll of the above\t\t\tTRUE
-demo-1\tq2\tArrange the steps to set up QuestFlow:\tordering\t\tCreate Sheet, Deploy Script, Connect URL\tCreate Sheet, Deploy Script, Connect URL\t\t\tTRUE
-demo-logic\tm1\tMatch the technology to its role:\tmatching\t\tReact|Frontend, Sheets|Backend, Apps Script|API\tReact|Frontend, Sheets|Backend, Apps Script|API\t\t\tTRUE
-demo-1\th1\tLocate the peak in the image:\thotspot\t\t\t\thttps://picsum.photos/seed/mountain/800/450\t[{"id":"peak","label":"Peak","x":50,"y":35,"radius":10}]\tFALSE`;
+  const SAMPLE_QUESTIONS = `test_id	id	question_text	question_type	options	correct_answer	order_group	image_url	metadata	required
+demo-1	q1	What is QuestFlow?	single_choice	A Tool,A Framework,A Platform,All of the above	All of the above			TRUE
+demo-1	q2	Arrange the steps to set up QuestFlow:	ordering		Create Sheet, Deploy Script, Connect URL	Create Sheet, Deploy Script, Connect URL			TRUE
+demo-logic	m1	Match the technology to its role:	matching		React|Frontend, Sheets|Backend, Apps Script|API	React|Frontend, Sheets|Backend, Apps Script|API			TRUE
+demo-1	h1	Locate the peak in the image:	hotspot				https://picsum.photos/seed/mountain/800/450	[{"id":"peak","label":"Peak","x":50,"y":35,"radius":10}]	FALSE`;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-12">
@@ -86,7 +87,7 @@ demo-1\th1\tLocate the peak in the image:\thotspot\t\t\t\thttps://picsum.photos/
                   <Alert className="mt-4 bg-amber-50 border-amber-100 text-amber-800">
                     <Info className="h-4 w-4" />
                     <AlertDescription className="text-xs">
-                      Users with role <strong>admin</strong> can access the dashboard. The system now checks for <strong>password</strong> matches.
+                      Users with role <strong>admin</strong> can access the dashboard. The system checks for <strong>email</strong> and <strong>password</strong> matches.
                     </AlertDescription>
                   </Alert>
                 </CardContent>
@@ -149,7 +150,7 @@ demo-1\th1\tLocate the peak in the image:\thotspot\t\t\t\thttps://picsum.photos/
                   <ul className="space-y-3 text-sm text-slate-600 font-medium">
                     <li className="flex gap-2"><span>1.</span> Copy code from <code className="bg-slate-100 px-1">docs/backend.gs</code></li>
                     <li className="flex gap-2"><span>2.</span> In Sheet: <strong>Extensions &gt; Apps Script</strong></li>
-                    <li className="flex gap-2"><span>3.</span> Replace spreadsheet ID in code</li>
+                    <li className="flex gap-2"><span>3.</span> Paste the code and <strong>Save</strong></li>
                     <li className="flex gap-2"><span>4.</span> Deploy as Web App (Me / Anyone)</li>
                   </ul>
                 </div>
@@ -159,7 +160,7 @@ demo-1\th1\tLocate the peak in the image:\thotspot\t\t\t\thttps://picsum.photos/
                     Login Instructions
                   </h3>
                   <p className="text-sm text-slate-600 font-medium">
-                    Use <strong>admin@example.com</strong> and password <strong>admin123</strong> to test the admin dashboard after setup.
+                    Use <strong>admin@example.com</strong> and password <strong>admin123</strong> to test. Everything is now automatic!
                   </p>
                   <Link href="/login">
                     <Button className="w-full rounded-full font-bold shadow-lg">Go to Login Page</Button>

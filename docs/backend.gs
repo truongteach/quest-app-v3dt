@@ -1,36 +1,34 @@
 
 /**
- * QUESTFLOW BACKEND v5.0 - STRUCTURED DATABASE
+ * QUESTFLOW BACKEND v7.0 - AUTOMATIC SHEET CONNECTION
  * 
  * SETUP INSTRUCTIONS:
- * 1. Create a Google Sheet.
- * 2. Create THREE tabs with these EXACT names:
+ * 1. Open your Google Sheet.
+ * 2. Go to Extensions > Apps Script.
+ * 3. Delete any code in the editor and PASTE THIS ENTIRE SCRIPT.
+ * 4. Create THREE tabs with these EXACT names:
  *    - "Questions"
  *    - "Users"
  *    - "Responses"
  * 
- * 3. Add Headers to "Questions": 
- *    test_id, id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required
+ * 5. Deploy as Web App:
+ *    - Click "Deploy" > "New Deployment"
+ *    - Select type: "Web App"
+ *    - Execute as: "Me"
+ *    - Who has access: "Anyone"
  * 
- * 4. Add Headers to "Users":
- *    id, name, email, role
- * 
- * 5. Add Headers to "Responses":
- *    Timestamp, Test ID, Score, Total, Duration (ms), Raw Responses
- * 
- * 6. Replace 'YOUR_SPREADSHEET_ID' below with your actual ID from the URL.
- * 7. Deploy as Web App (Execute as: Me, Access: Anyone).
+ * 6. Copy the "Web App URL" and paste it into src/lib/api-config.ts in your project.
  */
 
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
-
 function doGet(e) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const action = e.parameter.action;
 
-  // --- ACTION: login / getRole ---
-  if (action === 'getRole' || action === 'login') {
+  // --- ACTION: login ---
+  if (action === 'login') {
     const email = e.parameter.email;
+    const password = e.parameter.password;
+    
     if (!email) return createResponse({ error: 'Email required' }, 400);
 
     const usersSheet = ss.getSheetByName('Users');
@@ -39,23 +37,32 @@ function doGet(e) {
     const data = usersSheet.getDataRange().getValues();
     const headers = data.shift();
     
-    // Find column indexes dynamically
     const emailIdx = headers.indexOf('email');
     const roleIdx = headers.indexOf('role');
     const nameIdx = headers.indexOf('name');
+    const passIdx = headers.indexOf('password');
+    const idIdx = headers.indexOf('id');
     
-    if (emailIdx === -1) return createResponse({ error: 'Email column not found in Users tab' }, 500);
+    if (emailIdx === -1) return createResponse({ error: 'Email column not found' }, 500);
 
     const userRow = data.find(row => String(row[emailIdx]).toLowerCase() === email.toLowerCase());
     
     if (userRow) {
+      if (passIdx !== -1) {
+        const storedPass = String(userRow[passIdx]);
+        if (storedPass !== String(password)) {
+          return createResponse({ error: 'Invalid password' }, 401);
+        }
+      }
+
       return createResponse({ 
+        id: idIdx !== -1 ? userRow[idIdx] : null,
         email: userRow[emailIdx], 
         role: userRow[roleIdx] || 'user',
         name: nameIdx !== -1 ? userRow[nameIdx] : email.split('@')[0]
       });
     } else {
-      return createResponse({ error: 'User not authorized' }, 403);
+      return createResponse({ error: 'User not found' }, 403);
     }
   }
 
@@ -84,7 +91,7 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
     let responsesSheet = ss.getSheetByName('Responses');
     
     if (!responsesSheet) {
