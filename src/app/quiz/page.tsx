@@ -7,12 +7,31 @@ import { QuestionRenderer } from '@/components/quiz/QuestionRenderer';
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronRight, ChevronLeft, Send, RotateCcw, CheckCircle2, XCircle, AlertCircle, Loader2, Home } from "lucide-react";
+import { 
+  ChevronRight, 
+  ChevronLeft, 
+  Send, 
+  RotateCcw, 
+  CheckCircle2, 
+  XCircle, 
+  AlertCircle, 
+  Loader2, 
+  Home,
+  ListOrdered,
+  Check
+} from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { cn } from "@/lib/utils";
 import { DEMO_QUESTIONS } from '@/app/lib/demo-data';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 function QuizContent() {
   const searchParams = useSearchParams();
@@ -20,6 +39,7 @@ function QuizContent() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [quiz, setQuiz] = useState<QuizState>({
     questions: [],
     currentQuestionIndex: 0,
@@ -161,6 +181,11 @@ function QuizContent() {
     });
   };
 
+  const jumpToQuestion = (index: number) => {
+    setQuiz(prev => ({ ...prev, currentQuestionIndex: index }));
+    setIsSidebarOpen(false);
+  };
+
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
@@ -259,43 +284,66 @@ function QuizContent() {
     <div className="min-h-screen bg-background flex flex-col items-center p-4 md:p-8">
       <div className="w-full max-w-4xl flex-1 flex flex-col gap-6">
         <header className="space-y-6 mb-4 text-center">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-black text-foreground tracking-tight">{quizTitle}</h1>
-            <div className="flex justify-between items-center text-xs font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
-              <span>Progress: {quiz.currentQuestionIndex + 1} / {quiz.questions.length}</span>
-              <span>{Math.round(progress)}% Complete</span>
-            </div>
-            <Progress value={progress} className="h-3 rounded-full bg-slate-100" />
-          </div>
-
-          <div className="bg-white/50 backdrop-blur-sm p-4 rounded-3xl border shadow-sm overflow-x-auto">
-            <div className="flex items-center justify-center gap-2 min-w-max px-2">
-              {quiz.questions.map((q, idx) => {
-                const isCurrent = quiz.currentQuestionIndex === idx;
-                const answered = isAnswered(q.id);
-                return (
-                  <Button
-                    key={q.id}
-                    variant={isCurrent ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setQuiz(prev => ({ ...prev, currentQuestionIndex: idx }))}
-                    className={cn(
-                      "w-10 h-10 rounded-xl font-bold transition-all border-2",
-                      !isCurrent && answered && "bg-green-50 border-green-200 text-green-600 hover:bg-green-100",
-                      isCurrent && "border-primary shadow-md scale-110 z-10",
-                      !isCurrent && !answered && "bg-white border-slate-200"
-                    )}
-                  >
-                    {idx + 1}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Link href="/tests">
+                <Button variant="ghost" size="sm">
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Exit
+                </Button>
+              </Link>
+              <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">{quizTitle}</h1>
+              
+              <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="rounded-full shadow-sm">
+                    <ListOrdered className="w-4 h-4 mr-2" />
+                    Question Index
                   </Button>
-                );
-              })}
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                  <SheetHeader className="mb-6">
+                    <SheetTitle className="text-2xl font-bold">Quiz Progress</SheetTitle>
+                  </SheetHeader>
+                  <div className="grid grid-cols-4 gap-3">
+                    {quiz.questions.map((q, idx) => {
+                      const isCurrent = quiz.currentQuestionIndex === idx;
+                      const answered = isAnswered(q.id);
+                      return (
+                        <Button
+                          key={q.id}
+                          variant={isCurrent ? "default" : "outline"}
+                          className={cn(
+                            "h-12 w-full rounded-xl font-bold transition-all border-2 relative",
+                            !isCurrent && answered && "bg-green-50 border-green-200 text-green-600",
+                            isCurrent && "border-primary shadow-md",
+                          )}
+                          onClick={() => jumpToQuestion(idx)}
+                        >
+                          {idx + 1}
+                          {answered && !isCurrent && (
+                            <Check className="w-3 h-3 absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5" />
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
+                <span>Progress: {quiz.currentQuestionIndex + 1} / {quiz.questions.length}</span>
+                <span>{Math.round(progress)}% Complete</span>
+              </div>
+              <Progress value={progress} className="h-2 rounded-full bg-slate-100" />
             </div>
           </div>
         </header>
 
-        <Card className="flex-1 shadow-2xl border-none overflow-hidden rounded-[2rem] bg-white">
-          <div className="flex justify-between items-center px-6 md:px-12 py-8 border-b bg-slate-50/50 backdrop-blur-sm sticky top-0 z-10">
+        <Card className="flex-1 shadow-2xl border-none overflow-hidden rounded-[2rem] bg-white flex flex-col">
+          <div className="flex justify-between items-center px-6 md:px-12 py-6 border-b bg-slate-50/50 backdrop-blur-sm sticky top-0 z-10">
             <Button 
               variant="outline" 
               onClick={prev} 
@@ -312,7 +360,7 @@ function QuizContent() {
                   onClick={submit} 
                   className="rounded-full px-10 h-12 bg-primary hover:bg-primary/90 shadow-xl font-bold transition-all hover:scale-105"
                 >
-                  Submit Final Answers
+                  Submit
                   <Send className="w-4 h-4 ml-2.5" />
                 </Button>
               ) : (
@@ -320,14 +368,14 @@ function QuizContent() {
                   onClick={next} 
                   className="rounded-full px-10 h-12 shadow-lg font-bold transition-all hover:scale-105"
                 >
-                  Next Question
+                  Next
                   <ChevronRight className="w-5 h-5 ml-1.5" />
                 </Button>
               )}
             </div>
           </div>
 
-          <CardContent className="pt-12 px-6 md:px-20 pb-20">
+          <CardContent className="pt-12 px-6 md:px-20 pb-20 flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto">
               <QuestionRenderer 
                 question={currentQuestion} 
