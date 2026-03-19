@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -17,32 +17,130 @@ import {
   LayoutGrid,
   Zap,
   CheckCircle2,
-  AlertTriangle,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Globe,
+  Languages
 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+
+type Language = 'en' | 'vi';
 
 export default function SetupGuide() {
+  const [lang, setLang] = useState<Language>('en');
   const { toast } = useToast();
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: "Copied!", description: "Protocol metadata copied to clipboard." });
+    toast({ title: lang === 'en' ? "Copied!" : "Đã sao chép!", description: lang === 'en' ? "Protocol metadata copied to clipboard." : "Dữ liệu giao thức đã được sao chép." });
   };
 
-  const SAMPLE_USERS = `id	name	email	role	password
-U001	Admin Operator	admin@dntrng.com	admin	admin123
-U002	Standard User	user@dntrng.com	user	pass123`;
+  const content = {
+    en: {
+      title: "Setup Protocol",
+      subtitle: "Intelligence Initialization v17.0",
+      returnBase: "Return to Base",
+      launchConsole: "Launch Console",
+      step1: {
+        num: "01",
+        title: "Sheet Architecture",
+        desc: "Provision your database structure in Google Sheets.",
+        alertTitle: "Protocol Requirement",
+        alertDesc: "Create a new Google Sheet. You will need to create at least three core tabs named exactly as shown below. Each tab must have the specific headers provided.",
+        tabTests: "Tests (Registry)",
+        tabUsers: "Users (Identity)",
+        tabResponses: "Responses (Logs)",
+        testsTitle: "Tab: Tests",
+        testsDesc: "This sheet acts as the master catalog for all assessment modules.",
+        testsHeaders: "id, title, description, category, difficulty, duration, image_url",
+        usersTitle: "Tab: Users",
+        usersHeaders: "id, name, email, role, password",
+        responsesTitle: "Tab: Responses",
+        responsesDesc: "Leave this sheet blank; the engine will auto-populate logs.",
+        responsesHeaders: "Timestamp, User Name, User Email, Test ID, Score, Total, Duration (ms), Raw Responses",
+        dynamicTitle: "Dynamic Question Tabs",
+        dynamicDesc: "For every test added to the Tests tab, you must create a new tab named exactly after that test's id.",
+        dynamicHeaders: "id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required"
+      },
+      step2: {
+        num: "02",
+        title: "Intelligence Bridge",
+        desc: "Deploy the Google Apps Script backend.",
+        codeTitle: "Code Injection",
+        codeDesc: "Open Extensions > Apps Script in your Google Sheet. Delete any existing code and paste the content from the DNTRNG template.",
+        deployTitle: "Cloud Deployment",
+        deploy1: "New Deployment > Web App",
+        deploy2: "Execute as: Me",
+        deploy3: "Who has access: Anyone",
+        deployFooter: "Copy the generated Web App URL for the final integration step."
+      },
+      step3: {
+        num: "03",
+        title: "Handshake",
+        desc: "Connect the DNTRNG frontend to your new bridge.",
+        logicTitle: "Integration Logic",
+        logicDesc: "Update src/lib/api-config.ts with your Web App URL.",
+        ready: "Protocol Ready",
+        launch: "Launch System"
+      }
+    },
+    vi: {
+      title: "Giao Thức Thiết Lập",
+      subtitle: "Khởi Tạo Trí Tuệ v17.0",
+      returnBase: "Trở về Trang chủ",
+      launchConsole: "Mở Bảng Điều Khiển",
+      step1: {
+        num: "01",
+        title: "Kiến Trúc Bảng Tính",
+        desc: "Thiết lập cấu trúc cơ sở dữ liệu trên Google Sheets.",
+        alertTitle: "Yêu Cầu Giao Thức",
+        alertDesc: "Tạo một Google Sheet mới. Bạn cần tạo ít nhất ba tab chính với tên chính xác như dưới đây. Mỗi tab phải có các tiêu đề cột cụ thể.",
+        tabTests: "Tests (Đăng ký)",
+        tabUsers: "Users (Danh tính)",
+        tabResponses: "Responses (Nhật ký)",
+        testsTitle: "Tab: Tests",
+        testsDesc: "Trang này đóng vai trò là danh mục chính cho tất cả các bài kiểm tra.",
+        testsHeaders: "id, title, description, category, difficulty, duration, image_url",
+        usersTitle: "Tab: Users",
+        usersHeaders: "id, name, email, role, password",
+        responsesTitle: "Tab: Responses",
+        responsesDesc: "Để trống trang này; hệ thống sẽ tự động điền nhật ký khi hoàn thành bài kiểm tra.",
+        responsesHeaders: "Timestamp, User Name, User Email, Test ID, Score, Total, Duration (ms), Raw Responses",
+        dynamicTitle: "Tab Câu Hỏi Động",
+        dynamicDesc: "Với mỗi bài kiểm tra được thêm vào tab Tests, bạn phải tạo một tab mới được đặt tên chính xác theo id của bài kiểm tra đó.",
+        dynamicHeaders: "id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required"
+      },
+      step2: {
+        num: "02",
+        title: "Cầu Nối Trí Tuệ",
+        desc: "Triển khai backend bằng Google Apps Script.",
+        codeTitle: "Nhúng Mã Nguồn",
+        codeDesc: "Mở Tiện ích mở rộng > Apps Script trong Google Sheet. Xóa mã hiện có và dán nội dung từ mẫu DNTRNG.",
+        deployTitle: "Triển Khai Đám Mây",
+        deploy1: "Triển khai mới > Ứng dụng Web",
+        deploy2: "Thực thi dưới tên: Tôi (Me)",
+        deploy3: "Ai có quyền truy cập: Mọi người (Anyone)",
+        deployFooter: "Sao chép URL Ứng dụng Web để thực hiện bước tích hợp cuối cùng."
+      },
+      step3: {
+        num: "03",
+        title: "Cái Bắt Tay",
+        desc: "Kết nối frontend DNTRNG với cầu nối mới của bạn.",
+        logicTitle: "Logic Tích Hợp",
+        logicDesc: "Cập nhật src/lib/api-config.ts với URL Ứng dụng Web của bạn.",
+        ready: "Giao Thức Sẵn Sàng",
+        launch: "Kích Hoạt Hệ Thống"
+      }
+    }
+  };
+
+  const t = content[lang];
 
   const SAMPLE_TESTS = `id	title	description	category	difficulty	duration	image_url
 demo-full	The Ultimate Feature Tour	Experience every single question type.	Product Tour	Beginner	10 mins	https://picsum.photos/seed/mountain1/800/450`;
-
-  const SAMPLE_QUESTIONS = `id	question_text	question_type	options	correct_answer	order_group	image_url	metadata	required
-q1	Is DNTRNG built on Next.js?	true_false	True, False	True			TRUE
-q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
 
   return (
     <div className="min-h-screen bg-white selection:bg-primary selection:text-white">
@@ -52,7 +150,7 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
           <div className="space-y-4">
             <Link href="/">
               <Button variant="ghost" size="sm" className="rounded-full font-black text-[10px] uppercase tracking-widest text-slate-400 -ml-2">
-                <ArrowLeft className="w-3 h-3 mr-2" /> Return to Base
+                <ArrowLeft className="w-3 h-3 mr-2" /> {t.returnBase}
               </Button>
             </Link>
             <div className="flex items-center gap-4">
@@ -60,18 +158,36 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
                 <Zap className="text-primary w-6 h-6 fill-current" />
               </div>
               <div>
-                <h1 className="text-4xl font-black tracking-tighter text-slate-900 uppercase">Setup Protocol</h1>
-                <p className="text-sm font-bold text-primary uppercase tracking-[0.2em] mt-1">Intelligence Initialization v17.0</p>
+                <h1 className="text-4xl font-black tracking-tighter text-slate-900 uppercase">{t.title}</h1>
+                <p className="text-sm font-bold text-primary uppercase tracking-[0.2em] mt-1">{t.subtitle}</p>
               </div>
             </div>
           </div>
-          <div className="flex gap-3">
-             <Button variant="outline" className="rounded-full font-black uppercase text-xs tracking-widest border-2 h-12 px-6">
-               Documentation
-             </Button>
-             <Link href="/login">
+          
+          <div className="flex items-center gap-4">
+            <div className="flex bg-slate-200/50 p-1 rounded-full border border-slate-200">
+              <button 
+                onClick={() => setLang('en')}
+                className={cn(
+                  "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                  lang === 'en' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                EN
+              </button>
+              <button 
+                onClick={() => setLang('vi')}
+                className={cn(
+                  "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                  lang === 'vi' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                VI
+              </button>
+            </div>
+            <Link href="/login">
                <Button className="rounded-full font-black uppercase text-xs tracking-widest bg-primary h-12 px-8 shadow-xl shadow-primary/20">
-                 Launch Console
+                 {t.launchConsole}
                </Button>
              </Link>
           </div>
@@ -83,27 +199,27 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
         {/* Step 1: Google Sheets */}
         <section className="space-y-10">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">01</div>
+            <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">{t.step1.num}</div>
             <div>
-              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Sheet Architecture</h2>
-              <p className="text-slate-500 font-medium">Provision your database structure in Google Sheets.</p>
+              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">{t.step1.title}</h2>
+              <p className="text-slate-500 font-medium">{t.step1.desc}</p>
             </div>
           </div>
 
           <div className="space-y-8">
             <Alert className="bg-primary/5 border-primary/20 rounded-[2rem] p-8">
               <Info className="h-6 w-6 text-primary" />
-              <AlertTitle className="text-lg font-black uppercase tracking-tight text-primary mb-2">Protocol Requirement</AlertTitle>
+              <AlertTitle className="text-lg font-black uppercase tracking-tight text-primary mb-2">{t.step1.alertTitle}</AlertTitle>
               <AlertDescription className="text-slate-600 font-medium leading-relaxed">
-                Create a new Google Sheet. You will need to create at least three core tabs named exactly as shown below. Each tab must have the specific headers provided.
+                {t.step1.alertDesc}
               </AlertDescription>
             </Alert>
 
             <Tabs defaultValue="tests" className="w-full">
               <TabsList className="grid grid-cols-3 bg-slate-100 p-1.5 rounded-[1.5rem] h-auto">
-                <TabsTrigger value="tests" className="rounded-xl py-3 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">Tests (Registry)</TabsTrigger>
-                <TabsTrigger value="users" className="rounded-xl py-3 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">Users (Identity)</TabsTrigger>
-                <TabsTrigger value="responses" className="rounded-xl py-3 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">Responses (Logs)</TabsTrigger>
+                <TabsTrigger value="tests" className="rounded-xl py-3 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">{t.step1.tabTests}</TabsTrigger>
+                <TabsTrigger value="users" className="rounded-xl py-3 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">{t.step1.tabUsers}</TabsTrigger>
+                <TabsTrigger value="responses" className="rounded-xl py-3 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">{t.step1.tabResponses}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="tests" className="mt-6 space-y-6">
@@ -112,27 +228,27 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <LayoutGrid className="w-5 h-5 text-primary" />
-                        <CardTitle className="text-lg font-black uppercase">Tab: Tests</CardTitle>
+                        <CardTitle className="text-lg font-black uppercase">{t.step1.testsTitle}</CardTitle>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(SAMPLE_TESTS)} className="rounded-full font-bold h-9 border-2">Copy Headers</Button>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.testsHeaders)} className="rounded-full font-bold h-9 border-2">Copy Headers</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
-                    <p className="text-sm text-slate-500 font-medium mb-6">This sheet acts as the master catalog for all assessment modules.</p>
+                    <p className="text-sm text-slate-500 font-medium mb-6">{t.step1.testsDesc}</p>
                     <div className="bg-slate-900 p-6 rounded-2xl overflow-hidden relative">
                       <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">Header Definition</div>
-                      <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap pb-2">id, title, description, category, difficulty, duration, image_url</code>
+                      <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap pb-2">{t.step1.testsHeaders}</code>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Alert className="border-dashed border-2 rounded-3xl p-6 bg-slate-50">
                   <TableIcon className="w-5 h-5 text-slate-400" />
-                  <AlertTitle className="font-black text-sm uppercase mb-1">Dynamic Question Tabs</AlertTitle>
+                  <AlertTitle className="font-black text-sm uppercase mb-1">{t.step1.dynamicTitle}</AlertTitle>
                   <AlertDescription className="text-xs text-slate-500 font-medium">
-                    For every test added to the <strong>Tests</strong> tab, you must create a new tab named exactly after that test's <code>id</code>. 
+                    {t.step1.dynamicDesc}
                     <br/><br/>
-                    <strong>Question Tab Headers:</strong> <code className="bg-white px-2 py-0.5 rounded border font-mono">id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required</code>
+                    <strong>Headers:</strong> <code className="bg-white px-2 py-0.5 rounded border font-mono">{t.step1.dynamicHeaders}</code>
                   </AlertDescription>
                 </Alert>
               </TabsContent>
@@ -143,15 +259,15 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-primary" />
-                        <CardTitle className="text-lg font-black uppercase">Tab: Users</CardTitle>
+                        <CardTitle className="text-lg font-black uppercase">{t.step1.usersTitle}</CardTitle>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(SAMPLE_USERS)} className="rounded-full font-bold h-9 border-2">Copy Template</Button>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.usersHeaders)} className="rounded-full font-bold h-9 border-2">Copy Headers</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
                     <div className="bg-slate-900 p-6 rounded-2xl overflow-hidden">
                       <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">Header Definition</div>
-                      <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap">id, name, email, role, password</code>
+                      <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap">{t.step1.usersHeaders}</code>
                     </div>
                   </CardContent>
                 </Card>
@@ -160,16 +276,19 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
               <TabsContent value="responses" className="mt-6">
                 <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden bg-white">
                   <CardHeader className="bg-slate-50/50 border-b p-8">
-                    <div className="flex items-center gap-3">
-                      <Database className="w-5 h-5 text-primary" />
-                      <CardTitle className="text-lg font-black uppercase">Tab: Responses</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Database className="w-5 h-5 text-primary" />
+                        <CardTitle className="text-lg font-black uppercase">{t.step1.responsesTitle}</CardTitle>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.responsesHeaders)} className="rounded-full font-bold h-9 border-2">Copy Headers</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
-                    <p className="text-sm text-slate-500 font-medium mb-6">Leave this sheet blank; the intelligence engine will auto-populate logs upon test completion.</p>
+                    <p className="text-sm text-slate-500 font-medium mb-6">{t.step1.responsesDesc}</p>
                     <div className="bg-slate-900 p-6 rounded-2xl overflow-hidden">
                       <div className="font-mono text-[10px] text-primary/70 mb-2 uppercase tracking-widest">Required Headers</div>
-                      <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap">Timestamp, User Name, User Email, Test ID, Score, Total, Duration (ms), Raw Responses</code>
+                      <code className="text-green-400 font-mono text-xs block overflow-x-auto whitespace-nowrap">{t.step1.responsesHeaders}</code>
                     </div>
                   </CardContent>
                 </Card>
@@ -181,25 +300,25 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
         {/* Step 2: Apps Script */}
         <section className="space-y-10">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">02</div>
+            <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">{t.step2.num}</div>
             <div>
-              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Intelligence Bridge</h2>
-              <p className="text-slate-500 font-medium">Deploy the Google Apps Script backend.</p>
+              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">{t.step2.title}</h2>
+              <p className="text-slate-500 font-medium">{t.step2.desc}</p>
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="border-none shadow-xl rounded-[2.5rem] p-10 bg-white group hover:shadow-2xl transition-all">
               <Code2 className="w-10 h-10 text-primary mb-6 group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-black uppercase mb-4">Code Injection</h3>
+              <h3 className="text-xl font-black uppercase mb-4">{t.step2.codeTitle}</h3>
               <p className="text-sm text-slate-500 font-medium leading-relaxed mb-6">
-                Open <strong>Extensions &gt; Apps Script</strong> in your Google Sheet. Delete any existing code and paste the content from the DNTRNG template.
+                {t.step2.codeDesc}
               </p>
               <Button 
                 variant="outline" 
                 className="w-full rounded-full font-black text-[10px] uppercase tracking-widest border-2 h-12"
                 onClick={() => {
-                   toast({ title: "Template Found", description: "Reference src/app/lib/gas-template.ts" });
+                   toast({ title: "Template Reference", description: "Reference src/app/lib/gas-template.ts" });
                 }}
               >
                 Access Template
@@ -211,23 +330,23 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
                 <Rocket className="w-24 h-24" />
               </div>
               <Rocket className="w-10 h-10 text-primary mb-6 group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-black uppercase mb-4">Cloud Deployment</h3>
+              <h3 className="text-xl font-black uppercase mb-4">{t.step2.deployTitle}</h3>
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold text-slate-300">New Deployment &gt; Web App</span>
+                  <span className="text-xs font-bold text-slate-300">{t.step2.deploy1}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold text-slate-300">Execute as: Me</span>
+                  <span className="text-xs font-bold text-slate-300">{t.step2.deploy2}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold text-slate-300">Who has access: Anyone</span>
+                  <span className="text-xs font-bold text-slate-300">{t.step2.deploy3}</span>
                 </div>
               </div>
               <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest leading-relaxed">
-                Copy the generated Web App URL for the final integration step.
+                {t.step2.deployFooter}
               </p>
             </Card>
           </div>
@@ -236,10 +355,10 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
         {/* Step 3: Frontend Config */}
         <section className="space-y-10">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">03</div>
+            <div className="w-16 h-16 rounded-[2rem] bg-slate-900 text-primary flex items-center justify-center text-2xl font-black shadow-2xl">{t.step3.num}</div>
             <div>
-              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Handshake</h2>
-              <p className="text-slate-500 font-medium">Connect the DNTRNG frontend to your new bridge.</p>
+              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">{t.step3.title}</h2>
+              <p className="text-slate-500 font-medium">{t.step3.desc}</p>
             </div>
           </div>
 
@@ -248,10 +367,10 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
               <div className="flex-1 p-12 border-b md:border-b-0 md:border-r border-slate-100">
                 <h3 className="text-xl font-black uppercase mb-6 flex items-center gap-3">
                   <CheckCircle2 className="text-emerald-500" />
-                  Integration Logic
+                  {t.step3.logicTitle}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed mb-8">
-                  Navigate to <code className="bg-slate-50 px-2 py-0.5 rounded border font-mono">src/lib/api-config.ts</code> and update the <code className="text-primary font-bold">API_URL</code> constant with the Web App URL you generated in Step 2.
+                  {t.step3.logicDesc}
                 </p>
                 <div className="p-6 bg-slate-900 rounded-2xl">
                   <pre className="text-xs text-blue-400 font-mono">
@@ -262,10 +381,10 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
               <div className="w-full md:w-80 bg-slate-50 p-12 flex flex-col justify-center">
                 <div className="space-y-6">
                   <div className="text-center">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Protocol Ready</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">{t.step3.ready}</p>
                     <Link href="/login">
                       <Button className="w-full h-14 rounded-full font-black uppercase tracking-tighter bg-primary shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
-                        Launch System
+                        {t.step3.launch}
                         <ChevronRight className="w-4 h-4 ml-2" />
                       </Button>
                     </Link>
@@ -284,42 +403,6 @@ q2	Rank these setup steps:	ordering		1,2,3	Sheet,Script,Config			TRUE`;
               </div>
             </CardContent>
           </Card>
-        </section>
-
-        {/* FAQ / Troubleshooting */}
-        <section className="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-white relative overflow-hidden">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full" />
-          <div className="relative z-10 grid md:grid-cols-2 gap-16">
-            <div className="space-y-6">
-              <h3 className="text-3xl font-black uppercase tracking-tight">Troubleshooting</h3>
-              <div className="space-y-8">
-                <div className="space-y-2">
-                  <h4 className="text-primary font-black uppercase text-xs tracking-widest">Permission Denied</h4>
-                  <p className="text-sm text-slate-400 font-medium leading-relaxed">
-                    Ensure your Google Apps Script is deployed as a "Web App" and accessible by "Anyone". If "Anyone" is not selected, the handshake will fail.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-primary font-black uppercase text-xs tracking-widest">Tab Not Found</h4>
-                  <p className="text-sm text-slate-400 font-medium leading-relaxed">
-                    The intelligence engine is case-sensitive. Tab names like "Tests" or "Users" must match the code exactly.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <h3 className="text-3xl font-black uppercase tracking-tight">Support Nodes</h3>
-              <p className="text-slate-400 font-medium mb-8">Need further assistance with your intelligence deployment?</p>
-              <div className="flex flex-col gap-4">
-                <Button variant="outline" className="h-14 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 text-white font-bold justify-between px-6">
-                  System Documentation <ExternalLink className="w-4 h-4 opacity-40" />
-                </Button>
-                <Button variant="outline" className="h-14 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 text-white font-bold justify-between px-6">
-                  Community Console <ExternalLink className="w-4 h-4 opacity-40" />
-                </Button>
-              </div>
-            </div>
-          </div>
         </section>
 
       </main>
