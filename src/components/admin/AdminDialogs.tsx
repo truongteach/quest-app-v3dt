@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -30,7 +29,8 @@ import {
   Link2,
   Code2,
   Settings2,
-  AlertCircle
+  AlertCircle,
+  Users as UsersIcon
 } from "lucide-react";
 import { Question, QuestionType } from '@/types/quiz';
 import { cn } from "@/lib/utils";
