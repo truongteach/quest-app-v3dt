@@ -26,7 +26,9 @@ import {
   Plus, 
   Trash2,
   Check,
-  Circle
+  Circle,
+  Link2,
+  ArrowRight
 } from "lucide-react";
 import { Question, QuestionType } from '@/types/quiz';
 import { cn } from "@/lib/utils";
@@ -67,6 +69,9 @@ export function AdminDialogs({
   // Dynamic Options State
   const [optionsList, setOptionsList] = useState<string[]>([]);
   const [correctAnswers, setCorrectAnswers] = useState<string[]>([]);
+  
+  // Matching Pairs State
+  const [matchingPairs, setMatchingPairs] = useState<{left: string, right: string}[]>([]);
 
   useEffect(() => {
     if (dialogs.bulk) {
@@ -78,14 +83,30 @@ export function AdminDialogs({
     if (dialogs.question) {
       if (editingItem) {
         setSelectedType(editingItem.question_type as QuestionType);
+        
+        // Populate options for choice types
         const opts = editingItem.options ? editingItem.options.split(',').map((o: string) => o.trim()) : [];
         setOptionsList(opts);
         const corrects = editingItem.correct_answer ? editingItem.correct_answer.split(',').map((c: string) => c.trim()) : [];
         setCorrectAnswers(corrects);
+
+        // Populate matching pairs
+        if (editingItem.question_type === 'matching') {
+          const pairs = editingItem.order_group 
+            ? editingItem.order_group.split(',').map((p: string) => {
+                const [l, r] = p.split('|');
+                return { left: (l || "").trim(), right: (r || "").trim() };
+              })
+            : [{ left: '', right: '' }];
+          setMatchingPairs(pairs);
+        } else {
+          setMatchingPairs([{ left: '', right: '' }]);
+        }
       } else {
         setSelectedType('single_choice');
         setOptionsList(['Option 1', 'Option 2']);
         setCorrectAnswers([]);
+        setMatchingPairs([{ left: '', right: '' }]);
       }
     }
   }, [dialogs.question, editingItem]);
@@ -123,6 +144,15 @@ export function AdminDialogs({
     }
   };
 
+  // Matching Handlers
+  const addMatchPair = () => setMatchingPairs([...matchingPairs, { left: '', right: '' }]);
+  const removeMatchPair = (index: number) => setMatchingPairs(matchingPairs.filter((_, i) => i !== index));
+  const updateMatchPair = (index: number, side: 'left' | 'right', value: string) => {
+    const newPairs = [...matchingPairs];
+    newPairs[index][side] = value;
+    setMatchingPairs(newPairs);
+  };
+
   const QUESTION_TYPES = [
     { value: 'single_choice', label: 'Single Choice', icon: CheckCircle2, desc: 'One correct answer from a list.' },
     { value: 'multiple_choice', label: 'Multiple Choice', icon: Layers, desc: 'Multiple correct answers allowed.' },
@@ -143,6 +173,7 @@ export function AdminDialogs({
     // Prepare options and correct answer based on dynamic state
     let finalOptions = data.options as string;
     let finalCorrect = data.correct_answer as string;
+    let finalOrderGroup = data.order_group as string;
 
     if (['single_choice', 'multiple_choice', 'dropdown'].includes(selectedType)) {
       finalOptions = optionsList.join(', ');
@@ -150,12 +181,18 @@ export function AdminDialogs({
     } else if (selectedType === 'true_false') {
       finalOptions = "True, False";
       finalCorrect = correctAnswers[0] || "";
+    } else if (selectedType === 'matching') {
+      const validPairs = matchingPairs.filter(p => p.left.trim() && p.right.trim());
+      const pairsStr = validPairs.map(p => `${p.left.trim()}|${p.right.trim()}`).join(', ');
+      finalOrderGroup = pairsStr;
+      finalCorrect = pairsStr;
     }
 
     const payload = {
       ...data,
       options: finalOptions,
       correct_answer: finalCorrect,
+      order_group: finalOrderGroup,
     };
 
     onSaveQuestion(payload, formData.get('required') === 'on');
@@ -316,11 +353,64 @@ export function AdminDialogs({
                       </div>
                     ))}
                   </div>
-                  {correctAnswers.length === 0 && selectedType !== 'dropdown' && (
-                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest text-center mt-2">
-                      Please select at least one correct answer
-                    </p>
-                  )}
+                </div>
+              )}
+
+              {/* Matching Builder SECTION */}
+              {selectedType === 'matching' && (
+                <div className="space-y-4 p-6 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col">
+                      <Label className="font-black text-sm uppercase tracking-widest text-slate-500">Matching Pair Builder</Label>
+                      <span className="text-[10px] font-bold text-muted-foreground italic">Left columns are prompts, Right columns are targets.</span>
+                    </div>
+                    <Button type="button" size="sm" onClick={addMatchPair} className="rounded-full h-8 gap-1.5 font-bold bg-slate-900 text-white hover:bg-slate-800">
+                      <Plus className="w-3 h-3" /> Add Pair
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {matchingPairs.map((pair, idx) => (
+                      <div key={idx} className="flex items-center gap-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="flex-1 space-y-1">
+                          <Label className="text-[9px] font-black uppercase text-slate-400 ml-1">Prompt (Left)</Label>
+                          <Input 
+                            value={pair.left} 
+                            onChange={(e) => updateMatchPair(idx, 'left', e.target.value)}
+                            placeholder="Prompt..."
+                            className="rounded-xl h-11 bg-white border-slate-200"
+                          />
+                        </div>
+                        
+                        <div className="pt-5 text-slate-300">
+                          <Link2 className="w-4 h-4" />
+                        </div>
+
+                        <div className="flex-1 space-y-1">
+                          <Label className="text-[9px] font-black uppercase text-slate-400 ml-1">Target Match (Right)</Label>
+                          <Input 
+                            value={pair.right} 
+                            onChange={(e) => updateMatchPair(idx, 'right', e.target.value)}
+                            placeholder="Target..."
+                            className="rounded-xl h-11 bg-white border-slate-200 border-dashed"
+                          />
+                        </div>
+
+                        <div className="pt-5">
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeMatchPair(idx)}
+                            disabled={matchingPairs.length <= 1}
+                            className="h-11 w-11 rounded-xl text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -346,26 +436,24 @@ export function AdminDialogs({
                 </div>
               )}
 
-              {/* Conditional: Order Group for ordering/matching */}
-              {(['ordering', 'matching'].includes(selectedType)) && (
+              {/* Conditional: Order Group for ordering */}
+              {selectedType === 'ordering' && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="font-bold">
-                      {selectedType === 'ordering' ? 'Sequence Items' : 'Matching Pairs'}
-                    </Label>
+                    <Label className="font-bold">Sequence Items</Label>
                     <Input 
                       name="order_group" 
                       defaultValue={editingItem?.order_group} 
-                      placeholder={selectedType === 'ordering' ? "Item 1, Item 2, Item 3" : "LeftA|RightA, LeftB|RightB"} 
+                      placeholder="Item 1, Item 2, Item 3" 
                       className="rounded-xl h-11" 
                     />
                     <p className="text-[10px] text-muted-foreground font-medium italic">
-                      {selectedType === 'ordering' ? 'Comma separated items in ANY order (shuffled for users).' : 'Formatted as Left|Right, separated by commas.'}
+                      Comma separated items in ANY order (shuffled for users).
                     </p>
                   </div>
                   <div className="space-y-2">
                     <Label className="font-bold">Correct Solution</Label>
-                    <Input name="correct_answer" defaultValue={editingItem?.correct_answer} placeholder="Correct order or all pairs" className="rounded-xl h-11 font-mono text-xs bg-slate-50" />
+                    <Input name="correct_answer" defaultValue={editingItem?.correct_answer} placeholder="Correct order separated by commas" className="rounded-xl h-11 font-mono text-xs bg-slate-50" />
                   </div>
                 </div>
               )}
