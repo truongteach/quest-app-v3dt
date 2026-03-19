@@ -18,7 +18,9 @@ import {
   Loader2, 
   Home,
   ListOrdered,
-  Check
+  Check,
+  Clock,
+  Timer
 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -40,6 +42,7 @@ function QuizContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(900); // 15 minutes in seconds
   const [quiz, setQuiz] = useState<QuizState>({
     questions: [],
     currentQuestionIndex: 0,
@@ -56,6 +59,24 @@ function QuizContent() {
   useEffect(() => {
     fetchQuestions();
   }, []);
+
+  // Timer logic
+  useEffect(() => {
+    if (quiz.isSubmitted || loading) return;
+    
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          submit(); // Auto-submit when time runs out
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [quiz.isSubmitted, loading]);
 
   const fetchQuestions = async () => {
     setLoading(true);
@@ -171,6 +192,7 @@ function QuizContent() {
   };
 
   const restart = () => {
+    setTimeLeft(900);
     setQuiz({
       ...quiz,
       currentQuestionIndex: 0,
@@ -184,6 +206,12 @@ function QuizContent() {
   const jumpToQuestion = (index: number) => {
     setQuiz(prev => ({ ...prev, currentQuestionIndex: index }));
     setIsSidebarOpen(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   if (loading) return (
@@ -317,12 +345,18 @@ function QuizContent() {
                 <span className="hidden md:inline">Back</span>
               </Button>
               
-              <SheetTrigger asChild>
-                <Button variant="ghost" className="rounded-full h-12 font-bold flex flex-col gap-0.5 md:flex-row md:gap-2 items-center">
-                  <ListOrdered className="w-5 h-5 text-primary" />
-                  <span className="text-[10px] md:text-sm uppercase tracking-tighter md:tracking-normal">Index</span>
-                </Button>
-              </SheetTrigger>
+              <div className="flex items-center gap-2">
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full h-12 w-12 shrink-0 hover:bg-primary/10">
+                    <ListOrdered className="w-6 h-6 text-primary" />
+                  </Button>
+                </SheetTrigger>
+
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full font-mono text-sm font-bold text-slate-700 shrink-0">
+                  <Timer className={cn("w-4 h-4", timeLeft < 60 ? "text-destructive animate-pulse" : "text-primary")} />
+                  {formatTime(timeLeft)}
+                </div>
+              </div>
 
               <div className="flex gap-3 shrink-0">
                 {quiz.currentQuestionIndex === quiz.questions.length - 1 ? (
