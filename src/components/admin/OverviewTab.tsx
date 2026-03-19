@@ -11,7 +11,8 @@ import {
   ChevronRight, 
   Plus, 
   Zap, 
-  RefreshCcw 
+  RefreshCcw,
+  Database
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,17 +27,18 @@ import {
   CartesianGrid
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { AdminTab } from '@/app/admin/page';
+import { AdminTab } from '@/components/admin/AdminSidebar';
 
 interface OverviewTabProps {
   data: { tests: any[], users: any[], responses: any[] };
   onNewTest: () => void;
   onManageContent: () => void;
   onSync: () => void;
+  onSeed: () => void;
   setActiveTab: (tab: AdminTab) => void;
 }
 
-export function OverviewTab({ data, onNewTest, onManageContent, onSync, setActiveTab }: OverviewTabProps) {
+export function OverviewTab({ data, onNewTest, onManageContent, onSync, onSeed, setActiveTab }: OverviewTabProps) {
   const chartData = useMemo(() => {
     if (!data.responses.length) return [];
     const counts: Record<string, number> = {};
@@ -132,10 +134,11 @@ export function OverviewTab({ data, onNewTest, onManageContent, onSync, setActiv
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <QuickActionCard title="Create Test" description="Add a new assessment sheet" icon={Plus} onClick={onNewTest} theme="primary" />
-        <QuickActionCard title="Manage Content" description="Edit existing question banks" icon={Zap} onClick={onManageContent} theme="dark" />
-        <QuickActionCard title="Sync Cloud" description="Fetch latest Google Sheet data" icon={RefreshCcw} onClick={onSync} theme="light" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <QuickActionCard title="Create Test" description="Add assessment sheet" icon={Plus} onClick={onNewTest} theme="primary" />
+        <QuickActionCard title="Manage Content" description="Edit question banks" icon={Zap} onClick={onManageContent} theme="dark" />
+        <QuickActionCard title="Seed Demo" description="Populate example data" icon={Database} onClick={onSeed} theme="accent" />
+        <QuickActionCard title="Sync Cloud" description="Fetch latest Sheet data" icon={RefreshCcw} onClick={onSync} theme="light" />
       </div>
     </div>
   );
@@ -165,15 +168,18 @@ function QuickActionCard({ title, description, icon: Icon, onClick, theme }: any
   const themes: Record<string, string> = {
     primary: "bg-gradient-to-br from-primary to-blue-600 text-white",
     dark: "bg-slate-900 text-white",
+    accent: "bg-accent text-white shadow-lg shadow-accent/20",
     light: "bg-white border-2 border-slate-100 text-slate-900"
   };
   return (
     <Card className={cn("border-none shadow-sm cursor-pointer hover:scale-[1.02] transition-transform", themes[theme])} onClick={onClick}>
       <CardContent className="pt-6 flex items-center gap-4">
-        <div className={cn("p-3 rounded-xl", theme === 'light' ? 'bg-slate-100' : 'bg-white/20')}><Icon className="w-6 h-6" /></div>
+        <div className={cn("p-3 rounded-xl", (theme === 'light') ? 'bg-slate-100' : 'bg-white/20')}><Icon className="w-6 h-6" /></div>
         <div>
-          <p className="font-black text-lg">{title}</p>
-          <p className={cn("text-xs font-medium", theme === 'light' ? 'text-muted-foreground' : 'text-white/70')}>{description}</p>
+          <p className="font-black text-base lg:text-lg">{title}</p>
+          <p className={cn("text-[10px] font-medium opacity-80", theme === 'light' && 'text-muted-foreground')}>
+            {description}
+          </p>
         </div>
       </CardContent>
     </Card>

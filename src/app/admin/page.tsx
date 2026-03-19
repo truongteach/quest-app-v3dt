@@ -7,6 +7,7 @@ import { API_URL } from '@/lib/api-config';
 import { OverviewTab } from '@/components/admin/OverviewTab';
 import { AdminDialogs } from '@/components/admin/AdminDialogs';
 import { useRouter } from 'next/navigation';
+import { DEMO_QUESTIONS, AVAILABLE_TESTS } from '@/app/lib/demo-data';
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
@@ -66,12 +67,43 @@ export default function AdminDashboard() {
         mode: 'no-cors',
         body: JSON.stringify({ action, ...payload })
       });
-      toast({ title: "Success", description: "Changes saved to cloud." });
-      setTimeout(fetchData, 1500);
+      return true;
     } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to save changes." });
+      console.error(err);
+      return false;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSeedData = async () => {
+    toast({ title: "Seeding Started", description: "Pushing demo content to your Google Sheet..." });
+    
+    try {
+      // 1. Seed Tests
+      for (const test of AVAILABLE_TESTS) {
+        await handlePost('saveTest', { data: {
+          id: test.id,
+          title: test.title,
+          description: test.description,
+          category: test.category,
+          difficulty: test.difficulty,
+          duration: test.duration,
+          image_url: test.image
+        }});
+      }
+
+      // 2. Seed Questions for specific demo tests
+      // We'll seed the 'demo-1' and 'demo-logic' with specific sets
+      await handlePost('saveQuestions', { 
+        testId: 'demo-1', 
+        questions: DEMO_QUESTIONS 
+      });
+
+      toast({ title: "Success", description: "Demo library populated successfully." });
+      fetchData();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Seed Failed", description: "Some content could not be pushed." });
     }
   };
 
@@ -82,6 +114,7 @@ export default function AdminDashboard() {
         onNewTest={() => setDialogs({ ...dialogs, test: true })}
         onManageContent={() => router.push('/admin/tests')}
         onSync={fetchData}
+        onSeed={handleSeedData}
         setActiveTab={(tab) => router.push(`/admin/${tab === 'overview' ? '' : tab}`)}
       />
 
@@ -91,15 +124,25 @@ export default function AdminDashboard() {
         editingItem={null}
         selectedTestId=""
         questions={[]}
-        onSaveTest={(testData) => {
+        onSaveTest={async (testData) => {
           const payload = { ...testData };
           if (!payload.id) {
             const slug = (payload.title as string || 'test').toLowerCase().replace(/[^a-z0-9]/g, '-');
             payload.id = `${slug}-${Date.now().toString().slice(-4)}`;
           }
-          handlePost('saveTest', { data: payload });
+          const ok = await handlePost('saveTest', { data: payload });
+          if (ok) {
+            toast({ title: "Success", description: "Test saved." });
+            fetchData();
+          }
         }}
-        onSaveUser={(userData) => handlePost('saveUser', { data: userData })}
+        onSaveUser={async (userData) => {
+          const ok = await handlePost('saveUser', { data: userData });
+          if (ok) {
+            toast({ title: "Success", description: "User updated." });
+            fetchData();
+          }
+        }}
         onSaveQuestion={() => {}}
         onSaveBulk={() => {}}
       />
