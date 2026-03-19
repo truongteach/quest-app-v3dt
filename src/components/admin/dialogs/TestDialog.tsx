@@ -1,0 +1,91 @@
+"use client";
+
+import React from 'react';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Save, Settings2 } from "lucide-react";
+
+interface TestDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingItem: any;
+  onSave: (data: any) => void;
+}
+
+export function TestDialog({ open, onOpenChange, editingItem, onSave }: TestDialogProps) {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    onSave(Object.fromEntries(formData.entries()));
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[480px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white">
+        <div className="bg-primary p-10 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <Settings2 className="w-24 h-24" />
+          </div>
+          <DialogTitle className="text-3xl font-black uppercase tracking-tight mb-2">
+            {editingItem ? 'Edit Module' : 'Register Module'}
+          </DialogTitle>
+          <DialogDescription className="text-white/80 font-medium text-sm italic">
+            Synchronizing with DNTRNG global registry.
+          </DialogDescription>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-10 space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Unique ID</Label>
+              <Input name="id" defaultValue={editingItem?.id} placeholder="auto-generated" disabled={!!editingItem} className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-mono text-xs" />
+            </div>
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Category</Label>
+              <Input name="category" defaultValue={editingItem?.category} placeholder="e.g. Logic" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Display Title</Label>
+            <Input name="title" defaultValue={editingItem?.title} required placeholder="The Ultimate Challenge" className="rounded-xl h-14 bg-slate-50 border-none ring-1 ring-slate-200 font-black text-lg" />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Intelligence Description</Label>
+            <Textarea name="description" defaultValue={editingItem?.description} placeholder="Describe the learning objectives..." className="rounded-2xl min-h-[100px] bg-slate-50 border-none ring-1 ring-slate-200" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Complexity</Label>
+              <Input name="difficulty" defaultValue={editingItem?.difficulty} placeholder="Advanced" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
+            </div>
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Duration</Label>
+              <Input name="duration" defaultValue={editingItem?.duration} placeholder="15m" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-6">
+            <Button type="submit" className="rounded-full w-full h-16 font-black text-xl shadow-2xl transition-all hover:scale-[1.02] bg-primary">
+              <Save className="w-5 h-5 mr-3" />
+              Commit Changes
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
