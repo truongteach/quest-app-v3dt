@@ -5,39 +5,41 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Database, LogIn, Loader2, ArrowLeft } from "lucide-react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { useAuth } from "@/firebase";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Database, LogIn, Loader2, ArrowLeft, Mail } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const { auth } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
 
-  const handleGoogleLogin = async () => {
-    if (!auth) return;
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    
     setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+    const success = await login(email);
+    
+    if (success) {
       toast({
         title: "Welcome back!",
-        description: "Successfully signed in with Google.",
+        description: "Successfully signed in via Google Sheets.",
       });
       router.push('/tests');
-    } catch (error: any) {
-      console.error(error);
+    } else {
       toast({
         variant: "destructive",
-        title: "Authentication Failed",
-        description: error.message || "Could not sign in with Google.",
+        title: "Access Denied",
+        description: "Email not found in the Users database. Please contact your administrator.",
       });
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (
@@ -56,25 +58,42 @@ export default function LoginPage() {
             <Database className="w-8 h-8 text-primary" />
           </div>
           <CardTitle className="text-3xl font-black tracking-tight">QuestFlow Login</CardTitle>
-          <CardDescription className="text-base">Sign in to access assessments and track your progress.</CardDescription>
+          <CardDescription className="text-base">Sign in with your email to access assessments.</CardDescription>
         </CardHeader>
-        <CardContent className="px-8 pb-10">
-          <Button 
-            onClick={handleGoogleLogin} 
-            disabled={loading}
-            className="w-full h-14 rounded-full text-lg font-bold shadow-lg transition-all hover:scale-[1.02]"
-          >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-            ) : (
-              <LogIn className="w-5 h-5 mr-2" />
-            )}
-            Sign in with Google
-          </Button>
+        <CardContent className="px-8 pb-6">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="font-bold ml-1">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  className="h-14 pl-11 rounded-xl bg-slate-50 border-slate-200"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <Button 
+              type="submit"
+              disabled={loading || !email}
+              className="w-full h-14 rounded-full text-lg font-bold shadow-lg transition-all hover:scale-[1.02]"
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              ) : (
+                <LogIn className="w-5 h-5 mr-2" />
+              )}
+              Sign In
+            </Button>
+          </form>
         </CardContent>
-        <CardFooter className="bg-slate-50/50 p-6 flex justify-center">
-          <p className="text-xs text-muted-foreground font-medium text-center px-4">
-            By signing in, you agree to our Terms of Service and Privacy Policy.
+        <CardFooter className="bg-slate-50/50 p-6 flex flex-col items-center gap-2 text-center">
+          <p className="text-xs text-muted-foreground font-medium px-4">
+            Your access is verified against the <strong>Users</strong> tab in your Google Sheet.
           </p>
         </CardFooter>
       </Card>

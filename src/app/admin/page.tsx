@@ -13,7 +13,7 @@ import {
   XCircle, 
   ChevronLeft,
   FileText,
-  Users,
+  Users as UsersIcon,
   BarChart3,
   ExternalLink,
   Search,
@@ -30,10 +30,10 @@ import { API_URL } from '@/lib/api-config';
 import { Question } from '@/types/quiz';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from '@/hooks/use-toast';
-import { useUserRole } from '@/hooks/use-user-role';
+import { useAuth } from '@/context/auth-context';
 
 export default function AdminDashboard() {
-  const { role, loading: roleLoading, user } = useUserRole();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -71,12 +71,12 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (role === 'admin') {
+    if (user?.role === 'admin') {
       fetchAllData();
     }
-  }, [role]);
+  }, [user]);
 
-  if (roleLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (role !== 'admin') {
+  if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <Card className="max-w-md w-full border-none shadow-2xl rounded-[2rem] text-center p-8">
@@ -94,11 +94,16 @@ export default function AdminDashboard() {
           </div>
           <CardTitle className="text-2xl font-black mb-4">Access Denied</CardTitle>
           <p className="text-muted-foreground mb-8">
-            You do not have administrative privileges. Please ensure your email (<strong>{user?.email}</strong>) is listed as an 'admin' in the Google Sheet's <strong>Users</strong> tab.
+            You do not have administrative privileges. Please ensure your email (<strong>{user?.email || 'Not logged in'}</strong>) is listed as an 'admin' in the Google Sheet's <strong>Users</strong> tab.
           </p>
-          <Link href="/">
-            <Button className="rounded-full w-full h-12 font-bold shadow-lg">Return to Library</Button>
-          </Link>
+          <div className="flex flex-col gap-3">
+            <Link href="/login">
+              <Button className="rounded-full w-full h-12 font-bold shadow-lg">Login as Admin</Button>
+            </Link>
+            <Link href="/">
+              <Button variant="ghost" className="rounded-full w-full">Return Home</Button>
+            </Link>
+          </div>
         </Card>
       </div>
     );
@@ -126,7 +131,7 @@ export default function AdminDashboard() {
                 <Settings className="w-5 h-5 text-primary" />
                 QuestFlow Admin
               </h1>
-              <p className="text-xs text-muted-foreground font-medium">System Role: {role.toUpperCase()}</p>
+              <p className="text-xs text-muted-foreground font-medium">Role: {user?.role.toUpperCase()}</p>
             </div>
           </div>
           
@@ -178,11 +183,11 @@ export default function AdminDashboard() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-green-50 rounded-xl text-green-600">
-                  <Users className="w-6 h-6" />
+                  <UsersIcon className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground font-medium">Avg. Completion</p>
-                  <p className="text-2xl font-black">-- %</p>
+                  <p className="text-sm text-muted-foreground font-medium">Auth System</p>
+                  <p className="text-2xl font-black">Sheet</p>
                 </div>
               </div>
             </CardContent>
@@ -332,6 +337,7 @@ export default function AdminDashboard() {
                   <p>[{new Date().toISOString()}] INITIALIZING_FETCH...</p>
                   <p>[{new Date().toISOString()}] ENDPOINT: {API_URL?.substring(0, 40)}...</p>
                   <p>[{new Date().toISOString()}] STATUS: {status.toUpperCase()}</p>
+                  <p>[{new Date().toISOString()}] AUTH_PROVIDER: GOOGLE_SHEET</p>
                   <p>[{new Date().toISOString()}] DATA_POINTS: {questions.length}</p>
                   {status === 'error' && (
                     <p className="text-red-400">[{new Date().toISOString()}] ERROR: FAILED_TO_PARSE_JSON. Check CORS or GAS permissions.</p>

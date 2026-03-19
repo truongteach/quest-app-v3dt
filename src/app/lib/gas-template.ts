@@ -1,11 +1,11 @@
 
 export const GAS_CODE = `
 /**
- * QUESTFLOW BACKEND v2.1
+ * QUESTFLOW BACKEND v3.0 - SHEET AUTH MODE
  * 
  * 1. Create a Google Sheet.
  * 2. Tab "Questions": test_id, id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required
- * 3. Tab "Users" (New): email, role
+ * 3. Tab "Users": email, role
  * 4. Tab "Responses": Timestamp, Test ID, Score, Total, Duration (ms), Raw Responses
  * 5. Deploy as Web App (Access: Anyone).
  */
@@ -16,17 +16,29 @@ function doGet(e) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const action = e.parameter.action;
 
-  // Handle Role Checking
-  if (action === 'getRole') {
+  // Handle Role Checking & Login
+  if (action === 'getRole' || action === 'login') {
     const email = e.parameter.email;
+    if (!email) return createResponse({ error: 'Email is required' }, 400);
+
     const usersSheet = ss.getSheetByName('Users');
     if (!usersSheet) {
-      return createResponse({ role: 'user' });
+      return createResponse({ role: 'user' }); // Default to user if no sheet exists
     }
+    
     const data = usersSheet.getDataRange().getValues();
-    const headers = data.shift();
-    const userRow = data.find(row => row[0].toLowerCase() === email.toLowerCase());
-    return createResponse({ role: userRow ? userRow[1] : 'user' });
+    data.shift(); // Remove headers
+    
+    const userRow = data.find(row => String(row[0]).toLowerCase() === email.toLowerCase());
+    
+    if (userRow) {
+      return createResponse({ 
+        email: userRow[0], 
+        role: userRow[1] || 'user'
+      });
+    } else {
+      return createResponse({ error: 'User not found' }, 404);
+    }
   }
 
   // Handle Question Fetching
