@@ -71,6 +71,15 @@ function QuizContent() {
 
   const currentResponse = quiz.responses.find(r => r.questionId === currentQuestion?.id)?.answer;
 
+  const isAnswered = (questionId: string) => {
+    const resp = quiz.responses.find(r => r.questionId === questionId)?.answer;
+    if (resp === undefined || resp === null) return false;
+    if (typeof resp === 'string') return resp.trim().length > 0;
+    if (Array.isArray(resp)) return resp.length > 0;
+    if (typeof resp === 'object') return Object.keys(resp).length > 0;
+    return true;
+  };
+
   const next = () => {
     if (quiz.currentQuestionIndex < quiz.questions.length - 1) {
       setQuiz({ ...quiz, currentQuestionIndex: quiz.currentQuestionIndex + 1 });
@@ -249,13 +258,40 @@ function QuizContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center p-4 md:p-8">
       <div className="w-full max-w-4xl flex-1 flex flex-col gap-6">
-        <header className="space-y-4 mb-4 text-center">
-          <h1 className="text-4xl font-black text-foreground tracking-tight">{quizTitle}</h1>
-          <div className="flex justify-between items-center text-xs font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
-            <span>Progress: {quiz.currentQuestionIndex + 1} / {quiz.questions.length}</span>
-            <span>{Math.round(progress)}% Complete</span>
+        <header className="space-y-6 mb-4 text-center">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-black text-foreground tracking-tight">{quizTitle}</h1>
+            <div className="flex justify-between items-center text-xs font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
+              <span>Progress: {quiz.currentQuestionIndex + 1} / {quiz.questions.length}</span>
+              <span>{Math.round(progress)}% Complete</span>
+            </div>
+            <Progress value={progress} className="h-3 rounded-full bg-slate-100" />
           </div>
-          <Progress value={progress} className="h-3 rounded-full bg-slate-100" />
+
+          <div className="bg-white/50 backdrop-blur-sm p-4 rounded-3xl border shadow-sm overflow-x-auto">
+            <div className="flex items-center justify-center gap-2 min-w-max px-2">
+              {quiz.questions.map((q, idx) => {
+                const isCurrent = quiz.currentQuestionIndex === idx;
+                const answered = isAnswered(q.id);
+                return (
+                  <Button
+                    key={q.id}
+                    variant={isCurrent ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setQuiz(prev => ({ ...prev, currentQuestionIndex: idx }))}
+                    className={cn(
+                      "w-10 h-10 rounded-xl font-bold transition-all border-2",
+                      !isCurrent && answered && "bg-green-50 border-green-200 text-green-600 hover:bg-green-100",
+                      isCurrent && "border-primary shadow-md scale-110 z-10",
+                      !isCurrent && !answered && "bg-white border-slate-200"
+                    )}
+                  >
+                    {idx + 1}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
         </header>
 
         <Card className="flex-1 shadow-2xl border-none overflow-hidden rounded-[2rem] bg-white">
