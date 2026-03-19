@@ -77,10 +77,10 @@ export default function AdminDashboard() {
   };
 
   const handleSeedData = async () => {
-    toast({ title: "Seeding Started", description: "Pushing full feature demo to your Google Sheet..." });
+    toast({ title: "Seeding Started", description: "Synchronizing demo library with your Google Sheet..." });
     
     try {
-      // 1. Seed Tests
+      // Seed Tests using static IDs from demo-data.ts to avoid duplication via GAS upsertRow
       for (const test of AVAILABLE_TESTS) {
         await handlePost('saveTest', { data: {
           id: test.id,
@@ -93,16 +93,19 @@ export default function AdminDashboard() {
         }});
       }
 
-      // 2. Seed Questions for the tour test
+      // Seed Questions for the primary demo test
+      // saveQuestions clears the sheet first, ensuring no duplicates for that specific test
       await handlePost('saveQuestions', { 
         testId: 'demo-full', 
         questions: DEMO_QUESTIONS 
       });
 
-      toast({ title: "Success", description: "Demo library populated successfully." });
-      setTimeout(fetchData, 2000); // Wait for GAS to finalize
+      toast({ title: "Sync Complete", description: "Demo content is now live in your database." });
+      
+      // Refresh local data to reflect changes
+      setTimeout(fetchData, 2000);
     } catch (error) {
-      toast({ variant: "destructive", title: "Seed Failed", description: "Some content could not be pushed." });
+      toast({ variant: "destructive", title: "Seed Error", description: "Could not complete the sync." });
     }
   };
 
@@ -131,14 +134,14 @@ export default function AdminDashboard() {
           }
           const ok = await handlePost('saveTest', { data: payload });
           if (ok) {
-            toast({ title: "Success", description: "Test saved." });
+            toast({ title: "Success", description: "Assessment record updated." });
             fetchData();
           }
         }}
         onSaveUser={async (userData) => {
           const ok = await handlePost('saveUser', { data: userData });
           if (ok) {
-            toast({ title: "Success", description: "User updated." });
+            toast({ title: "Success", description: "User record updated." });
             fetchData();
           }
         }}
