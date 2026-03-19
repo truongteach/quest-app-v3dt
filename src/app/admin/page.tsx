@@ -218,10 +218,18 @@ export default function AdminDashboard() {
         editingItem={editingItem}
         selectedTestId={selectedTestId}
         questions={questions}
-        onSaveTest={(data) => handlePost('saveTest', { data })}
-        onSaveUser={(data) => handlePost('saveUser', { data })}
+        onSaveTest={(testData) => {
+          const payload = { ...testData };
+          if (!payload.id) {
+            // Auto-generate test ID from title
+            const slug = (payload.title as string || 'test').toLowerCase().replace(/[^a-z0-9]/g, '-');
+            payload.id = `${slug}-${Date.now().toString().slice(-4)}`;
+          }
+          handlePost('saveTest', { data: payload });
+        }}
+        onSaveUser={(userData) => handlePost('saveUser', { data: userData })}
         onSaveQuestion={(qData, isRequired) => {
-          const newQuestionId = (qData.id as string)?.trim() || `q_${Date.now()}`;
+          const newQuestionId = (qData.id as string)?.trim() || `q_${Date.now().toString().slice(-6)}`;
           const prepared = { ...qData, id: newQuestionId, required: isRequired ? "TRUE" : "FALSE" };
           let updated = editingItem ? questions.map(q => q.id === editingItem.id ? prepared : q) : [...questions, prepared];
           handlePost('saveQuestions', { testId: selectedTestId, questions: updated });

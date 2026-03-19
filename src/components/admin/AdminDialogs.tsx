@@ -69,7 +69,10 @@ export function AdminDialogs({
             setDialogs({...dialogs, test: false});
           }} className="p-8 space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label className="font-bold">Test ID</Label><Input name="id" defaultValue={editingItem?.id} required disabled={!!editingItem} className="rounded-xl h-11" /></div>
+              <div className="space-y-2">
+                <Label className="font-bold">Test ID</Label>
+                <Input name="id" defaultValue={editingItem?.id} placeholder="Auto-generated if empty" disabled={!!editingItem} className="rounded-xl h-11" />
+              </div>
               <div className="space-y-2"><Label className="font-bold">Category</Label><Input name="category" defaultValue={editingItem?.category} className="rounded-xl h-11" /></div>
             </div>
             <div className="space-y-2"><Label className="font-bold">Title</Label><Input name="title" defaultValue={editingItem?.title} required className="rounded-xl h-11" /></div>
