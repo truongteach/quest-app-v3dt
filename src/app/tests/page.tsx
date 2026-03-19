@@ -159,11 +159,6 @@ export default function TestsLibrary() {
                     </div>
 
                     <CardHeader className="flex-1 px-8 pt-8 pb-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="outline" className="font-mono text-[9px] uppercase tracking-tighter opacity-40 px-2 rounded-md border-slate-200">
-                          {test.id}
-                        </Badge>
-                      </div>
                       <CardTitle className="text-2xl font-black text-slate-900 group-hover:text-primary transition-colors tracking-tight line-clamp-1">
                         {test.title}
                       </CardTitle>
@@ -212,8 +207,7 @@ export default function TestsLibrary() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest px-10 py-6">Intelligence ID</TableHead>
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest">Assessment Module</TableHead>
+                      <TableHead className="font-black uppercase text-[10px] tracking-widest px-10 py-6">Assessment Module</TableHead>
                       <TableHead className="font-black uppercase text-[10px] tracking-widest">Classification</TableHead>
                       <TableHead className="font-black uppercase text-[10px] tracking-widest">Efficiency</TableHead>
                       <TableHead className="font-black uppercase text-[10px] tracking-widest text-right px-10">Access</TableHead>
@@ -223,11 +217,6 @@ export default function TestsLibrary() {
                     {filteredTests.map((test, i) => (
                       <TableRow key={i} className="group hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-none">
                         <TableCell className="px-10 py-6">
-                          <Badge variant="outline" className="font-mono text-[10px] bg-slate-50 rounded-md border-slate-200 text-slate-400">
-                            {test.id}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
                           <div className="flex flex-col">
                             <span className="font-black text-slate-900 group-hover:text-primary transition-colors text-lg">{test.title}</span>
                             <span className="text-xs font-medium text-slate-400 line-clamp-1 max-w-md">{test.description}</span>
@@ -282,4 +271,9 @@ export default function TestsLibrary() {
       </footer>
     </div>
   );
+}
+
+// Utility for cleaner class joining (if needed elsewhere)
+function cn(...inputs: any[]) {
+  return inputs.filter(Boolean).join(" ");
 }
