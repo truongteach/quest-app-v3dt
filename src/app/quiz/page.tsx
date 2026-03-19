@@ -7,7 +7,7 @@ import { QuestionRenderer } from '@/components/quiz/QuestionRenderer';
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronRight, ChevronLeft, Send, RotateCcw, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
+import { ChevronRight, ChevronLeft, Send, RotateCcw, CheckCircle2, XCircle, AlertCircle, Loader2, Home } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -215,57 +215,67 @@ function QuizContent() {
     return (
       <div className="min-h-screen bg-background p-4 md:p-8">
         <div className="max-w-3xl mx-auto space-y-6">
-          <Card className="text-center py-8">
+          <Card className="text-center py-8 shadow-2xl border-none">
             <CardHeader>
-              <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-12 h-12 text-green-600" />
+              <div className="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                <CheckCircle2 className="w-14 h-14 text-green-600" />
               </div>
-              <CardTitle className="text-3xl">Quiz Complete!</CardTitle>
-              <p className="text-xl font-semibold text-primary">{quizTitle}</p>
+              <CardTitle className="text-4xl font-extrabold tracking-tight">Quiz Complete!</CardTitle>
+              <p className="text-2xl font-bold text-primary mt-2">{quizTitle}</p>
             </CardHeader>
             <CardContent>
               {hasCorrectAnswers && (
-                <div className="mb-6">
-                  <p className="text-5xl font-bold text-primary">{quiz.score} / {quiz.questions.length}</p>
-                  <p className="text-muted-foreground mt-2">Your Score</p>
+                <div className="mb-8 p-6 bg-slate-50 rounded-2xl border">
+                  <p className="text-6xl font-black text-primary">{quiz.score} <span className="text-3xl text-muted-foreground font-normal">/ {quiz.questions.length}</span></p>
+                  <p className="text-muted-foreground font-semibold uppercase tracking-widest text-xs mt-3">Final Score</p>
                 </div>
               )}
-              <p className="text-lg">Thank you for participating. You can review your answers below.</p>
+              <p className="text-lg text-muted-foreground">Great job finishing the assessment. You can review your detailed results below.</p>
             </CardContent>
-            <CardFooter className="justify-center gap-4">
-              <Button onClick={restart} variant="outline" className="rounded-full">
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Retake Quiz
+            <CardFooter className="justify-center gap-4 pt-4">
+              <Button onClick={restart} variant="outline" className="rounded-full px-8 h-12 font-bold">
+                <RotateCcw className="w-5 h-5 mr-2" />
+                Retake
               </Button>
               <Link href="/">
-                <Button className="rounded-full">Back to Home</Button>
+                <Button className="rounded-full px-8 h-12 font-bold shadow-lg">
+                  <Home className="w-5 h-5 mr-2" />
+                  Home
+                </Button>
               </Link>
             </CardFooter>
           </Card>
 
-          <h3 className="text-2xl font-bold mt-12 mb-6 px-2">Detailed Review</h3>
-          <div className="space-y-6">
+          <div className="pt-12 pb-6">
+            <h3 className="text-3xl font-black tracking-tight mb-2">Detailed Review</h3>
+            <p className="text-muted-foreground">Analyze your performance question by question.</p>
+          </div>
+          
+          <div className="space-y-6 pb-20">
             {quiz.questions.map((q, idx) => {
               const userResp = quiz.responses.find(r => r.questionId === q.id)?.answer;
+              const isCorrect = calculateScoreForQuestion(q, userResp);
               return (
-                <Card key={q.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="mt-1">
+                <Card key={q.id} className={cn("border-l-8 overflow-hidden", isCorrect ? "border-l-green-500" : "border-l-red-500")}>
+                  <CardContent className="pt-8 px-6 md:px-10">
+                    <div className="flex items-start gap-6">
+                      <div className="shrink-0 mt-1">
                         {q.correct_answer ? (
-                          calculateScoreForQuestion(q, userResp) ? 
-                          <CheckCircle2 className="w-6 h-6 text-green-500" /> : 
-                          <XCircle className="w-6 h-6 text-red-500" />
+                          isCorrect ? 
+                          <div className="bg-green-100 p-2 rounded-full"><CheckCircle2 className="w-6 h-6 text-green-600" /></div> : 
+                          <div className="bg-red-100 p-2 rounded-full"><XCircle className="w-6 h-6 text-red-600" /></div>
                         ) : (
-                          <div className="w-6 h-6 bg-muted rounded-full" />
+                          <div className="bg-slate-100 p-2 rounded-full"><AlertCircle className="w-6 h-6 text-slate-400" /></div>
                         )}
                       </div>
-                      <QuestionRenderer 
-                        question={q} 
-                        value={userResp} 
-                        onChange={() => {}} 
-                        reviewMode={true} 
-                      />
+                      <div className="flex-1">
+                        <QuestionRenderer 
+                          question={q} 
+                          value={userResp} 
+                          onChange={() => {}} 
+                          reviewMode={true} 
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -279,55 +289,58 @@ function QuizContent() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center p-4 md:p-8">
-      <div className="w-full max-w-2xl flex-1 flex flex-col gap-6">
+      <div className="w-full max-w-4xl flex-1 flex flex-col gap-6">
         <header className="space-y-4 mb-4 text-center">
-          <h1 className="text-3xl font-extrabold text-primary tracking-tight">{quizTitle}</h1>
-          <div className="flex justify-between items-center text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-            <span>Question {quiz.currentQuestionIndex + 1} of {quiz.questions.length}</span>
+          <h1 className="text-4xl font-black text-foreground tracking-tight">{quizTitle}</h1>
+          <div className="flex justify-between items-center text-xs font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
+            <span>Progress: {quiz.currentQuestionIndex + 1} / {quiz.questions.length}</span>
             <span>{Math.round(progress)}% Complete</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-3 rounded-full bg-slate-100" />
         </header>
 
-        <Card className="flex-1 shadow-xl border-none overflow-hidden">
-          <div className="flex justify-between items-center px-6 md:px-10 py-6 border-b bg-slate-50/50">
+        <Card className="flex-1 shadow-2xl border-none overflow-hidden rounded-[2rem] bg-white">
+          <div className="flex justify-between items-center px-6 md:px-12 py-8 border-b bg-slate-50/50 backdrop-blur-sm sticky top-0 z-10">
             <Button 
               variant="outline" 
               onClick={prev} 
               disabled={quiz.currentQuestionIndex === 0}
-              className="rounded-full px-6 bg-white"
+              className="rounded-full px-6 h-12 bg-white border-2 font-bold hover:bg-slate-50"
             >
-              <ChevronLeft className="w-5 h-5 mr-1" />
+              <ChevronLeft className="w-5 h-5 mr-1.5" />
               Back
             </Button>
             
-            {quiz.currentQuestionIndex === quiz.questions.length - 1 ? (
-              <Button 
-                onClick={submit} 
-                className="rounded-full px-8 bg-primary hover:bg-primary/90 shadow-sm"
-              >
-                Submit Answers
-                <Send className="w-4 h-4 ml-2" />
-              </Button>
-            ) : (
-              <Button 
-                onClick={next} 
-                className="rounded-full px-8 shadow-sm"
-              >
-                Next
-                <ChevronRight className="w-5 h-5 ml-1" />
-              </Button>
-            )}
+            <div className="flex gap-3">
+              {quiz.currentQuestionIndex === quiz.questions.length - 1 ? (
+                <Button 
+                  onClick={submit} 
+                  className="rounded-full px-10 h-12 bg-primary hover:bg-primary/90 shadow-xl font-bold transition-all hover:scale-105"
+                >
+                  Submit Final Answers
+                  <Send className="w-4 h-4 ml-2.5" />
+                </Button>
+              ) : (
+                <Button 
+                  onClick={next} 
+                  className="rounded-full px-10 h-12 shadow-lg font-bold transition-all hover:scale-105"
+                >
+                  Next Question
+                  <ChevronRight className="w-5 h-5 ml-1.5" />
+                </Button>
+              )}
+            </div>
           </div>
 
-          <CardContent className="pt-10 px-6 md:px-10">
-            <QuestionRenderer 
-              question={currentQuestion} 
-              value={currentResponse} 
-              onChange={handleResponseChange} 
-            />
+          <CardContent className="pt-12 px-6 md:px-20 pb-20">
+            <div className="max-w-3xl mx-auto">
+              <QuestionRenderer 
+                question={currentQuestion} 
+                value={currentResponse} 
+                onChange={handleResponseChange} 
+              />
+            </div>
           </CardContent>
-          <div className="pb-8" />
         </Card>
       </div>
     </div>
