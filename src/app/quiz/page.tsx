@@ -14,6 +14,14 @@ import { useSearchParams } from 'next/navigation';
 
 const DEMO_QUESTIONS: Question[] = [
   {
+    id: "m1",
+    question_text: "Match the programming languages to their primary use cases:",
+    question_type: "matching",
+    order_group: "TypeScript|Web Development,Python|Data Science,Swift|iOS Apps,SQL|Databases",
+    correct_answer: "TypeScript|Web Development,Python|Data Science,Swift|iOS Apps,SQL|Databases",
+    required: true
+  },
+  {
     id: "1",
     question_text: "What is the primary benefit of using QuestFlow?",
     question_type: "single_choice",
@@ -30,13 +38,6 @@ const DEMO_QUESTIONS: Question[] = [
     required: true
   },
   {
-    id: "3",
-    question_text: "Is Google Apps Script required for QuestFlow to work with live data?",
-    question_type: "true_false",
-    correct_answer: "True",
-    required: true
-  },
-  {
     id: "4",
     question_text: "Rank these steps to set up QuestFlow in the correct order:",
     question_type: "ordering",
@@ -50,27 +51,6 @@ const DEMO_QUESTIONS: Question[] = [
     question_type: "hotspot",
     image_url: "https://picsum.photos/seed/mountain1/800/450",
     metadata: JSON.stringify([{ id: 'peak', label: 'Mountain Peak', x: 50, y: 35, radius: 10 }]),
-    required: false
-  },
-  {
-    id: "6",
-    question_text: "Which programming language is used for Google Apps Script?",
-    question_type: "dropdown",
-    options: "Python, JavaScript, Ruby, PHP",
-    correct_answer: "JavaScript",
-    required: true
-  },
-  {
-    id: "7",
-    question_text: "What is the capital of the country where Google was founded?",
-    question_type: "short_text",
-    correct_answer: "Washington D.C.",
-    required: true
-  },
-  {
-    id: "8",
-    question_text: "How would you rate your experience with this demo so far?",
-    question_type: "rating",
     required: false
   }
 ];
@@ -148,27 +128,37 @@ function QuizContent() {
     let score = 0;
     quiz.questions.forEach(q => {
       const response = quiz.responses.find(r => r.questionId === q.id)?.answer;
-      if (!q.correct_answer || !response) return;
-
-      if (q.question_type === 'single_choice' || q.question_type === 'true_false' || q.question_type === 'short_text' || q.question_type === 'dropdown') {
-        if (response.toString().toLowerCase().trim() === q.correct_answer.toLowerCase().trim()) score++;
-      } else if (q.question_type === 'multiple_choice') {
-        const resArr = (response as string[]).map(r => r.trim()).sort();
-        const correctArr = q.correct_answer.split(',').map(c => c.trim()).sort();
-        if (JSON.stringify(resArr) === JSON.stringify(correctArr)) score++;
-      } else if (q.question_type === 'ordering') {
-        const correctArr = q.correct_answer.split(',').map(c => c.trim());
-        if (JSON.stringify(response) === JSON.stringify(correctArr)) score++;
-      } else if (q.question_type === 'hotspot') {
-        const zones = JSON.parse(q.metadata || "[]");
-        const hit = zones.find((z: any) => {
-          const dist = Math.sqrt(Math.pow(response.x - z.x, 2) + Math.pow(response.y - z.y, 2));
-          return dist <= z.radius;
-        });
-        if (hit) score++;
-      }
+      if (calculateScoreForQuestion(q, response)) score++;
     });
     return score;
+  };
+
+  const calculateScoreForQuestion = (q: Question, response: any): boolean => {
+    if (!q.correct_answer || response === undefined || response === null) return false;
+    
+    if (q.question_type === 'single_choice' || q.question_type === 'true_false' || q.question_type === 'short_text' || q.question_type === 'dropdown') {
+      return response.toString().toLowerCase().trim() === q.correct_answer.toLowerCase().trim();
+    } else if (q.question_type === 'multiple_choice') {
+      const resArr = (response as string[]).map(r => r.trim()).sort();
+      const correctArr = q.correct_answer.split(',').map(c => c.trim()).sort();
+      return JSON.stringify(resArr) === JSON.stringify(correctArr);
+    } else if (q.question_type === 'ordering') {
+      const correctArr = q.correct_answer.split(',').map(c => c.trim());
+      return JSON.stringify(response) === JSON.stringify(correctArr);
+    } else if (q.question_type === 'hotspot') {
+      const zones = JSON.parse(q.metadata || "[]");
+      const hit = zones.find((z: any) => {
+        const dist = Math.sqrt(Math.pow(response.x - z.x, 2) + Math.pow(response.y - z.y, 2));
+        return dist <= z.radius;
+      });
+      return !!hit;
+    } else if (q.question_type === 'matching') {
+      const correctPairs = q.correct_answer.split(',').map(p => p.trim());
+      const userPairs = Object.entries(response as Record<string, string>).map(([k, v]) => `${k}|${v}`);
+      if (correctPairs.length !== userPairs.length) return false;
+      return correctPairs.every(cp => userPairs.includes(cp));
+    }
+    return false;
   };
 
   const submit = async () => {
@@ -285,28 +275,6 @@ function QuizContent() {
         </div>
       </div>
     );
-  }
-
-  function calculateScoreForQuestion(q: Question, response: any): boolean {
-    if (!q.correct_answer || !response) return false;
-    if (q.question_type === 'single_choice' || q.question_type === 'true_false' || q.question_type === 'short_text' || q.question_type === 'dropdown') {
-      return response.toString().toLowerCase().trim() === q.correct_answer.toLowerCase().trim();
-    } else if (q.question_type === 'multiple_choice') {
-      const resArr = (response as string[]).map(r => r.trim()).sort();
-      const correctArr = q.correct_answer.split(',').map(c => c.trim()).sort();
-      return JSON.stringify(resArr) === JSON.stringify(correctArr);
-    } else if (q.question_type === 'ordering') {
-      const correctArr = q.correct_answer.split(',').map(c => c.trim());
-      return JSON.stringify(response) === JSON.stringify(correctArr);
-    } else if (q.question_type === 'hotspot') {
-      const zones = JSON.parse(q.metadata || "[]");
-      const hit = zones.find((z: any) => {
-        const dist = Math.sqrt(Math.pow(response.x - z.x, 2) + Math.pow(response.y - z.y, 2));
-        return dist <= z.radius;
-      });
-      return !!hit;
-    }
-    return false;
   }
 
   return (

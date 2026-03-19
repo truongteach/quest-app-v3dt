@@ -21,6 +21,16 @@ const AVAILABLE_TESTS = [
     image: "https://picsum.photos/seed/mountain1/800/450"
   },
   {
+    id: "demo-logic",
+    title: "Logic & Associations",
+    description: "Challenge your mind with our new Matching and Ordering question types. Perfect for language and logic testing.",
+    category: "Specialized",
+    difficulty: "Intermediate",
+    questions: 5,
+    duration: "8 mins",
+    image: "https://picsum.photos/seed/brain/800/450"
+  },
+  {
     id: "demo-2",
     title: "Advanced Interactions",
     description: "A deep dive into hotspots, ordering, and complex logic patterns for power users.",

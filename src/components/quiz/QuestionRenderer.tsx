@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Question, QuestionType } from '@/types/quiz';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, ArrowUp, ArrowDown, GripVertical, CheckCircle2 } from "lucide-react";
-import Image from 'next/image';
+import { Star, ArrowUp, ArrowDown, CheckCircle2, Link2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   question: Question;
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
-  const options = question.options ? question.options.split(',').map(o => o.trim()) : [];
+  const options = useMemo(() => question.options ? question.options.split(',').map(o => o.trim()) : [], [question.options]);
 
   const renderSingleChoice = () => (
     <RadioGroup 
@@ -125,6 +126,103 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
     );
   };
 
+  const renderMatching = () => {
+    const pairs = useMemo(() => 
+      question.order_group?.split(',').map(p => {
+        const [left, right] = p.split('|');
+        return { left: left.trim(), right: right.trim() };
+      }) || [], 
+    [question.order_group]);
+
+    const leftItems = useMemo(() => pairs.map(p => p.left), [pairs]);
+    const rightItems = useMemo(() => [...pairs.map(p => p.right)].sort(() => Math.random() - 0.5), [pairs]);
+    
+    const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+    const matches = (value as Record<string, string>) || {};
+
+    const handleMatch = (right: string) => {
+      if (reviewMode || !selectedLeft) return;
+      const newMatches = { ...matches, [selectedLeft]: right };
+      onChange(newMatches);
+      setSelectedLeft(null);
+    };
+
+    const clearMatch = (left: string) => {
+      if (reviewMode) return;
+      const newMatches = { ...matches };
+      delete newMatches[left];
+      onChange(newMatches);
+    };
+
+    const getMatchedRight = (left: string) => matches[left];
+    const isRightMatched = (right: string) => Object.values(matches).includes(right);
+
+    const correctPairs = useMemo(() => 
+      question.correct_answer?.split(',').map(p => {
+        const [l, r] = p.split('|');
+        return { l: l.trim(), r: r.trim() };
+      }) || [], 
+    [question.correct_answer]);
+
+    return (
+      <div className="grid grid-cols-2 gap-8 relative py-4">
+        <div className="space-y-3">
+          <Label className="text-sm font-bold uppercase text-muted-foreground px-1">Items</Label>
+          {leftItems.map((left, idx) => (
+            <div 
+              key={idx}
+              className={cn(
+                "p-3 border rounded-lg cursor-pointer transition-all flex items-center justify-between",
+                selectedLeft === left ? "border-primary bg-primary/5 ring-1 ring-primary" : "bg-card hover:border-primary/50",
+                matches[left] && "border-green-200 bg-green-50/30",
+                reviewMode && "cursor-default"
+              )}
+              onClick={() => !reviewMode && setSelectedLeft(left)}
+            >
+              <span className="font-medium text-sm md:text-base">{left}</span>
+              {matches[left] && (
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="h-6 w-6 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); clearMatch(left); }}
+                >
+                  <XCircle className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-3">
+          <Label className="text-sm font-bold uppercase text-muted-foreground px-1">Matches</Label>
+          {rightItems.map((right, idx) => {
+            const matchedLeft = Object.keys(matches).find(k => matches[k] === right);
+            const isCorrect = reviewMode && matchedLeft && correctPairs.find(cp => cp.l === matchedLeft)?.r === right;
+            
+            return (
+              <div 
+                key={idx}
+                className={cn(
+                  "p-3 border rounded-lg cursor-pointer transition-all flex items-center gap-2",
+                  matchedLeft ? "border-green-200 bg-green-50 text-green-800" : "bg-card hover:border-primary/50",
+                  !matchedLeft && selectedLeft && "border-dashed border-primary animate-pulse",
+                  reviewMode && isCorrect && "border-green-500 bg-green-100",
+                  reviewMode && matchedLeft && !isCorrect && "border-red-500 bg-red-100",
+                  reviewMode && "cursor-default"
+                )}
+                onClick={() => handleMatch(right)}
+              >
+                <Link2 className={cn("w-4 h-4 shrink-0", matchedLeft ? "text-green-600" : "text-muted-foreground")} />
+                <span className="text-sm md:text-base">{right}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderHotspot = () => {
     const coords = (value as { x: number; y: number } | null);
     const zones: any[] = JSON.parse(question.metadata || "[]");
@@ -176,7 +274,6 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground text-center italic">Click the image to select your answer</p>
       </div>
     );
   };
@@ -235,6 +332,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       case 'multiple_choice': return renderMultipleChoice();
       case 'rating': return renderRating();
       case 'ordering': return renderOrdering();
+      case 'matching': return renderMatching();
       case 'hotspot': return renderHotspot();
       default: return renderDefault();
     }
