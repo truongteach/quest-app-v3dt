@@ -1,7 +1,7 @@
 
 export const GAS_CODE = `
 /**
- * QUESTFLOW BACKEND v4.0 - SIMPLE SHEET AUTH
+ * QUESTFLOW BACKEND v5.0 - STRUCTURED DATABASE
  * 
  * SETUP INSTRUCTIONS:
  * 1. Create a Google Sheet.
@@ -14,7 +14,7 @@ export const GAS_CODE = `
  *    test_id, id, question_text, question_type, options, correct_answer, order_group, image_url, metadata, required
  * 
  * 4. Add Headers to "Users":
- *    email, role
+ *    id, name, email, role
  * 
  * 5. Add Headers to "Responses":
  *    Timestamp, Test ID, Score, Total, Duration (ms), Raw Responses
@@ -40,12 +40,20 @@ function doGet(e) {
     const data = usersSheet.getDataRange().getValues();
     const headers = data.shift();
     
-    const userRow = data.find(row => String(row[0]).toLowerCase() === email.toLowerCase());
+    // Find column indexes dynamically
+    const emailIdx = headers.indexOf('email');
+    const roleIdx = headers.indexOf('role');
+    const nameIdx = headers.indexOf('name');
+    
+    if (emailIdx === -1) return createResponse({ error: 'Email column not found in Users tab' }, 500);
+
+    const userRow = data.find(row => String(row[emailIdx]).toLowerCase() === email.toLowerCase());
     
     if (userRow) {
       return createResponse({ 
-        email: userRow[0], 
-        role: userRow[1] || 'user'
+        email: userRow[emailIdx], 
+        role: userRow[roleIdx] || 'user',
+        name: nameIdx !== -1 ? userRow[nameIdx] : email.split('@')[0]
       });
     } else {
       return createResponse({ error: 'User not authorized' }, 403);

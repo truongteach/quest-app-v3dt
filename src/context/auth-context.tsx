@@ -8,6 +8,7 @@ interface User {
   email: string;
   role: 'admin' | 'user';
   displayName?: string;
+  id?: string;
 }
 
 interface AuthContextType {
@@ -42,7 +43,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newUser: User = {
           email: email.toLowerCase(),
           role: data.role as 'admin' | 'user',
-          displayName: email.split('@')[0]
+          displayName: data.name || email.split('@')[0],
+          id: data.id
         };
         setUser(newUser);
         localStorage.setItem('questflow_user', JSON.stringify(newUser));

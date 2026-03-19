@@ -22,9 +22,10 @@ export default function SetupGuide() {
     });
   };
 
-  const SAMPLE_USERS = `email\trole
-admin@example.com\tadmin
-user@example.com\tuser`;
+  const SAMPLE_USERS = `id\tname\temail\trole
+U001\tAdmin User\tadmin@example.com\tadmin
+U002\tJane Smith\tuser@example.com\tuser
+U003\tJohn Doe\tjohn@example.com\tuser`;
 
   const SAMPLE_QUESTIONS = `test_id\tid\tquestion_text\tquestion_type\toptions\tcorrect_answer\torder_group\timage_url\tmetadata\trequired
 demo-1\tq1\tWhat is QuestFlow?\tsingle_choice\tA Tool,A Framework,A Platform,All of the above\tAll of the above\t\t\tTRUE
@@ -78,7 +79,7 @@ demo-1\th1\tLocate the peak in the image:\thotspot\t\t\t\thttps://picsum.photos/
                   </Button>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <p className="text-xs text-muted-foreground mb-4">Paste this into cell <strong>A1</strong> of your Users tab:</p>
+                  <p className="text-xs text-muted-foreground mb-4">Paste this into cell <strong>A1</strong> of your Users tab (Headers: id, name, email, role):</p>
                   <pre className="bg-slate-900 p-4 rounded-xl overflow-x-auto font-mono text-[10px] text-green-400">
                     {SAMPLE_USERS}
                   </pre>
