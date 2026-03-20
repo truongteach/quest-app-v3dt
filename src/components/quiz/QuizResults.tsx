@@ -12,7 +12,8 @@ import {
   ChevronDown,
   Zap,
   Trophy,
-  ArrowRight
+  ArrowRight,
+  User
 } from "lucide-react";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ interface QuizResultsProps {
   totalQuestions: number;
   questions: Question[];
   responses: UserResponse[];
+  userName: string;
   onRestart: () => void;
 }
 
@@ -41,11 +43,19 @@ export function QuizResults({
   totalQuestions,
   questions,
   responses,
+  userName,
   onRestart
 }: QuizResultsProps) {
-  const hasCorrectAnswers = questions.some(q => q.correct_answer);
   const percentage = Math.round((score / totalQuestions) * 100);
   const isPassing = percentage >= 70;
+
+  const getCompliment = (pct: number) => {
+    if (pct >= 95) return "Absolutely Exceptional! You've mastered this intelligence module with total precision.";
+    if (pct >= 85) return "Outstanding performance! Your cognitive synchronization is operating at peak levels.";
+    if (pct >= 70) return "Great job! You've successfully cleared the core requirements of this protocol.";
+    if (pct >= 50) return "Protocol completed. Solid effort, though further optimization is possible.";
+    return "Initialization incomplete. We recommend re-engaging with the material for better structural alignment.";
+  };
 
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col items-center py-12 px-4 md:px-8">
@@ -63,9 +73,16 @@ export function QuizResults({
                 {isPassing ? <Trophy className="w-12 h-12" /> : <Zap className="w-12 h-12 fill-current" />}
               </div>
             </div>
-            <CardTitle className="text-5xl font-black tracking-tighter text-slate-900 uppercase">
-              Assessment {isPassing ? 'Cleared' : 'Complete'}
-            </CardTitle>
+            
+            <div className="space-y-2 mb-4">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                <User className="w-3 h-3" />
+                Operator: {userName}
+              </div>
+              <CardTitle className="text-5xl font-black tracking-tighter text-slate-900 uppercase">
+                Assessment {isPassing ? 'Cleared' : 'Complete'}
+              </CardTitle>
+            </div>
             <p className="text-lg font-bold text-slate-400 mt-2 uppercase tracking-[0.2em]">{title}</p>
           </CardHeader>
           
@@ -87,10 +104,15 @@ export function QuizResults({
               </div>
 
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">Next Actions</h4>
-                  <p className="text-slate-500 font-medium leading-relaxed">
-                    Intelligence data has been committed to the DNTRNG core. You can now review individual steps or return to the module library.
+                <div className="space-y-4">
+                  <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-primary mb-2">Performance Summary</h4>
+                    <p className="text-slate-700 font-bold text-lg leading-tight italic">
+                      "{getCompliment(percentage)}"
+                    </p>
+                  </div>
+                  <p className="text-slate-500 font-medium leading-relaxed px-2">
+                    {userName}, your intelligence data has been committed to the DNTRNG core. You can now review individual steps or return to the module library.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3">

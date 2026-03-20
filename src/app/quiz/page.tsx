@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
@@ -268,6 +267,7 @@ function QuizContent() {
         totalQuestions={quiz.questions.length}
         questions={quiz.questions}
         responses={quiz.responses}
+        userName={user?.displayName || guestName || 'Guest User'}
         onRestart={restart}
       />
     );
