@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, LayoutGrid, ShieldCheck, LogIn, User } from "lucide-react";
+import { LogOut, LayoutGrid, ShieldCheck, LogIn, User, Settings } from "lucide-react";
 import Link from 'next/link';
 
 export function UserNav() {
@@ -56,6 +56,12 @@ export function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="opacity-50" />
+        <Link href="/profile">
+          <DropdownMenuItem className="rounded-lg p-2.5 font-bold cursor-pointer">
+            <User className="mr-2 h-4 w-4 text-primary" />
+            <span>Identity Registry</span>
+          </DropdownMenuItem>
+        </Link>
         <Link href="/tests">
           <DropdownMenuItem className="rounded-lg p-2.5 font-bold cursor-pointer">
             <LayoutGrid className="mr-2 h-4 w-4 text-primary" />
