@@ -17,7 +17,8 @@ import {
   Timer,
   Zap,
   RotateCcw,
-  Gamepad2
+  Gamepad2,
+  AlertTriangle
 } from "lucide-react";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
@@ -28,6 +29,16 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface QuizActiveProps {
   quiz: QuizState;
@@ -53,6 +64,8 @@ export function QuizActive({
   onJump
 }: QuizActiveProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  
   const currentQuestion = quiz.questions[quiz.currentQuestionIndex];
   const progress = quiz.questions.length > 0 ? ((quiz.currentQuestionIndex + 1) / quiz.questions.length) * 100 : 0;
 
@@ -65,6 +78,18 @@ export function QuizActive({
     if (Array.isArray(resp)) return resp.length > 0;
     if (typeof resp === 'object') return Object.keys(resp).length > 0;
     return true;
+  };
+
+  const answeredCount = quiz.questions.filter(q => isAnswered(q.id)).length;
+  const totalCount = quiz.questions.length;
+  const unansweredCount = totalCount - answeredCount;
+
+  const handleCommitAttempt = () => {
+    if (unansweredCount > 0) {
+      setIsConfirmOpen(true);
+    } else {
+      onSubmit();
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -156,8 +181,8 @@ export function QuizActive({
               <div className="flex gap-3 shrink-0">
                 {quiz.currentQuestionIndex === quiz.questions.length - 1 ? (
                   <Button 
-                    onClick={onSubmit} 
-                    disabled={isWrongInRace || !isAnswered(currentQuestion.id)}
+                    onClick={handleCommitAttempt} 
+                    disabled={isWrongInRace}
                     className="rounded-full px-12 h-14 bg-primary hover:bg-primary/90 shadow-2xl font-black transition-all hover:scale-105"
                   >
                     <span className="hidden md:inline uppercase text-xs tracking-widest">Commit</span>
@@ -166,7 +191,7 @@ export function QuizActive({
                 ) : (
                   <Button 
                     onClick={onNext} 
-                    disabled={isWrongInRace || !isAnswered(currentQuestion.id)}
+                    disabled={isWrongInRace}
                     className="rounded-full px-12 h-14 bg-slate-900 text-white shadow-2xl font-black transition-all hover:scale-105"
                   >
                     <span className="hidden md:inline uppercase text-xs tracking-widest">Forward</span>
@@ -244,6 +269,31 @@ export function QuizActive({
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl bg-white p-10">
+          <AlertDialogHeader>
+            <div className="mx-auto w-20 h-20 bg-orange-50 rounded-[1.5rem] flex items-center justify-center mb-6">
+              <AlertTriangle className="w-10 h-10 text-orange-500" />
+            </div>
+            <AlertDialogTitle className="text-3xl font-black tracking-tight text-center uppercase">Intelligence Gap Detected</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-lg font-medium text-slate-500 leading-relaxed pt-2">
+              You have <span className="text-orange-600 font-black">{unansweredCount} unanswered</span> {unansweredCount === 1 ? 'step' : 'steps'} in this protocol. Submitting now will finalize your score based on partial data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-4 mt-8">
+            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase tracking-widest text-xs flex-1">
+              Go Back & Review
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={onSubmit}
+              className="h-14 rounded-full bg-slate-900 font-black uppercase tracking-widest text-xs flex-1"
+            >
+              Commit Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
