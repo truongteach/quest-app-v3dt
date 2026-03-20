@@ -27,6 +27,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { API_URL } from '@/lib/api-config';
+import { UserNav } from '@/components/UserNav';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
