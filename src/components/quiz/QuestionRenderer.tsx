@@ -211,71 +211,132 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   const renderMatching = () => {
     const responses = (value as Record<string, string>) || {};
     const prompts = matchingPairs.map(p => p.left);
+    const assignedAnswers = Object.values(responses);
+    const availableAnswers = shuffledRightItems.filter(ans => !assignedAnswers.includes(ans));
 
-    const handleSelect = (prompt: string, answer: string) => {
+    const handleDrop = (prompt: string, answer: string) => {
       if (reviewMode) return;
       onChange({ ...responses, [prompt]: answer });
     };
 
+    const handleClear = (prompt: string) => {
+      if (reviewMode) return;
+      const newResponses = { ...responses };
+      delete newResponses[prompt];
+      onChange(newResponses);
+    };
+
+    const [draggingItem, setDraggingItem] = useState<string | null>(null);
+
     return (
-      <div className="space-y-6">
+      <div className="space-y-8 animate-in fade-in duration-500">
         {!reviewMode && (
           <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center gap-3">
             <Info className="w-5 h-5 text-primary" />
-            <p className="text-xs font-medium text-primary">Select the correct matching pair for each prompt below.</p>
+            <p className="text-xs font-medium text-primary">Drag answers from the pool into the correct target slots.</p>
           </div>
         )}
-        
-        <div className="grid gap-4">
-          {prompts.map((prompt, i) => {
-            const userVal = responses[prompt];
-            const pair = matchingPairs.find(p => p.left === prompt);
-            const correctAnswer = pair?.right;
-            const isCorrect = reviewMode && userVal === correctAnswer;
 
-            return (
-              <div key={i} className={cn(
-                "p-6 rounded-[2rem] border-2 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6",
-                reviewMode 
-                  ? (isCorrect ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100") 
-                  : "bg-white border-slate-100 shadow-sm"
-              )}>
-                <div className="flex-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Prompt</span>
-                  <p className="font-bold text-lg text-slate-700">{prompt}</p>
-                </div>
-                
-                <div className="flex items-center gap-4 shrink-0">
-                  <div className="hidden md:block">
-                    <Link2 className="w-5 h-5 text-slate-300" />
-                  </div>
-                  
-                  <Select 
-                    value={userVal || "none"} 
-                    onValueChange={(val) => handleSelect(prompt, val === "none" ? "" : val)}
-                    disabled={reviewMode}
-                  >
-                    <SelectTrigger className="w-full md:w-[240px] h-12 rounded-xl font-bold bg-slate-50 border-none ring-1 ring-slate-200">
-                      <SelectValue placeholder="Match with..." />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl">
-                      <SelectItem value="none" className="font-bold text-slate-400 italic">Select an answer</SelectItem>
-                      {shuffledRightItems.map((ans, j) => (
-                        <SelectItem key={j} value={ans} className="font-bold">{ans}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Left Side: Targets */}
+          <div className="lg:col-span-7 space-y-4">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Protocol Targets</h3>
+            <div className="space-y-3">
+              {prompts.map((prompt, i) => {
+                const userVal = responses[prompt];
+                const pair = matchingPairs.find(p => p.left === prompt);
+                const correctAnswer = pair?.right;
+                const isCorrect = reviewMode && userVal === correctAnswer;
 
-                {reviewMode && !isCorrect && (
-                  <div className="w-full md:w-auto pt-4 md:pt-0 border-t md:border-none border-slate-100">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">Correct Match</p>
-                    <p className="font-bold text-sm text-green-700">{correctAnswer}</p>
+                return (
+                  <div key={i} className="space-y-2">
+                    <div className={cn(
+                      "p-5 rounded-[2rem] border-2 transition-all flex items-center justify-between gap-6",
+                      reviewMode 
+                        ? (isCorrect ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100") 
+                        : "bg-slate-50/50 border-slate-100"
+                    )}>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Prompt</span>
+                        <p className="font-bold text-slate-700 truncate text-lg">{prompt}</p>
+                      </div>
+
+                      <div 
+                        onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('ring-4', 'ring-primary/20', 'border-primary'); }}
+                        onDragLeave={(e) => { e.currentTarget.classList.remove('ring-4', 'ring-primary/20', 'border-primary'); }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.remove('ring-4', 'ring-primary/20', 'border-primary');
+                          const data = e.dataTransfer.getData("text/plain");
+                          if (data) handleDrop(prompt, data);
+                        }}
+                        className={cn(
+                          "w-48 h-16 rounded-2xl border-2 border-dashed flex items-center justify-center transition-all px-4 relative group",
+                          userVal ? "border-primary bg-white shadow-xl" : "border-slate-300 bg-white/50"
+                        )}
+                      >
+                        {userVal ? (
+                          <>
+                            <span className="font-black text-xs text-primary truncate pr-6">{userVal}</span>
+                            {!reviewMode && (
+                              <button 
+                                onClick={() => handleClear(prompt)}
+                                className="absolute right-3 p-1 hover:bg-slate-100 rounded-full transition-colors"
+                              >
+                                <X className="w-3 h-3 text-slate-400" />
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest italic">Drop Module</span>
+                        )}
+                      </div>
+                    </div>
+                    {reviewMode && !isCorrect && (
+                      <div className="px-6 flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                        <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">Correct Registry: {correctAnswer}</p>
+                      </div>
+                    )}
                   </div>
-                )}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Side: Pool */}
+          {!reviewMode && (
+            <div className="lg:col-span-5">
+              <div className="sticky top-24 space-y-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Answer Pool</h3>
+                <div className="p-8 bg-slate-100/50 rounded-[3rem] border-4 border-dashed border-slate-200 min-h-[400px] flex flex-wrap gap-3 items-start content-start">
+                  {availableAnswers.map((ans, i) => (
+                    <div
+                      key={i}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", ans);
+                        setDraggingItem(ans);
+                      }}
+                      onDragEnd={() => setDraggingItem(null)}
+                      className={cn(
+                        "px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 transition-all font-black text-sm text-slate-600",
+                        draggingItem === ans && "opacity-20 scale-95 grayscale"
+                      )}
+                    >
+                      {ans}
+                    </div>
+                  ))}
+                  {availableAnswers.length === 0 && (
+                    <div className="w-full h-64 flex flex-col items-center justify-center text-slate-300 text-center gap-4">
+                      <CheckCircle2 className="w-12 h-12 opacity-10" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">Registry Fully Allocated</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            );
-          })}
+            </div>
+          )}
         </div>
       </div>
     );
