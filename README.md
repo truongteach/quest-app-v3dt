@@ -11,62 +11,65 @@
 ## 🚀 Core Features | Tính Năng Cốt Lõi
 
 - **Direct Cloud Sync**: Real-time bi-directional synchronization with Google Sheets™ as your database.
-- **Advanced Interaction Modules**: Support for Single/Multiple Choice, Hotspots (Visual mapping), Ordering, Matching (Drag & Drop), Matrix Choice, and Multiple True/False.
+- **Advanced Interaction Modules**: Hotspots (Visual mapping), Ordering, Matching (Drag & Drop), Matrix Choice, and Multiple True/False.
 - **Intelligence Zone Mapper**: Built-in visual CAD tool for administrators to map hotspot coordinates on any image asset.
 - **Daily Access Protocol**: Dynamic, time-sensitive security keys generated algorithmically for session protection.
-- **Bilingual Core**: Native support for English and Vietnamese initialization protocols.
 - **Identity Registry**: Personalized operator dashboards with live performance analytics.
 
 ---
 
-## 🇺🇸 Initialization Protocol (English)
-
-To activate the **DNTRNG™** engine, follow this structured sequence.
+## 🇺🇸 Operational Protocol (English)
 
 ### Phase 01: Sheet Architecture
 Create a new Google Sheet and provision the following core tabs (Case-Sensitive).
 
-1.  **`Tests` (Master Registry)**: `id`, `title`, `description`, `category`, `difficulty`, `duration`, `image_url`
-2.  **`Users` (Identity)**: `id`, `name`, `email`, `role`, `password`
-3.  **`Responses` (Logs)**: `Timestamp`, `User Name`, `User Email`, `Test ID`, `Score`, `Total`, `Duration (ms)`, `Raw Responses`
+1.  **`Tests`**: `id`, `title`, `description`, `category`, `difficulty`, `duration`, `image_url`
+2.  **`Users`**: `id`, `name`, `email`, `role`, `password`
+3.  **`Responses`**: `Timestamp`, `User Name`, `User Email`, `Test ID`, `Score`, `Total`, `Duration (ms)`, `Raw Responses`
 4.  **Module Tabs**: Create a tab for every test `id` using: `id`, `question_text`, `question_type`, `options`, `correct_answer`, `order_group`, `image_url`, `metadata`, `required`
 
 ### Phase 02: Logic Injection
-1. Open your Google Sheet > **Extensions > Apps Script**.
-2. Paste the template found in `src/app/lib/gas-template.ts`.
+1. Open Google Sheet > **Extensions > Apps Script**.
+2. Paste code from `src/app/lib/gas-template.ts`.
 3. **Deploy > New Deployment > Web App**.
-4. Set "Execute as: Me" and "Who has access: Anyone".
-5. Copy the **Web App URL**.
+4. Execute as: **Me**, Access: **Anyone**.
+5. Copy the **Web App URL** and update `src/lib/api-config.ts`.
 
-### Phase 03: System Handshake
-Update `src/lib/api-config.ts` with your URL:
-```typescript
-export const API_URL = "YOUR_DEPLOYED_WEB_APP_URL_HERE";
-```
+### Phase 03: Deployment
+- **Vercel**: Push to GitHub and connect your project. No extra config needed.
+- **Firebase**: App Hosting is pre-configured. Use `firebase deploy`.
+
+### Phase 04: Usage Workflow
+1. **Admin Console**: Login at `/login` (default: `admin@dntrng.com` / `admin123`).
+2. **Security**: Copy the **Hashed Daily Key** from the Dashboard header and share it with students.
+3. **Content**: Use the **Intelligence Zone Mapper** in the Question Bank to create visual hotspot tests.
 
 ---
 
-## 🇻🇳 Quy Trình Khởi Tạo (Tiếng Việt)
-
-Làm theo các bước sau để kích hoạt hệ thống **DNTRNG™**.
+## 🇻🇳 Quy Trình Vận Hành (Tiếng Việt)
 
 ### Giai đoạn 01: Kiến Trúc Bảng Tính
-Tạo một Google Sheet mới và thiết lập các tab sau (Phân biệt chữ hoa/thường).
+Tạo Google Sheet mới và thiết lập các tab sau (Phân biệt chữ hoa/thường).
 
-1.  **`Tests` (Danh Mục)**: `id`, `title`, `description`, `category`, `difficulty`, `duration`, `image_url`
-2.  **`Users` (Người Dùng)**: `id`, `name`, `email`, `role`, `password`
-3.  **`Responses` (Nhật Ký)**: `Timestamp`, `User Name`, `User Email`, `Test ID`, `Score`, `Total`, `Duration (ms)`, `Raw Responses`
-4.  **Tab Câu Hỏi**: Tạo tab cho mỗi `id` bài test: `id`, `question_text`, `question_type`, `options`, `correct_answer`, `order_group`, `image_url`, `metadata`, `required`
+1.  **`Tests` (Danh Mục)**: Danh sách các bài kiểm tra.
+2.  **`Users` (Người Dùng)**: Quản lý danh tính và quyền truy cập.
+3.  **`Responses` (Nhật Ký)**: Lưu trữ kết quả và điểm số.
+4.  **Tab Câu Hỏi**: Tạo tab riêng cho mỗi `id` bài test với các tiêu đề cột tiêu chuẩn.
 
 ### Giai đoạn 02: Triển Khai Backend
 1. Vào Google Sheet > **Tiện ích mở rộng > Apps Script**.
-2. Dán mã nguồn từ tệp `src/app/lib/gas-template.ts`.
-3. **Triển khai > Tùy chọn triển khai mới > Ứng dụng Web**.
-4. Cấu hình "Thực thi dưới tên: Tôi" và "Ai có quyền truy cập: Mọi người".
-5. Sao chép **URL Ứng dụng Web**.
+2. Dán mã nguồn từ `src/app/lib/gas-template.ts`.
+3. **Triển khai > Ứng dụng Web**. Cấu hình "Truy cập: Mọi người".
+4. Sao chép URL vào `src/lib/api-config.ts`.
 
-### Giai đoạn 03: Kết Nối Hệ Thống
-Cập nhật tệp `src/lib/api-config.ts` với URL của bạn.
+### Giai đoạn 03: Triển Khai Frontend
+- **Vercel**: Đẩy mã nguồn lên GitHub và kết nối với dự án Vercel.
+- **Firebase**: Sử dụng lệnh `firebase deploy` để triển khai qua App Hosting.
+
+### Giai đoạn 04: Quy Trình Sử Dụng
+1. **Quản Trị**: Đăng nhập tại `/login` để quản lý nội dung.
+2. **Bảo Mật**: Lấy **Mã Truy Cập Hàng Ngày** từ trang Dashboard và gửi cho học sinh.
+3. **Nội Dung**: Sử dụng công cụ **Intelligence Zone Mapper** để vẽ các vùng chọn cho câu hỏi hình ảnh.
 
 ---
 
@@ -77,6 +80,3 @@ Access the **DNTRNG™ Console** using default admin credentials:
 
 ## ⚖️ License
 This project is part of the **DNTRNG™ Open Source Initiative**. All rights reserved.
-
----
-*Generated by the DNTRNG™ Protocol v17.5 • Intelligence Simplified.*
