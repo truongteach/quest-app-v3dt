@@ -56,7 +56,7 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
   // --- DATA ANALYSIS LOGIC ---
   
   const stats = useMemo(() => {
-    if (responses.length === 0) return null;
+    if (!responses || responses.length === 0) return null;
 
     const total = responses.length;
     let totalScorePct = 0;
@@ -84,7 +84,7 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
       else gradeCounts.Fail++;
 
       // Per test stats
-      const testId = r['Test ID'] || 'Unknown';
+      const testId = String(r['Test ID'] || 'Unknown');
       if (!testStats[testId]) testStats[testId] = { count: 0, totalScore: 0 };
       testStats[testId].count++;
       testStats[testId].totalScore += pct;
@@ -122,15 +122,16 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
   };
 
   const processedResponses = useMemo(() => {
+    if (!responses) return [];
     let result = [...responses];
 
     // Search Filtering
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(r => 
-        (r['User Name'] || '').toLowerCase().includes(term) ||
-        (r['User Email'] || '').toLowerCase().includes(term) ||
-        (r['Test ID'] || '').toLowerCase().includes(term)
+        String(r['User Name'] || '').toLowerCase().includes(term) ||
+        String(r['User Email'] || '').toLowerCase().includes(term) ||
+        String(r['Test ID'] || '').toLowerCase().includes(term)
       );
     }
 
@@ -337,10 +338,10 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                     <TableCell className="px-8 py-5 text-[10px] font-medium text-slate-400">
                       {new Date(r.Timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </TableCell>
-                    <TableCell className="px-4 font-black text-slate-900 truncate max-w-[150px]">{r['User Name'] || 'Guest'}</TableCell>
-                    <TableCell className="px-4 font-medium text-slate-500 truncate max-w-[150px]">{r['User Email'] || 'Anonymous'}</TableCell>
+                    <TableCell className="px-4 font-black text-slate-900 truncate max-w-[150px]">{String(r['User Name'] || 'Guest')}</TableCell>
+                    <TableCell className="px-4 font-medium text-slate-500 truncate max-w-[150px]">{String(r['User Email'] || 'Anonymous')}</TableCell>
                     <TableCell className="px-4 font-bold text-slate-700">
-                      <Badge variant="outline" className="font-mono text-[10px] rounded-md bg-slate-50">{r['Test ID']}</Badge>
+                      <Badge variant="outline" className="font-mono text-[10px] rounded-md bg-slate-50">{String(r['Test ID'])}</Badge>
                     </TableCell>
                     <TableCell className="px-4 font-black text-slate-700">{score} / {total}</TableCell>
                     <TableCell className="px-8 text-right">
