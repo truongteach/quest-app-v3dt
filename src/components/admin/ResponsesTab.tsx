@@ -1,9 +1,10 @@
 
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
   Table, 
   TableBody, 
@@ -32,14 +33,26 @@ import {
   Target, 
   TrendingUp, 
   FileText,
-  AlertCircle
+  AlertCircle,
+  Search,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown
 } from "lucide-react";
 
 interface ResponsesTabProps {
   responses: any[];
 }
 
+type SortConfig = {
+  key: string;
+  direction: 'asc' | 'desc' | null;
+};
+
 export function ResponsesTab({ responses }: ResponsesTabProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'Timestamp', direction: 'desc' });
+
   // --- DATA ANALYSIS LOGIC ---
   
   const stats = useMemo(() => {
@@ -97,6 +110,63 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
       testPerformanceData
     };
   }, [responses]);
+
+  // --- TABLE LOGIC (SEARCH & SORT) ---
+
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const processedResponses = useMemo(() => {
+    let result = [...responses];
+
+    // Search Filtering
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(r => 
+        (r['User Name'] || '').toLowerCase().includes(term) ||
+        (r['User Email'] || '').toLowerCase().includes(term) ||
+        (r['Test ID'] || '').toLowerCase().includes(term)
+      );
+    }
+
+    // Sorting
+    if (sortConfig.key && sortConfig.direction) {
+      result.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+
+        // Custom handling for scores/numeric strings
+        if (sortConfig.key === 'Score' || sortConfig.key === 'Total') {
+          valA = Number(valA) || 0;
+          valB = Number(valB) || 0;
+        }
+
+        // Custom handling for Percentage/Grade
+        if (sortConfig.key === 'Grade') {
+          valA = (Number(a.Score) / (Number(a.Total) || 1)) * 100;
+          valB = (Number(b.Score) / (Number(b.Total) || 1)) * 100;
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [responses, searchTerm, sortConfig]);
+
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortConfig.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 opacity-30" />;
+    return sortConfig.direction === 'asc' 
+      ? <ChevronUp className="ml-2 h-4 w-4 text-primary" /> 
+      : <ChevronDown className="ml-2 h-4 w-4 text-primary" />;
+  };
 
   if (!stats) {
     return (
@@ -201,42 +271,81 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
       </div>
 
       {/* Detailed Log Table */}
-      <Card className="border-none shadow-sm bg-white">
-        <CardHeader className="bg-slate-50/50 border-b">
-          <CardTitle className="font-black text-2xl text-slate-900">Comprehensive Logs</CardTitle>
-          <CardDescription>Complete historical record of all submissions</CardDescription>
+      <Card className="border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="bg-slate-50/50 border-b p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">Comprehensive Logs</CardTitle>
+              <CardDescription className="font-medium">Complete historical record of all submissions</CardDescription>
+            </div>
+            
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input 
+                placeholder="Filter by name, email or test..." 
+                className="h-12 pl-12 rounded-full bg-white border-none ring-1 ring-slate-100 focus:ring-primary/40 text-sm font-bold"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-                <TableHead className="font-bold">Timestamp</TableHead>
-                <TableHead className="font-bold">Student Name</TableHead>
-                <TableHead className="font-bold">Email/ID</TableHead>
-                <TableHead className="font-bold">Assessment</TableHead>
-                <TableHead className="font-bold">Score</TableHead>
-                <TableHead className="font-bold text-right">Grade</TableHead>
+                <TableHead 
+                  className="font-black uppercase text-[10px] tracking-widest px-8 py-5 cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => handleSort('Timestamp')}
+                >
+                  <div className="flex items-center">Timestamp <SortIcon column="Timestamp" /></div>
+                </TableHead>
+                <TableHead 
+                  className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => handleSort('User Name')}
+                >
+                  <div className="flex items-center">Student Name <SortIcon column="User Name" /></div>
+                </TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest px-4">Email/ID</TableHead>
+                <TableHead 
+                  className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => handleSort('Test ID')}
+                >
+                  <div className="flex items-center">Assessment <SortIcon column="Test ID" /></div>
+                </TableHead>
+                <TableHead 
+                  className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => handleSort('Score')}
+                >
+                  <div className="flex items-center">Score <SortIcon column="Score" /></div>
+                </TableHead>
+                <TableHead 
+                  className="font-black uppercase text-[10px] tracking-widest px-8 text-right cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => handleSort('Grade')}
+                >
+                  <div className="flex items-center justify-end">Grade <SortIcon column="Grade" /></div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {responses.map((r, i) => {
+              {processedResponses.map((r, i) => {
                 const score = Number(r.Score) || 0;
                 const total = Number(r.Total) || 1;
                 const pct = (score / total) * 100;
                 return (
-                  <TableRow key={i} className="hover:bg-slate-50/50">
-                    <TableCell className="text-[10px] font-medium text-slate-400">
+                  <TableRow key={i} className="hover:bg-slate-50/50 group border-b border-slate-50 last:border-none">
+                    <TableCell className="px-8 py-5 text-[10px] font-medium text-slate-400">
                       {new Date(r.Timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </TableCell>
-                    <TableCell className="font-black text-slate-900 truncate max-w-[150px]">{r['User Name'] || 'Guest'}</TableCell>
-                    <TableCell className="font-medium text-slate-500 truncate max-w-[150px]">{r['User Email'] || 'Anonymous'}</TableCell>
-                    <TableCell className="font-bold text-slate-700">
-                      <Badge variant="outline" className="font-mono text-[10px] rounded-md">{r['Test ID']}</Badge>
+                    <TableCell className="px-4 font-black text-slate-900 truncate max-w-[150px]">{r['User Name'] || 'Guest'}</TableCell>
+                    <TableCell className="px-4 font-medium text-slate-500 truncate max-w-[150px]">{r['User Email'] || 'Anonymous'}</TableCell>
+                    <TableCell className="px-4 font-bold text-slate-700">
+                      <Badge variant="outline" className="font-mono text-[10px] rounded-md bg-slate-50">{r['Test ID']}</Badge>
                     </TableCell>
-                    <TableCell className="font-bold text-slate-700">{score} / {total}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="px-4 font-black text-slate-700">{score} / {total}</TableCell>
+                    <TableCell className="px-8 text-right">
                       <Badge className={cn(
-                        "font-black px-3 rounded-full border-none shadow-sm",
+                        "font-black px-4 py-1.5 rounded-full border-none shadow-sm text-[9px] uppercase tracking-widest",
                         pct >= 80 ? "bg-green-100 text-green-700" : pct >= 50 ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
                       )}>
                         {pct >= 80 ? 'EXCELLENT' : pct >= 50 ? 'PASS' : 'FAIL'}
@@ -245,6 +354,16 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                   </TableRow>
                 );
               })}
+              {processedResponses.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-20 bg-slate-50/20">
+                    <div className="flex flex-col items-center gap-2 opacity-30">
+                      <Search className="w-10 h-10" />
+                      <p className="font-black uppercase tracking-widest text-xs">No matching logs found</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -261,7 +380,7 @@ function AnalysisCard({ icon: Icon, label, value, subValue, color }: any) {
   };
   
   return (
-    <Card className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-md transition-all">
+    <Card className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-xl transition-all rounded-[2rem]">
       <CardContent className="pt-6 flex items-center gap-6">
         <div className={cn("p-5 rounded-[1.5rem] border-2 transition-transform group-hover:scale-110", colors[color])}>
           <Icon className="w-8 h-8" />
