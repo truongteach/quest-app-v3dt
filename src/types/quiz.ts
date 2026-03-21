@@ -29,6 +29,7 @@ export interface HotspotZone {
   x: number; // percentage 0-100
   y: number; // percentage 0-100
   radius: number; // percentage
+  isCorrect?: boolean;
 }
 
 export interface UserResponse {

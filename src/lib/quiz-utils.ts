@@ -1,5 +1,4 @@
-
-import { Question } from '@/types/quiz';
+import { Question, HotspotZone } from '@/types/quiz';
 
 /**
  * Calculates whether a user's response is correct for a given question.
@@ -28,8 +27,14 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
   
   if (questionType === 'hotspot') {
     try {
-      const zones = JSON.parse(q.metadata || "[]");
-      const hit = zones.find((z: any) => {
+      const zones: HotspotZone[] = JSON.parse(q.metadata || "[]");
+      // Find if the click hit any zone marked as correct.
+      // If no zones are marked specifically as correct, fallback to hitting ANY defined zone.
+      const correctZones = zones.some(z => z.isCorrect) 
+        ? zones.filter(z => z.isCorrect)
+        : zones;
+
+      const hit = correctZones.find((z: HotspotZone) => {
         const dist = Math.sqrt(Math.pow(response.x - z.x, 2) + Math.pow(response.y - z.y, 2));
         return dist <= z.radius;
       });

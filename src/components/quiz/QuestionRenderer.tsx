@@ -1,8 +1,7 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Question, QuestionType } from '@/types/quiz';
+import { Question, HotspotZone } from '@/types/quiz';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -20,15 +19,11 @@ interface Props {
 }
 
 export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
-  // --- TOP LEVEL HOOKS ---
-  
-  // 1. General Options
   const options = useMemo(() => 
     question.options ? question.options.split(',').map(o => o.trim()) : [], 
     [question.options]
   );
 
-  // 2. Matching logic setup
   const matchingPairs = useMemo(() => {
     if (question.question_type !== 'matching') return [];
     return question.order_group?.split(',').map(p => {
@@ -39,7 +34,6 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
 
   const leftItems = useMemo(() => matchingPairs.map(p => p.left), [matchingPairs]);
   
-  // 3. Shuffling for Matching
   const [shuffledRightItems, setShuffledRightItems] = useState<string[]>([]);
   useEffect(() => {
     if (question.question_type === 'matching' || question.question_type === 'ordering') {
@@ -50,18 +44,15 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
     }
   }, [matchingPairs, question.order_group, question.question_type]);
 
-  // 4. Ordering initialization
   const initialOrderItems = useMemo(() => 
     question.order_group?.split(',').map(i => i.trim()) || [],
     [question.order_group]
   );
 
-  // 5. Interactive states
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
   const [draggedMatchingItem, setDraggedMatchingItem] = useState<string | null>(null);
   const [selectedPoolItem, setSelectedPoolItem] = useState<string | null>(null);
 
-  // 6. Correct answers for matching
   const correctMatchingPairs = useMemo(() => {
     if (question.question_type !== 'matching') return [];
     return question.correct_answer?.split(',').map(p => {
@@ -70,11 +61,9 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
     }) || [];
   }, [question.correct_answer, question.question_type]);
 
-  // --- DERIVED DATA ---
   const matches = (value as Record<string, string>) || {};
   const currentOrder = (value as string[]) || initialOrderItems;
 
-  // --- INTERACTION HANDLERS ---
   const handleMatchingDrop = (prompt: string, answer: string) => {
     if (reviewMode) return;
     const newMatches = { ...matches };
@@ -93,7 +82,6 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
 
   const isMatchingAnswerUsed = (answer: string) => Object.values(matches).includes(answer);
 
-  // --- RENDER FUNCTIONS ---
   const renderSingleChoice = () => (
     <RadioGroup 
       value={value || ""} 
@@ -390,7 +378,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
 
   const renderHotspot = () => {
     const coords = (value as { x: number; y: number } | null);
-    const zones: any[] = JSON.parse(question.metadata || "[]");
+    const zones: HotspotZone[] = JSON.parse(question.metadata || "[]");
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
       if (reviewMode) return;
@@ -422,7 +410,10 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
           
           {coords && (
             <div 
-              className="absolute w-10 h-10 border-4 border-white bg-primary/80 rounded-full -translate-x-1/2 -translate-y-1/2 shadow-2xl ring-8 ring-primary/10 animate-in zoom-in-50"
+              className={cn(
+                "absolute w-10 h-10 border-4 border-white rounded-full -translate-x-1/2 -translate-y-1/2 shadow-2xl ring-8 animate-in zoom-in-50",
+                reviewMode ? "bg-slate-900/80 ring-slate-900/10" : "bg-primary/80 ring-primary/10"
+              )}
               style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
             >
               <div className="w-full h-full flex items-center justify-center">
@@ -431,10 +422,13 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
             </div>
           )}
 
-          {reviewMode && zones.map((z: any) => (
+          {reviewMode && zones.map((z: HotspotZone) => (
             <div 
               key={z.id}
-              className="absolute border-4 border-dashed border-green-500 bg-green-500/10 rounded-full -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden transition-all hover:bg-green-500/20"
+              className={cn(
+                "absolute border-4 border-dashed rounded-full -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden transition-all",
+                z.isCorrect ? "border-green-500 bg-green-500/10 hover:bg-green-500/20" : "border-slate-400 bg-slate-400/10 hover:bg-slate-400/20"
+              )}
               style={{ 
                 left: `${z.x}%`, 
                 top: `${z.y}%`, 
@@ -442,13 +436,20 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                 height: `${z.radius * 2}%` 
               }}
             >
-              <span className="text-[10px] font-black text-white bg-green-600 px-3 py-1 rounded-full shadow-lg border border-green-400">{z.label}</span>
+              <span className={cn(
+                "text-[10px] font-black text-white px-3 py-1 rounded-full shadow-lg border",
+                z.isCorrect ? "bg-green-600 border-green-400" : "bg-slate-600 border-slate-400"
+              )}>
+                {z.label} {z.isCorrect ? "✓" : ""}
+              </span>
             </div>
           ))}
         </div>
         <div className="flex items-center justify-center gap-2 py-4">
           <div className="w-2 h-2 rounded-full bg-primary/20" />
-          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 italic">Interactive Visual Selection</p>
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 italic">
+            {reviewMode ? "Detailed Spatial Review" : "Interactive Visual Selection"}
+          </p>
           <div className="w-2 h-2 rounded-full bg-primary/20" />
         </div>
       </div>

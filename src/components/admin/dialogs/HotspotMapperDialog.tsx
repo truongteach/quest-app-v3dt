@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -7,11 +6,11 @@ import {
   DialogContent,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { 
   Save, 
   Trash2, 
@@ -23,14 +22,7 @@ import {
   Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface HotspotZone {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-  radius: number;
-}
+import { HotspotZone } from '@/types/quiz';
 
 interface HotspotMapperDialogProps {
   open: boolean;
@@ -58,13 +50,13 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
   }, [open, initialData]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !imageUrl) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
     setIsDrawing(true);
-    setCurrentZone({ x, y, r: 2 }); // Initial small radius
+    setCurrentZone({ x, y, r: 2 });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -82,10 +74,11 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
     
     const newZone: HotspotZone = {
       id: `zone_${Date.now()}`,
-      label: `New Zone ${zones.length + 1}`,
+      label: `Target ${zones.length + 1}`,
       x: currentZone.x,
       y: currentZone.y,
-      radius: Math.max(currentZone.r, 2)
+      radius: Math.max(currentZone.r, 2),
+      isCorrect: true
     };
     
     setZones([...zones, newZone]);
@@ -93,8 +86,8 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
     setCurrentZone(null);
   };
 
-  const updateLabel = (id: string, label: string) => {
-    setZones(zones.map(z => z.id === id ? { ...z, label } : z));
+  const updateZone = (id: string, updates: Partial<HotspotZone>) => {
+    setZones(zones.map(z => z.id === id ? { ...z, ...updates } : z));
   };
 
   const removeZone = (id: string) => {
@@ -108,7 +101,7 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1000px] rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col h-[90vh]">
+      <DialogContent className="sm:max-w-[1100px] rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col h-[90vh]">
         <div className="bg-slate-900 p-8 text-white shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="bg-primary p-2 rounded-xl">
@@ -116,7 +109,7 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
             </div>
             <div>
               <DialogTitle className="text-2xl font-black uppercase tracking-tight">Intelligence Zone Mapper</DialogTitle>
-              <DialogDescription className="text-slate-400 text-xs font-bold uppercase tracking-widest">Draw hotspots directly on the visual asset</DialogDescription>
+              <DialogDescription className="text-slate-400 text-xs font-bold uppercase tracking-widest">Map multiple correct targets and distractors</DialogDescription>
             </div>
           </div>
           <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-slate-400 hover:text-white">
@@ -125,14 +118,13 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
         </div>
 
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-slate-50">
-          {/* Main Drawing Area */}
           <div className="flex-1 p-8 flex items-center justify-center overflow-hidden">
             <div className="relative group w-full h-full flex items-center justify-center">
               {!imageUrl ? (
                 <div className="text-center space-y-4 p-20 bg-white rounded-[2rem] border-4 border-dashed border-slate-200">
                   <AlertCircle className="w-16 h-16 text-slate-200 mx-auto" />
                   <p className="font-black text-slate-400 uppercase tracking-widest">No Visual Asset Detected</p>
-                  <p className="text-xs text-slate-400">Please provide an Image URL in the question settings first.</p>
+                  <p className="text-xs text-slate-400">Provide an Image URL in settings first.</p>
                 </div>
               ) : (
                 <div 
@@ -148,7 +140,6 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
                     className="w-full h-full object-contain pointer-events-none select-none"
                   />
                   
-                  {/* Current Drawing Zone */}
                   {currentZone && (
                     <div 
                       className="absolute border-4 border-primary bg-primary/20 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -161,11 +152,13 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
                     />
                   )}
 
-                  {/* Saved Zones */}
                   {zones.map(z => (
                     <div 
                       key={z.id}
-                      className="absolute border-2 border-white bg-green-500/40 rounded-full -translate-x-1/2 -translate-y-1/2 group/zone flex items-center justify-center"
+                      className={cn(
+                        "absolute border-2 rounded-full -translate-x-1/2 -translate-y-1/2 group/zone flex items-center justify-center transition-all",
+                        z.isCorrect ? "border-green-400 bg-green-500/30" : "border-slate-400 bg-slate-500/30"
+                      )}
                       style={{ 
                         left: `${z.x}%`, 
                         top: `${z.y}%`, 
@@ -174,7 +167,7 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
                       }}
                     >
                       <div className="opacity-0 group-hover/zone:opacity-100 transition-opacity bg-slate-900 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-md shadow-xl whitespace-nowrap">
-                        {z.label}
+                        {z.label} {z.isCorrect ? "(Correct)" : ""}
                       </div>
                     </div>
                   ))}
@@ -183,56 +176,76 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
               
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-2xl">
                 <Crosshair className="w-3 h-3 text-primary" />
-                Click & Drag to define a zone
+                Draw many zones to build your registry
               </div>
             </div>
           </div>
 
-          {/* Sidebar Management */}
-          <div className="w-full lg:w-80 bg-white border-l border-slate-100 flex flex-col p-6 overflow-y-auto">
+          <div className="w-full lg:w-96 bg-white border-l border-slate-100 flex flex-col p-6 overflow-y-auto">
             <h3 className="font-black text-[10px] uppercase tracking-[0.3em] text-slate-400 mb-6 flex items-center justify-between">
-              Zone Registry
-              <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">{zones.length}</span>
+              Spatial Registry
+              <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full">{zones.length} Zones</span>
             </h3>
             
             <div className="space-y-4 flex-1">
               {zones.map((z, idx) => (
-                <div key={z.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 group">
+                <div key={z.id} className={cn(
+                  "p-5 rounded-[1.5rem] border-2 transition-all space-y-4 group",
+                  z.isCorrect ? "bg-green-50/30 border-green-100" : "bg-slate-50/50 border-slate-100"
+                )}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black text-primary">ZONE {idx + 1}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-primary">ID: {idx + 1}</span>
+                      {z.isCorrect && <CheckCircle2 className="w-3 h-3 text-green-500" />}
+                    </div>
                     <button onClick={() => removeZone(z.id)} className="text-slate-300 hover:text-destructive transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Zone Label</Label>
-                    <Input 
-                      value={z.label} 
-                      onChange={(e) => updateLabel(z.id, e.target.value)}
-                      className="h-8 rounded-lg bg-white border-none ring-1 ring-slate-200 text-xs font-bold"
-                    />
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Zone Identification</Label>
+                      <Input 
+                        value={z.label} 
+                        onChange={(e) => updateZone(z.id, { label: e.target.value })}
+                        className="h-9 rounded-xl bg-white border-none ring-1 ring-slate-200 text-xs font-bold"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between py-2 px-3 bg-white rounded-xl ring-1 ring-slate-100">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Correct Target</span>
+                        <span className="text-[10px] font-medium text-slate-500">{z.isCorrect ? "Point Awarded" : "Distractor"}</span>
+                      </div>
+                      <Switch 
+                        checked={!!z.isCorrect} 
+                        onCheckedChange={(val) => updateZone(z.id, { isCorrect: val })} 
+                      />
+                    </div>
                   </div>
-                  <div className="flex gap-4 text-[8px] font-mono text-slate-400">
+
+                  <div className="flex justify-between text-[8px] font-mono text-slate-400 uppercase">
                     <span>X: {z.x.toFixed(1)}%</span>
                     <span>Y: {z.y.toFixed(1)}%</span>
-                    <span>R: {z.radius.toFixed(1)}%</span>
+                    <span>RAD: {z.radius.toFixed(1)}%</span>
                   </div>
                 </div>
               ))}
               {zones.length === 0 && (
-                <div className="py-12 text-center text-slate-300">
-                  <Move className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                  <p className="text-[10px] font-black uppercase tracking-widest">No Active Zones</p>
+                <div className="py-20 text-center text-slate-300">
+                  <Move className="w-10 h-10 mx-auto mb-4 opacity-10" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em]">Registry Empty</p>
                 </div>
               )}
             </div>
 
             <Button 
               onClick={handleCommit}
-              disabled={!imageUrl}
-              className="mt-8 w-full h-14 rounded-full bg-primary font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform"
+              disabled={!imageUrl || zones.length === 0}
+              className="mt-8 w-full h-16 rounded-full bg-primary font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform"
             >
-              Commit Spatial Data
+              Commit Registry
               <Save className="w-4 h-4 ml-2" />
             </Button>
           </div>
