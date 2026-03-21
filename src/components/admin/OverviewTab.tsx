@@ -90,11 +90,11 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
             <Key className="w-4 h-4 text-primary group-hover:rotate-12 transition-transform" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Daily Access Key</span>
-            <span className="text-lg font-black text-white tracking-[0.1em] font-mono leading-none">{dailyKey}</span>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Hashed Daily Key</span>
+            <span className="text-lg font-black text-white tracking-[0.2em] font-mono leading-none">{dailyKey}</span>
           </div>
           <div className="ml-4 pl-4 border-l border-white/10 text-[9px] font-bold text-slate-500 max-w-[120px]">
-            Share with students for valid daily entry.
+            Encrypted protocol key for current session access.
           </div>
         </div>
       </div>
