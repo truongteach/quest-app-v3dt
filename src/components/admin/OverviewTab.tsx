@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -14,7 +13,9 @@ import {
   RefreshCcw,
   Database,
   Clock,
-  Key
+  Key,
+  CalendarDays,
+  Copy
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,10 +29,17 @@ import {
   YAxis,
   CartesianGrid
 } from "recharts";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { AdminTab } from '@/components/admin/AdminSidebar';
 import { useRouter } from 'next/navigation';
 import { generateDailyPassword } from '@/lib/security-utils';
+import { addDays, format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 interface OverviewTabProps {
   data: { tests: any[], users: any[], responses: any[] };
@@ -45,7 +53,20 @@ interface OverviewTabProps {
 
 export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync, onSeed, setActiveTab }: OverviewTabProps) {
   const router = useRouter();
-  const dailyKey = generateDailyPassword();
+  const { toast } = useToast();
+  
+  const currentDailyKey = generateDailyPassword();
+
+  const protocolSchedule = useMemo(() => {
+    return Array.from({ length: 8 }).map((_, i) => {
+      const date = addDays(new Date(), i);
+      return {
+        date: format(date, 'MMM dd, yyyy'),
+        isToday: i === 0,
+        key: generateDailyPassword(date)
+      };
+    });
+  }, []);
 
   const chartData = useMemo(() => {
     if (!data.responses.length) return [];
@@ -63,6 +84,14 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
     const totalEarned = data.responses.reduce((acc, r) => acc + (Number(r.Score) || 0), 0);
     return `${Math.round((totalEarned / totalPossible) * 100)}%`;
   }, [data.responses]);
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Protocol Copied",
+      description: `${label} has been committed to your clipboard.`,
+    });
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -90,11 +119,62 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
             <Key className="w-4 h-4 text-primary group-hover:rotate-12 transition-transform" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Hashed Daily Key</span>
-            <span className="text-lg font-black text-white tracking-[0.2em] font-mono leading-none">{dailyKey}</span>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active Daily Key</span>
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-black text-white tracking-[0.2em] font-mono leading-none">{currentDailyKey}</span>
+              <button 
+                onClick={() => copyToClipboard(currentDailyKey, "Active Key")}
+                className="text-slate-600 hover:text-primary transition-colors"
+              >
+                <Copy className="w-3 h-3" />
+              </button>
+            </div>
           </div>
-          <div className="ml-4 pl-4 border-l border-white/10 text-[9px] font-bold text-slate-500 max-w-[120px]">
-            Encrypted protocol key for current session access.
+          
+          <div className="ml-4 pl-4 border-l border-white/10">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-[10px] uppercase tracking-widest gap-2">
+                  <CalendarDays className="w-3.5 h-3.5 text-primary" />
+                  View Schedule
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 rounded-[2rem] overflow-hidden border-none shadow-2xl" align="end">
+                <div className="bg-slate-900 p-6 text-white border-b border-white/5">
+                  <h4 className="font-black uppercase tracking-tight text-lg">Protocol Schedule</h4>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Upcoming Daily Keys</p>
+                </div>
+                <div className="bg-white p-2 max-h-[400px] overflow-y-auto">
+                  {protocolSchedule.map((item, idx) => (
+                    <div 
+                      key={idx} 
+                      className={cn(
+                        "p-4 rounded-2xl flex items-center justify-between group transition-colors",
+                        item.isToday ? "bg-primary/5 ring-1 ring-primary/10" : "hover:bg-slate-50"
+                      )}
+                    >
+                      <div>
+                        <p className={cn("text-[10px] font-black uppercase tracking-widest", item.isToday ? "text-primary" : "text-slate-400")}>
+                          {item.isToday ? "Active Today" : item.date}
+                        </p>
+                        <p className="text-sm font-mono font-black text-slate-900 tracking-widest mt-0.5">{item.key}</p>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => copyToClipboard(item.key, `Key for ${item.date}`)}
+                        className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-slate-50 p-4 border-t text-center">
+                  <p className="text-[9px] font-medium text-slate-400">Keys rotate automatically at midnight local time.</p>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
