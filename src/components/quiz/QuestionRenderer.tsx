@@ -19,7 +19,8 @@ import {
   X, 
   RotateCcw, 
   Trash2,
-  Table as TableIcon
+  Table as TableIcon,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,11 +32,24 @@ interface Props {
 }
 
 export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
+  // --- ALL HOOKS MUST BE AT THE TOP LEVEL ---
+  
+  // State for Drag and Drop (Matching)
+  const [draggingItem, setDraggingItem] = useState<string | null>(null);
+  
+  // State for Drag and Drop (Ordering)
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
+
+  // State for UI presentation items (Matching/Ordering)
+  const [shuffledItemsPool, setShuffledItemsPool] = useState<string[]>([]);
+
+  // Memoized options from comma-separated string
   const options = useMemo(() => 
     question.options ? question.options.split(',').map(o => o.trim()) : [], 
     [question.options]
   );
 
+  // Memoized matching pairs for the Matching logic
   const matchingPairs = useMemo(() => {
     if (question.question_type !== 'matching') return [];
     return question.order_group?.split(',').map(p => {
@@ -44,22 +58,24 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
     }) || [];
   }, [question.order_group, question.question_type]);
 
-  const [shuffledRightItems, setShuffledRightItems] = useState<string[]>([]);
-  useEffect(() => {
-    if (['matching', 'ordering'].includes(question.question_type)) {
-      const pool = matchingPairs.length > 0 
-        ? matchingPairs.map(p => p.right).sort(() => 0.5 - Math.random())
-        : (question.order_group?.split(',').map(i => i.trim()) || []).sort(() => 0.5 - Math.random());
-      setShuffledRightItems(pool);
-    }
-  }, [matchingPairs, question.order_group, question.question_type]);
-
+  // Initial sequence for Ordering
   const initialOrderItems = useMemo(() => 
     question.order_group?.split(',').map(i => i.trim()) || [],
     [question.order_group]
   );
 
-  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
+  // Initialize UI-only state (Shuffling for presentation)
+  useEffect(() => {
+    if (question.question_type === 'matching') {
+      const pool = matchingPairs.map(p => p.right).sort(() => 0.5 - Math.random());
+      setShuffledItemsPool(pool);
+    } else if (question.question_type === 'ordering') {
+      // For ordering, we don't shuffle the source here, but we could if we wanted a random start
+      setShuffledItemsPool(initialOrderItems);
+    }
+  }, [matchingPairs, initialOrderItems, question.question_type]);
+
+  // --- RENDER HELPERS (NO HOOKS INSIDE THESE) ---
 
   const renderSingleChoice = () => (
     <RadioGroup 
@@ -212,7 +228,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
     const responses = (value as Record<string, string>) || {};
     const prompts = matchingPairs.map(p => p.left);
     const assignedAnswers = Object.values(responses);
-    const availableAnswers = shuffledRightItems.filter(ans => !assignedAnswers.includes(ans));
+    const availableAnswers = shuffledItemsPool.filter(ans => !assignedAnswers.includes(ans));
 
     const handleDrop = (prompt: string, answer: string) => {
       if (reviewMode) return;
@@ -225,8 +241,6 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       delete newResponses[prompt];
       onChange(newResponses);
     };
-
-    const [draggingItem, setDraggingItem] = useState<string | null>(null);
 
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
