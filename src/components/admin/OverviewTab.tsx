@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo } from 'react';
@@ -15,7 +16,8 @@ import {
   Clock,
   Key,
   CalendarDays,
-  Copy
+  Copy,
+  Code2
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +42,7 @@ import { useRouter } from 'next/navigation';
 import { generateDailyPassword } from '@/lib/security-utils';
 import { addDays, format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { GAS_CODE } from '@/app/lib/gas-template';
 
 interface OverviewTabProps {
   data: { tests: any[], users: any[], responses: any[] };
@@ -88,7 +91,7 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Protocol Copied",
+      title: "Registry Copy Success",
       description: `${label} has been committed to your clipboard.`,
     });
   };
@@ -159,14 +162,12 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
                         </p>
                         <p className="text-sm font-mono font-black text-slate-900 tracking-widest mt-0.5">{item.key}</p>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <button 
                         onClick={() => copyToClipboard(item.key, `Key for ${item.date}`)}
-                        className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-100"
                       >
                         <Copy className="w-3.5 h-3.5 text-slate-400" />
-                      </Button>
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -258,7 +259,7 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <QuickActionCard title="Create Test" description="Add assessment sheet" icon={Plus} onClick={() => router.push('/admin/tests/new')} theme="primary" />
         <QuickActionCard title="Manage Content" description="Edit question banks" icon={Zap} onClick={onManageContent} theme="dark" />
-        <QuickActionCard title="Seed Demo" description="Populate example data" icon={Database} onClick={onSeed} theme="accent" />
+        <QuickActionCard title="Backend Code" description="Copy Apps Script template" icon={Code2} onClick={() => copyToClipboard(GAS_CODE, "GAS Template")} theme="accent" />
         <QuickActionCard title="Sync Cloud" description="Fetch latest Sheet data" icon={RefreshCcw} onClick={onSync} theme="light" />
       </div>
     </div>

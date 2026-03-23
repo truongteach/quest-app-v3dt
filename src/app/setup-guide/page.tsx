@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -30,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { GAS_CODE } from '@/app/lib/gas-template';
 
 type Language = 'en' | 'vi';
 
@@ -37,10 +39,10 @@ export default function SetupGuide() {
   const [lang, setLang] = useState<Language>('en');
   const { toast } = useToast();
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, title: string) => {
     navigator.clipboard.writeText(text);
     toast({ 
-      title: lang === 'en' ? "Metadata Copied" : "Đã sao chép", 
+      title: lang === 'en' ? title : "Đã sao chép", 
       description: lang === 'en' ? "Committed to clipboard." : "Đã lưu vào bộ nhớ tạm." 
     });
   };
@@ -74,7 +76,7 @@ export default function SetupGuide() {
         title: "Intelligence Bridge",
         desc: "Deploy the Apps Script backend.",
         codeTitle: "Logic Injection",
-        codeDesc: "Navigate to Extensions > Apps Script. Inject the template found in src/app/lib/gas-template.ts.",
+        codeDesc: "Navigate to Extensions > Apps Script. Inject the template found in the button below.",
         deployTitle: "Cloud Deployment",
         deploy1: "Type: Web App",
         deploy2: "Execute as: Me",
@@ -121,7 +123,7 @@ export default function SetupGuide() {
         title: "Cầu Nối Trí Tuệ",
         desc: "Triển khai backend Google Apps Script.",
         codeTitle: "Nhúng Logic",
-        codeDesc: "Vào Tiện ích mở rộng > Apps Script. Dán mã từ src/app/lib/gas-template.ts.",
+        codeDesc: "Vào Tiện ích mở rộng > Apps Script. Dán mã nguồn từ nút bên dưới.",
         deployTitle: "Triển Khai Đám Mây",
         deploy1: "Loại: Ứng dụng Web",
         deploy2: "Thực thi: Tôi",
@@ -209,12 +211,37 @@ export default function SetupGuide() {
                     <LayoutGrid className="w-5 h-5 text-primary" />
                     <CardTitle className="text-lg font-black uppercase">{t.step1.testsTitle}</CardTitle>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.testsHeaders)} className="rounded-full font-bold">Copy Headers</Button>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.testsHeaders, "Headers Copied")} className="rounded-full font-bold">Copy Headers</Button>
                 </div>
                 <div className="bg-slate-900 p-6 rounded-2xl font-mono text-xs text-green-400 overflow-x-auto whitespace-nowrap">{t.step1.testsHeaders}</div>
               </Card>
             </TabsContent>
-            {/* Add more tabs similarly if needed */}
+            
+            <TabsContent value="users" className="mt-6 space-y-6">
+              <Card className="border-none shadow-xl rounded-[2.5rem] bg-white p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-primary" />
+                    <CardTitle className="text-lg font-black uppercase">{t.step1.usersTitle}</CardTitle>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.usersHeaders, "Headers Copied")} className="rounded-full font-bold">Copy Headers</Button>
+                </div>
+                <div className="bg-slate-900 p-6 rounded-2xl font-mono text-xs text-green-400 overflow-x-auto whitespace-nowrap">{t.step1.usersHeaders}</div>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="responses" className="mt-6 space-y-6">
+              <Card className="border-none shadow-xl rounded-[2.5rem] bg-white p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <Database className="w-5 h-5 text-primary" />
+                    <CardTitle className="text-lg font-black uppercase">{t.step1.responsesTitle}</CardTitle>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(t.step1.responsesHeaders, "Headers Copied")} className="rounded-full font-bold">Copy Headers</Button>
+                </div>
+                <div className="bg-slate-900 p-6 rounded-2xl font-mono text-xs text-green-400 overflow-x-auto whitespace-nowrap">{t.step1.responsesHeaders}</div>
+              </Card>
+            </TabsContent>
           </Tabs>
         </section>
 
@@ -230,7 +257,13 @@ export default function SetupGuide() {
               <Code2 className="w-10 h-10 text-primary mb-6" />
               <h3 className="text-xl font-black uppercase mb-4">{t.step2.codeTitle}</h3>
               <p className="text-sm text-slate-500 font-medium mb-6">{t.step2.codeDesc}</p>
-              <Button variant="outline" className="w-full rounded-full font-black text-[10px] uppercase tracking-widest border-2 h-12" onClick={() => toast({ title: "Logic Ready", description: "Accessed via src/app/lib/gas-template.ts" })}>Access Template</Button>
+              <Button 
+                variant="outline" 
+                className="w-full rounded-full font-black text-[10px] uppercase tracking-widest border-2 h-12" 
+                onClick={() => copyToClipboard(GAS_CODE, "GAS Template Copied")}
+              >
+                Copy GAS Template
+              </Button>
             </Card>
 
             <Card className="border-none shadow-xl rounded-[2.5rem] p-10 bg-slate-900 text-white relative overflow-hidden group">
