@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -20,6 +21,7 @@ interface AdminDialogsProps {
   questions: Question[];
   onSaveTest: (data: any) => void;
   onSaveUser: (data: any) => void;
+  onSaveUsers?: (data: any[]) => void;
   onSaveQuestion: (data: any, isRequired: boolean) => void;
   onSaveBulk: (json: string) => void;
 }
@@ -32,6 +34,7 @@ export function AdminDialogs({
   questions,
   onSaveTest, 
   onSaveUser, 
+  onSaveUsers,
   onSaveQuestion, 
   onSaveBulk 
 }: AdminDialogsProps) {
@@ -57,6 +60,7 @@ export function AdminDialogs({
         onOpenChange={(val) => setDialogs({...dialogs, user: val})}
         editingItem={editingItem}
         onSave={onSaveUser}
+        onSaveBatch={onSaveUsers}
       />
 
       <BulkDialog 

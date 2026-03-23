@@ -84,6 +84,7 @@ export default function AdminUsersPage() {
         questions={[]}
         onSaveTest={() => {}}
         onSaveUser={(userData) => handlePost('saveUser', { data: userData })}
+        onSaveUsers={(usersData) => handlePost('saveUsers', { data: usersData })}
         onSaveQuestion={() => {}}
         onSaveBulk={() => {}}
       />

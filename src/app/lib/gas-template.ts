@@ -1,11 +1,11 @@
 
 export const GAS_CODE = `
 /**
- * QUESTFLOW BACKEND v17.0 - FINAL SUBMISSION SYNC
+ * QUESTFLOW BACKEND v17.5 - FINAL SUBMISSION SYNC
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions
- * - POST: submitResponse, saveTest, deleteTest, saveUser, deleteUser, saveQuestions
+ * - POST: submitResponse, saveTest, deleteTest, saveUser, deleteUser, saveQuestions, saveUsers
  */
 
 function doGet(e) {
@@ -119,6 +119,18 @@ function doPost(e) {
       const sheet = ss.getSheetByName('Users') || ss.insertSheet('Users');
       if (sheet.getLastRow() === 0) sheet.appendRow(['id', 'name', 'email', 'role', 'password']);
       upsertRow(sheet, 'email', payload.data.email, payload.data);
+      return createResponse({ status: 'success' });
+    }
+
+    if (action === 'saveUsers') {
+      const sheet = ss.getSheetByName('Users') || ss.insertSheet('Users');
+      if (sheet.getLastRow() === 0) sheet.appendRow(['id', 'name', 'email', 'role', 'password']);
+      const users = payload.data;
+      if (Array.isArray(users)) {
+        users.forEach(user => {
+          upsertRow(sheet, 'email', user.email, user);
+        });
+      }
       return createResponse({ status: 'success' });
     }
 
