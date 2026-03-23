@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Database, Loader2 } from "lucide-react";
+import { Database, Loader2, Sparkles } from "lucide-react";
 import { API_URL } from '@/lib/api-config';
 import { AVAILABLE_TESTS as DEMO_TESTS } from '@/app/lib/demo-data';
 import { LibraryHeader } from '@/components/library/LibraryHeader';
@@ -38,7 +38,7 @@ export default function TestsLibrary() {
     } catch (err) {
       console.error("Failed to fetch tests", err);
       setTests(DEMO_TESTS);
-      setLastSync(new Date()); // Still mark as updated even if fallback is used
+      setLastSync(new Date()); 
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ export default function TestsLibrary() {
   );
 
   return (
-    <div className="min-h-screen bg-white selection:bg-primary selection:text-white flex flex-col">
+    <div className="min-h-screen bg-slate-50/30 selection:bg-primary selection:text-white flex flex-col">
       <LibraryHeader 
         search={search}
         setSearch={setSearch}
@@ -62,19 +62,26 @@ export default function TestsLibrary() {
         lastSync={lastSync}
       />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-16 md:py-24">
         {loading && tests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32">
-            <div className="relative w-20 h-20 mb-6">
-              <Loader2 className="w-20 h-20 animate-spin text-primary absolute top-0 left-0" />
+          <div className="flex flex-col items-center justify-center py-40">
+            <div className="relative w-24 h-24 mb-10">
+              <Loader2 className="w-24 h-24 animate-spin text-primary absolute top-0 left-0 stroke-[3px]" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Database className="w-8 h-8 text-slate-200" />
+                <Sparkles className="w-8 h-8 text-primary animate-pulse" />
               </div>
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 animate-pulse">Syncing DNTRNG™ Modules</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 animate-pulse">Syncing Learning Registry</p>
           </div>
         ) : (
-          <>
+          <div className="space-y-12">
+            {!search && (
+              <div className="px-4">
+                <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase mb-2">Available Modules</h2>
+                <p className="text-slate-400 font-bold tracking-widest text-[10px] uppercase">Select a protocol to begin your session</p>
+              </div>
+            )}
+            
             {filteredTests.length > 0 ? (
               viewMode === 'card' ? (
                 <CardView tests={filteredTests} />
@@ -84,14 +91,20 @@ export default function TestsLibrary() {
             ) : (
               <EmptyState onClear={() => setSearch("")} />
             )}
-          </>
+          </div>
         )}
       </main>
 
-      <footer className="bg-white border-t py-12">
+      <footer className="bg-white border-t py-16 mt-20">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
-            © {new Date().getFullYear()} DNTRNG™ PLATFORM • CORE REGISTRY ACCESS
+          <div className="flex items-center justify-center gap-3 mb-6 opacity-30">
+            <div className="bg-slate-900 p-1.5 rounded-lg">
+              <Sparkles className="text-primary w-4 h-4 fill-current" />
+            </div>
+            <span className="text-xl font-black tracking-tighter text-slate-900 uppercase">DNTRNG</span>
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300">
+            GLOBAL ASSESSMENT REGISTRY • ENCRYPTED SESSION
           </p>
         </div>
       </footer>

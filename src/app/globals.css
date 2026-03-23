@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
+    --background: 0 0% 100%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -23,7 +23,7 @@
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 221 83% 53%;
-    --radius: 1rem;
+    --radius: 1.5rem;
   }
 }
 
@@ -32,7 +32,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 }
 
@@ -57,4 +57,27 @@
 @keyframes pulse {
   0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+}
+
+.glass-card {
+  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-2xl;
+}
+
+.aura-shadow {
+  box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.1);
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-500;
 }
