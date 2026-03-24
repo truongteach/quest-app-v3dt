@@ -258,11 +258,12 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <QuickActionCard title={t('createTest')} description="Add a new assessment" icon={Plus} onClick={() => router.push('/admin/tests/new')} theme="primary" />
-        <QuickActionCard title={t('manageTests')} description="Edit questions and library" icon={Zap} onClick={onManageContent} theme="dark" />
-        <QuickActionCard title={t('gsCode')} description="Copy Apps Script template" icon={Code2} onClick={() => copyToClipboard(GAS_CODE, t('gsCode'))} theme="accent" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <QuickActionCard title={t('createTest')} description="Add assessment" icon={Plus} onClick={() => router.push('/admin/tests/new')} theme="primary" />
+        <QuickActionCard title={t('manageTests')} description="Edit library" icon={Zap} onClick={onManageContent} theme="dark" />
+        <QuickActionCard title={t('gsCode')} description="GAS template" icon={Code2} onClick={() => copyToClipboard(GAS_CODE, t('gsCode'))} theme="accent" />
         <QuickActionCard title={t('syncData')} description="Refresh from Sheets" icon={RefreshCcw} onClick={onSync} theme="light" />
+        <QuickActionCard title={t('seedData')} description="Initialize demo content" icon={Database} onClick={onSeed} theme="warning" />
       </div>
     </div>
   );
@@ -293,7 +294,8 @@ function QuickActionCard({ title, description, icon: Icon, onClick, theme }: any
     primary: "bg-gradient-to-br from-primary to-blue-600 text-white",
     dark: "bg-slate-900 text-white",
     accent: "bg-accent text-white shadow-lg shadow-accent/20",
-    light: "bg-white border-2 border-slate-100 text-slate-900"
+    light: "bg-white border-2 border-slate-100 text-slate-900",
+    warning: "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
   };
   return (
     <Card className={cn("border-none shadow-sm cursor-pointer hover:scale-[1.02] transition-transform", themes[theme])} onClick={onClick}>
