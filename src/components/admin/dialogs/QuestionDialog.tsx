@@ -30,7 +30,8 @@ import {
   Code2,
   AlertCircle,
   Target,
-  Grid
+  Grid,
+  MapPin
 } from "lucide-react";
 import { Question, QuestionType } from '@/types/quiz';
 import { cn } from "@/lib/utils";
@@ -121,9 +122,8 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
       finalOptions = "True, False";
       finalCorrect = correctAnswers[0] || "";
     } else if (selectedType === 'ordering') {
-      // Ordering uses order_group for the items and correct_answer for the sequence
       finalOrderGroup = filteredOptions.join(', ');
-      finalCorrect = filteredOptions.join(', '); // Entered order is correct
+      finalCorrect = filteredOptions.join(', '); 
       finalOptions = "";
     } else if (selectedType === 'matching') {
       const validPairs = matchingPairs.filter(p => p.left.trim() && p.right.trim());
@@ -137,15 +137,24 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
 
     onSave({
       ...data,
+      id: editingItem?.id || `q_${Date.now()}`,
       options: finalOptions,
       correct_answer: finalCorrect,
       order_group: finalOrderGroup,
       image_url: imageUrl,
-      metadata: metadata
+      metadata: metadata,
+      question_type: selectedType
     }, formData.get('required') === 'on');
 
     onOpenChange(false);
   };
+
+  const hotspotZoneCount = React.useMemo(() => {
+    try {
+      const parsed = JSON.parse(metadata || "[]");
+      return Array.isArray(parsed) ? parsed.length : 0;
+    } catch (e) { return 0; }
+  }, [metadata]);
 
   return (
     <>
@@ -181,6 +190,47 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
                 <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Question Prompt</Label>
                 <Textarea name="question_text" defaultValue={editingItem?.question_text} required className="rounded-[1.5rem] min-h-[100px] text-lg p-6 bg-slate-50 border-none ring-1 ring-slate-100" />
               </div>
+
+              {selectedType === 'hotspot' && (
+                <div className="space-y-6 p-8 bg-slate-900 rounded-[2.5rem] text-white overflow-hidden relative">
+                  <ImageIcon className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 rotate-12" />
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/20 rounded-lg"><MapPin className="w-4 h-4 text-primary" /></div>
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Visual Asset Registry</Label>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Image Reference URL</Label>
+                      <Input 
+                        value={imageUrl} 
+                        onChange={(e) => setImageUrl(e.target.value)} 
+                        placeholder="https://images.unsplash.com/..." 
+                        className="bg-white/5 border-none ring-1 ring-white/10 h-12 rounded-xl text-xs font-mono"
+                      />
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-between gap-4">
+                      <Button 
+                        type="button"
+                        onClick={() => setMapperOpen(true)}
+                        disabled={!imageUrl}
+                        className="flex-1 h-14 rounded-xl bg-primary font-black uppercase text-xs tracking-widest gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform"
+                      >
+                        <Target className="w-4 h-4" />
+                        Launch Spatial Mapper
+                      </Button>
+                      <div className="px-6 h-14 bg-white/5 rounded-xl flex flex-col justify-center items-center ring-1 ring-white/10 shrink-0">
+                        <span className="text-[10px] font-black text-slate-500 uppercase">Zones</span>
+                        <span className="text-lg font-black text-primary leading-none">{hotspotZoneCount}</span>
+                      </div>
+                    </div>
+                    {!imageUrl && (
+                      <p className="text-[9px] font-medium text-destructive/60 animate-pulse">Provide an image URL first to enable the mapper protocol.</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {(['single_choice', 'multiple_choice', 'dropdown', 'matrix_choice', 'ordering'].includes(selectedType)) && (
                 <div className="space-y-4 p-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
@@ -267,7 +317,13 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
         </DialogContent>
       </Dialog>
 
-      <HotspotMapperDialog open={mapperOpen} onOpenChange={setMapperOpen} imageUrl={imageUrl} initialData={metadata} onSave={(data) => setMetadata(data)} />
+      <HotspotMapperDialog 
+        open={mapperOpen} 
+        onOpenChange={setMapperOpen} 
+        imageUrl={imageUrl} 
+        initialData={metadata} 
+        onSave={(data) => setMetadata(data)} 
+      />
     </>
   );
 }
