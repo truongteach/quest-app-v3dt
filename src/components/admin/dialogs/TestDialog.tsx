@@ -38,50 +38,49 @@ export function TestDialog({ open, onOpenChange, editingItem, onSave }: TestDial
             <Settings2 className="w-24 h-24" />
           </div>
           <DialogTitle className="text-3xl font-black uppercase tracking-tight mb-2">
-            {editingItem ? 'Edit Module' : 'Register Module'}
+            {editingItem ? 'Edit Test' : 'Create Test'}
           </DialogTitle>
           <DialogDescription className="text-white/80 font-medium text-sm italic">
-            Synchronizing with DNTRNG global registry.
+            Save the basic details for this assessment.
           </DialogDescription>
         </div>
         
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Unique ID</Label>
-              <Input name="id" defaultValue={editingItem?.id} placeholder="auto-generated" disabled={!!editingItem} className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-mono text-xs" />
+              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">ID</Label>
+              <Input name="id" defaultValue={editingItem?.id} placeholder="auto-id" disabled={!!editingItem} className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-mono text-xs" />
             </div>
             <div className="space-y-2">
               <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Category</Label>
-              <Input name="category" defaultValue={editingItem?.category} placeholder="e.g. Logic" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
+              <Input name="category" defaultValue={editingItem?.category} placeholder="e.g. Science" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
             </div>
           </div>
           
           <div className="space-y-2">
-            <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Display Title</Label>
-            <Input name="title" defaultValue={editingItem?.title} required placeholder="The Ultimate Challenge" className="rounded-xl h-14 bg-slate-50 border-none ring-1 ring-slate-200 font-black text-lg" />
+            <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Title</Label>
+            <Input name="title" required placeholder="Name of the test" className="rounded-xl h-14 bg-slate-50 border-none ring-1 ring-slate-200 font-black text-lg" />
           </div>
 
           <div className="space-y-2">
-            <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Intelligence Description</Label>
-            <Textarea name="description" defaultValue={editingItem?.description} placeholder="Describe the learning objectives..." className="rounded-2xl min-h-[100px] bg-slate-50 border-none ring-1 ring-slate-200" />
+            <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Description</Label>
+            <Textarea name="description" defaultValue={editingItem?.description} placeholder="What is this test about?" className="rounded-2xl min-h-[100px] bg-slate-50 border-none ring-1 ring-slate-200" />
           </div>
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Complexity</Label>
-              <Input name="difficulty" defaultValue={editingItem?.difficulty} placeholder="Advanced" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
+              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Difficulty</Label>
+              <Input name="difficulty" defaultValue={editingItem?.difficulty} placeholder="Easy / Hard" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
             </div>
             <div className="space-y-2">
-              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Duration</Label>
-              <Input name="duration" defaultValue={editingItem?.duration} placeholder="15m" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
+              <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Time Limit</Label>
+              <Input name="duration" defaultValue={editingItem?.duration} placeholder="e.g. 15m" className="rounded-xl h-12 bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
             </div>
           </div>
 
           <DialogFooter className="pt-6">
             <Button type="submit" className="rounded-full w-full h-16 font-black text-xl shadow-2xl transition-all hover:scale-[1.02] bg-primary">
-              <Save className="w-5 h-5 mr-3" />
-              Commit Changes
+              <Save className="w-5 h-5 mr-3" /> Save Changes
             </Button>
           </DialogFooter>
         </form>

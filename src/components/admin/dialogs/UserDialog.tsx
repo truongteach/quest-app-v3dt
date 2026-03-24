@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -77,10 +76,10 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
             </div>
             <div>
               <DialogTitle className="text-3xl font-black uppercase tracking-tight">
-                {editingItem ? 'Edit Profile' : 'Identity Provisioning'}
+                {editingItem ? 'Edit Profile' : 'Add Students'}
               </DialogTitle>
               <DialogDescription className="text-white/40 font-bold uppercase tracking-widest text-[10px] mt-1">
-                Operator Registry Access
+                Student Access List
               </DialogDescription>
             </div>
           </div>
@@ -91,10 +90,10 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
             <div className="px-10 pt-6">
               <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-2xl h-12">
                 <TabsTrigger value="single" className="rounded-xl font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                  Single Identity
+                  Add One
                 </TabsTrigger>
                 <TabsTrigger value="batch" className="rounded-xl font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                  Batch Provisioning
+                  Add Many
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -103,36 +102,36 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
           <TabsContent value="single">
             <form onSubmit={handleSingleSubmit} className="p-10 space-y-6">
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Identity Name</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Full Name</Label>
                 <div className="relative">
                   <UsersIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                  <Input name="name" defaultValue={editingItem?.name} required placeholder="Full Name" className="h-12 pl-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold focus:ring-primary/40" />
+                  <Input name="name" defaultValue={editingItem?.name} required placeholder="Student Name" className="h-12 pl-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold focus:ring-primary/40" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Communication Key (Email)</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                  <Input name="email" type="email" defaultValue={editingItem?.email} required disabled={!!editingItem} placeholder="name@dntrng.com" className="h-12 pl-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold focus:ring-primary/40 disabled:opacity-50" />
+                  <Input name="email" type="email" defaultValue={editingItem?.email} required disabled={!!editingItem} placeholder="student@email.com" className="h-12 pl-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold focus:ring-primary/40 disabled:opacity-50" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Secure Secret</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                  <Input name="password" type="password" placeholder={editingItem ? "Unchanged" : "Define secret..."} required={!editingItem} className="h-12 pl-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold focus:ring-primary/40" />
+                  <Input name="password" type="password" placeholder={editingItem ? "Leave empty to keep same" : "Set password"} required={!editingItem} className="h-12 pl-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold focus:ring-primary/40" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Permission Protocol</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Account Role</Label>
                 <select name="role" defaultValue={editingItem?.role || 'user'} className="w-full h-12 px-4 rounded-xl border-none ring-1 ring-slate-200 bg-slate-50 font-black text-sm outline-none focus:ring-primary/40 cursor-pointer">
-                  <option value="user">Standard Student</option>
-                  <option value="admin">Platform Administrator</option>
+                  <option value="user">Student</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
               <DialogFooter className="pt-6">
-                <Button type="submit" className="rounded-full w-full h-16 font-black text-lg bg-slate-900 text-white shadow-2xl hover:scale-[1.02] transition-transform">
-                  Commit Registry Record
+                <Button type="submit" className="rounded-full w-full h-16 font-black text-lg bg-slate-900 text-white">
+                  Save Student
                 </Button>
               </DialogFooter>
             </form>
@@ -141,12 +140,8 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
           <TabsContent value="batch">
             <form onSubmit={handleBatchSubmit} className="p-10 space-y-6">
               <div className="p-6 bg-primary/5 rounded-[2rem] border-2 border-dashed border-primary/20 mb-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Zap className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">Fast Provisioning Pattern</span>
-                </div>
                 <p className="text-[10px] font-medium text-primary/60 leading-relaxed">
-                  Generate multiple accounts by defining a range. Use <code className="font-bold">{"{{n}}"}</code> in the email field to inject the sequence number.
+                  Generate multiple accounts at once. Use <code className="font-bold">{"{{n}}"}</code> in the email field for the number.
                 </p>
               </div>
 
@@ -156,7 +151,7 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
                   <Input name="namePrefix" placeholder="Student " className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Range (1-50)</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Number Range</Label>
                   <div className="flex items-center gap-2">
                     <Input name="rangeStart" type="number" defaultValue="1" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold text-center" />
                     <span className="text-slate-300 font-black">to</span>
@@ -166,18 +161,18 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
               </div>
 
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email Protocol Pattern</Label>
-                <Input name="emailPattern" required placeholder="student{{n}}@dntrng.com" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-mono text-xs" />
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email Pattern</Label>
+                <Input name="emailPattern" required placeholder="student{{n}}@school.com" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-mono text-xs" />
               </div>
 
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Batch Secret</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Shared Password</Label>
                 <Input name="password" type="password" required defaultValue="admin123" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold" />
               </div>
 
               <DialogFooter className="pt-6">
-                <Button type="submit" className="rounded-full w-full h-16 font-black text-lg bg-primary text-white shadow-2xl hover:scale-[1.02] transition-transform">
-                  Inject Batch Identity
+                <Button type="submit" className="rounded-full w-full h-16 font-black text-lg bg-primary text-white">
+                  Add All Students
                 </Button>
               </DialogFooter>
             </form>

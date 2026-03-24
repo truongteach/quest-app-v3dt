@@ -39,9 +39,9 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
 
   const menuItems = [
     { id: 'overview', label: 'Dashboard', icon: BarChart3, href: '/admin' },
-    { id: 'tests', label: 'Library Management', icon: ClipboardList, href: '/admin/tests' },
-    { id: 'users', label: 'Access Control', icon: UsersIcon, href: '/admin/users' },
-    { id: 'responses', label: 'Intelligence Logs', icon: MessageSquare, href: '/admin/responses' }
+    { id: 'tests', label: 'Test Library', icon: ClipboardList, href: '/admin/tests' },
+    { id: 'users', label: 'Student List', icon: UsersIcon, href: '/admin/users' },
+    { id: 'responses', label: 'Result Logs', icon: MessageSquare, href: '/admin/responses' }
   ];
 
   return (
@@ -53,13 +53,13 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
           </div>
           <div>
             <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase leading-none">DNTRNG</h1>
-            <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1.5">Console v17.5</p>
+            <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1.5">Admin Console</p>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-4 pt-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Core Engine</SidebarGroupLabel>
+          <SidebarGroupLabel className="px-4 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Management</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -86,7 +86,7 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
       <SidebarFooter className="p-6 border-t bg-slate-50/50">
         <div className="p-5 bg-white rounded-[2rem] border shadow-sm flex items-center justify-between">
           <div className="flex flex-col min-w-0">
-            <span className="text-sm font-black text-slate-900 truncate">{user?.displayName || 'Operator'}</span>
+            <span className="text-sm font-black text-slate-900 truncate">{user?.displayName || 'Admin'}</span>
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate">{user?.role}</span>
           </div>
           <Button variant="ghost" size="icon" onClick={logout} className="rounded-full text-destructive hover:bg-destructive/10">

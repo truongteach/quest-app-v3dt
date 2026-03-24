@@ -25,7 +25,6 @@ export default function NewTestPage() {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
     
-    // Generate an ID if not provided
     if (!data.id) {
       const slug = (data.title as string || 'test').toLowerCase().replace(/[^a-z0-9]/g, '-');
       data.id = `${slug}-${Date.now().toString().slice(-4)}`;
@@ -39,17 +38,16 @@ export default function NewTestPage() {
       });
       
       toast({ 
-        title: "Intelligence Module Created", 
-        description: "The new assessment registry is now active. Directing to question bank..." 
+        title: "Test Created", 
+        description: "Redirecting to question editor..." 
       });
       
-      // Redirect directly to the management page for this new test
       router.push(`/admin/tests/${data.id}`);
     } catch (err) {
       toast({ 
         variant: "destructive", 
-        title: "Creation Error", 
-        description: "Could not commit the new registry to the cloud." 
+        title: "Error", 
+        description: "Could not create the test." 
       });
     } finally {
       setLoading(false);
@@ -67,8 +65,8 @@ export default function NewTestPage() {
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-1 space-y-8">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase leading-none">New Intelligence</h1>
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-3">Register a new assessment module</p>
+            <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase leading-none">New Test</h1>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-3">Setup a new assessment for students</p>
           </div>
 
           <form onSubmit={handleCreate} className="space-y-6">
@@ -76,42 +74,42 @@ export default function NewTestPage() {
               <CardHeader className="bg-slate-50/50 border-b p-8">
                 <CardTitle className="text-xl font-black flex items-center gap-3">
                   <LayoutGrid className="w-5 h-5 text-primary" />
-                  Core Registry
+                  Test Details
                 </CardTitle>
-                <CardDescription>Primary identification and metadata for the module.</CardDescription>
+                <CardDescription>Primary information about this test.</CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Unique Identifier (ID)</Label>
-                    <Input name="id" placeholder="auto-generated-id" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-mono text-xs" />
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Test ID</Label>
+                    <Input name="id" placeholder="leave blank for auto-id" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-mono text-xs" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Classification (Category)</Label>
-                    <Input name="category" placeholder="Product, Logic, Engineering" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-bold" />
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Category</Label>
+                    <Input name="category" placeholder="Math, English, etc." className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-bold" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Assessment Title</Label>
-                  <Input name="title" required placeholder="The Ultimate Feature Tour" className="h-14 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-black text-lg" />
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Test Title</Label>
+                  <Input name="title" required placeholder="Name of your test" className="h-14 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-black text-lg" />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Module Intelligence Description</Label>
-                  <Textarea name="description" placeholder="A comprehensive overview of platform capabilities..." className="min-h-[120px] rounded-2xl bg-slate-50 border-none ring-1 ring-slate-100 font-medium p-4" />
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Description</Label>
+                  <Textarea name="description" placeholder="A brief summary of this test..." className="min-h-[120px] rounded-2xl bg-slate-50 border-none ring-1 ring-slate-100 font-medium p-4" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                   <div className="space-y-2">
                     <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
-                      <Gauge className="w-3 h-3" /> Complexity Level
+                      <Gauge className="w-3 h-3" /> Difficulty
                     </Label>
-                    <Input name="difficulty" placeholder="Beginner, Advanced" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-bold" />
+                    <Input name="difficulty" placeholder="Easy, Medium, Hard" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-bold" />
                   </div>
                   <div className="space-y-2">
                     <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
-                      <Clock className="w-3 h-3" /> Targeted Duration
+                      <Clock className="w-3 h-3" /> Time Limit
                     </Label>
                     <Input name="duration" placeholder="e.g. 15m" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-bold" />
                   </div>
@@ -119,9 +117,9 @@ export default function NewTestPage() {
 
                 <div className="space-y-2 pt-4">
                   <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
-                    <ImageIcon className="w-3 h-3" /> Visual Reference (Cover URL)
+                    <ImageIcon className="w-3 h-3" /> Cover Image URL
                   </Label>
-                  <Input name="image_url" placeholder="https://picsum.photos/seed/dntrng/800/450" className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100" />
+                  <Input name="image_url" placeholder="https://..." className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100" />
                 </div>
               </CardContent>
             </Card>
@@ -130,14 +128,14 @@ export default function NewTestPage() {
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="h-16 px-12 rounded-full bg-primary font-black text-xl shadow-2xl hover:scale-105 transition-all shadow-primary/20"
+                className="h-16 px-12 rounded-full bg-primary font-black text-xl shadow-2xl"
               >
                 {loading ? (
                   <Loader2 className="w-6 h-6 animate-spin mr-3" />
                 ) : (
                   <Save className="w-6 h-6 mr-3" />
                 )}
-                Commit to Registry
+                Save and Add Questions
               </Button>
             </div>
           </form>
@@ -156,20 +154,11 @@ export default function NewTestPage() {
                   <X className="w-4 h-4" />
                 </Button>
                 <Sparkles className="w-8 h-8 text-primary mb-6 animate-pulse" />
-                <h3 className="text-xl font-black uppercase tracking-tight mb-4">Architecture Pro-Tip</h3>
+                <h3 className="text-xl font-black uppercase tracking-tight mb-4">Pro Tip</h3>
                 <p className="text-sm text-slate-400 font-medium leading-relaxed">
-                  DNTRNG modules are instantly synchronized with your Google Sheets. Once you commit this registry, you'll be taken straight to the question bank to start building content.
+                  Tests are saved instantly to your Google Sheet. After saving this, you'll be taken to the editor where you can start adding questions.
                 </p>
-                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors" />
               </Card>
-              
-              <div className="p-6 bg-slate-100 rounded-[2rem] border-2 border-dashed border-slate-200">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Sync Status</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-                  <span className="text-xs font-bold text-slate-600">Pending Local Changes</span>
-                </div>
-              </div>
             </div>
           </div>
         )}

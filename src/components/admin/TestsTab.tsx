@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -56,15 +55,15 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border shadow-sm">
         <div>
-          <h2 className="font-black text-2xl text-slate-900 tracking-tight uppercase">Master Registry</h2>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Manage DNTRNG Core Intelligence</p>
+          <h2 className="font-black text-2xl text-slate-900 tracking-tight uppercase">Test Library</h2>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Manage your active assessments</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
-              placeholder="Search assessments..." 
+              placeholder="Search tests..." 
               className="pl-10 rounded-full bg-slate-50 border-slate-200 h-11" 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
@@ -102,9 +101,9 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-                  <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 py-5">Reference ID</TableHead>
-                  <TableHead className="font-black uppercase text-[10px] tracking-widest px-8">Assessment Title</TableHead>
-                  <TableHead className="font-black uppercase text-[10px] tracking-widest px-8">Classification</TableHead>
+                  <TableHead className="px-8 py-5 font-black uppercase text-[10px] tracking-widest">ID</TableHead>
+                  <TableHead className="font-black uppercase text-[10px] tracking-widest px-8">Test Title</TableHead>
+                  <TableHead className="font-black uppercase text-[10px] tracking-widest px-8">Category</TableHead>
                   <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -119,7 +118,7 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
                     <TableCell className="px-8 font-black text-slate-700">{t.title}</TableCell>
                     <TableCell className="px-8">
                       <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-wider px-3 rounded-full bg-primary/5 text-primary border-none">
-                        {t.category || 'Uncategorized'}
+                        {t.category || 'General'}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-8 text-right">
@@ -141,7 +140,7 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
             </Table>
             {filtered.length === 0 && (
               <div className="py-24 text-center">
-                <p className="font-black text-slate-300 uppercase tracking-widest">No Intelligence Records Found</p>
+                <p className="font-black text-slate-300 uppercase tracking-widest">No Tests Found</p>
               </div>
             )}
           </CardContent>
@@ -170,10 +169,10 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="rounded-2xl p-2 w-48 shadow-2xl border-none" align="end">
                       <DropdownMenuItem onClick={() => onEdit(t)} className="rounded-xl font-bold p-3 cursor-pointer">
-                        <Edit className="w-4 h-4 mr-2" /> Edit Metadata
+                        <Edit className="w-4 h-4 mr-2" /> Edit Details
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onDelete(t.id)} className="rounded-xl font-bold p-3 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
-                        <Trash2 className="w-4 h-4 mr-2" /> Delete Record
+                        <Trash2 className="w-4 h-4 mr-2" /> Delete Test
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -183,9 +182,9 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
               <CardHeader className="flex-1 pb-2">
                 <div className="flex justify-between items-start gap-2 mb-2">
                   <Badge variant="outline" className="font-mono text-[9px] uppercase tracking-tighter opacity-50 px-2 rounded-md">
-                    REF: {t.id}
+                    {t.id}
                   </Badge>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.difficulty || 'Beginner'}</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.difficulty || 'Easy'}</span>
                 </div>
                 <CardTitle className="text-xl font-black text-slate-900 line-clamp-1 group-hover:text-primary transition-colors">
                   {t.title}
@@ -199,12 +198,12 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <ListChecks className="w-4 h-4 text-primary opacity-40" />
-                    <span>{t.duration || '15m'} Session</span>
+                    <span>{t.duration || '15m'} Limit</span>
                   </div>
                   <div className="h-4 w-px bg-slate-100" />
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-4 h-4 text-primary opacity-40" />
-                    <span>Active Sync</span>
+                    <span>Live Sync</span>
                   </div>
                 </div>
               </CardContent>
@@ -214,7 +213,7 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
                   onClick={() => onManageQuestions(t.id)}
                   className="w-full h-12 rounded-full font-black text-xs uppercase tracking-widest shadow-lg group-hover:shadow-primary/20 transition-all hover:scale-[1.02]"
                 >
-                  Configure Questions
+                  Questions
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               </CardFooter>

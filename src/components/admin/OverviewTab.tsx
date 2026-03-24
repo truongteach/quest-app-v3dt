@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -91,8 +90,8 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Registry Copy Success",
-      description: `${label} has been committed to your clipboard.`,
+      title: "Copied!",
+      description: `${label} has been copied to your clipboard.`,
     });
   };
 
@@ -105,13 +104,13 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
             </span>
-            <span className="text-xs font-black uppercase tracking-widest text-slate-400">System Online</span>
+            <span className="text-xs font-black uppercase tracking-widest text-slate-400">Status: Active</span>
           </div>
           {lastSync && (
             <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border shadow-sm">
               <Clock className="w-3 h-3 text-primary" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                Last Sync: {lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                Last Sync: {lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
           )}
@@ -122,11 +121,11 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
             <Key className="w-4 h-4 text-primary group-hover:rotate-12 transition-transform" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active Daily Key</span>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Access Key</span>
             <div className="flex items-center gap-3">
               <span className="text-lg font-black text-white tracking-[0.2em] font-mono leading-none">{currentDailyKey}</span>
               <button 
-                onClick={() => copyToClipboard(currentDailyKey, "Active Key")}
+                onClick={() => copyToClipboard(currentDailyKey, "Access Key")}
                 className="text-slate-600 hover:text-primary transition-colors"
               >
                 <Copy className="w-3 h-3" />
@@ -139,13 +138,13 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-[10px] uppercase tracking-widest gap-2">
                   <CalendarDays className="w-3.5 h-3.5 text-primary" />
-                  View Schedule
+                  Weekly Schedule
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0 rounded-[2rem] overflow-hidden border-none shadow-2xl" align="end">
                 <div className="bg-slate-900 p-6 text-white border-b border-white/5">
-                  <h4 className="font-black uppercase tracking-tight text-lg">Protocol Schedule</h4>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Upcoming Daily Keys</p>
+                  <h4 className="font-black uppercase tracking-tight text-lg">Key Schedule</h4>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Next 7 Days</p>
                 </div>
                 <div className="bg-white p-2 max-h-[400px] overflow-y-auto">
                   {protocolSchedule.map((item, idx) => (
@@ -158,12 +157,12 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
                     >
                       <div>
                         <p className={cn("text-[10px] font-black uppercase tracking-widest", item.isToday ? "text-primary" : "text-slate-400")}>
-                          {item.isToday ? "Active Today" : item.date}
+                          {item.isToday ? "Today" : item.date}
                         </p>
                         <p className="text-sm font-mono font-black text-slate-900 tracking-widest mt-0.5">{item.key}</p>
                       </div>
                       <button 
-                        onClick={() => copyToClipboard(item.key, `Key for ${item.date}`)}
+                        onClick={() => copyToClipboard(item.key, `${item.date} Key`)}
                         className="p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-100"
                       >
                         <Copy className="w-3.5 h-3.5 text-slate-400" />
@@ -172,7 +171,7 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
                   ))}
                 </div>
                 <div className="bg-slate-50 p-4 border-t text-center">
-                  <p className="text-[9px] font-medium text-slate-400">Keys rotate automatically at midnight local time.</p>
+                  <p className="text-[9px] font-medium text-slate-400">Keys change automatically at midnight.</p>
                 </div>
               </PopoverContent>
             </Popover>
@@ -181,9 +180,9 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard icon={LayoutGrid} label="Assessments" value={data.tests.length} color="blue" />
-        <StatCard icon={UsersIcon} label="Students" value={data.users.length} color="green" />
-        <StatCard icon={TrendingUp} label="Submissions" value={data.responses.length} color="purple" />
+        <StatCard icon={LayoutGrid} label="Total Tests" value={data.tests.length} color="blue" />
+        <StatCard icon={UsersIcon} label="Total Students" value={data.users.length} color="green" />
+        <StatCard icon={TrendingUp} label="Test Results" value={data.responses.length} color="purple" />
         <StatCard icon={Activity} label="Avg. Score" value={avgScore} color="orange" />
       </div>
 
@@ -192,10 +191,10 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
           <CardHeader className="border-b bg-slate-50/50">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-black text-slate-900">Submission Trends</CardTitle>
-                <CardDescription>Activity overview for the current week</CardDescription>
+                <CardTitle className="text-lg font-black text-slate-900">Activity Trend</CardTitle>
+                <CardDescription>Number of tests completed this week</CardDescription>
               </div>
-              <Badge variant="secondary" className="px-3 py-1 font-bold">LIVE ACTIVITY</Badge>
+              <Badge variant="secondary" className="px-3 py-1 font-bold">LIVE</Badge>
             </div>
           </CardHeader>
           <CardContent className="pt-10 h-[350px]">
@@ -218,7 +217,7 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4">
                 <History className="w-12 h-12 opacity-20" />
-                <p className="font-bold">No recent activity data available</p>
+                <p className="font-bold">No results found yet</p>
               </div>
             )}
           </CardContent>
@@ -226,8 +225,8 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
 
         <Card className="lg:col-span-4 border-none shadow-sm flex flex-col bg-white">
           <CardHeader className="border-b bg-slate-50/50">
-            <CardTitle className="text-lg font-black text-slate-900">Recent Activity</CardTitle>
-            <CardDescription>Latest test completions</CardDescription>
+            <CardTitle className="text-lg font-black text-slate-900">Recent Results</CardTitle>
+            <CardDescription>Latest student submissions</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-0">
             <div className="divide-y">
@@ -241,7 +240,7 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
                   </div>
                   <div className="flex-1 min-w-0 text-slate-700">
                     <p className="font-bold text-sm truncate">{resp['Test ID']}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">{new Date(resp.Timestamp).toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">{new Date(resp.Timestamp).toLocaleDateString()}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-300" />
                 </div>
@@ -250,17 +249,17 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
           </CardContent>
           <CardFooter className="border-t p-4">
             <Button variant="ghost" className="w-full font-bold text-xs rounded-xl" onClick={() => setActiveTab('responses')}>
-              View Full History
+              See All Results
             </Button>
           </CardFooter>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <QuickActionCard title="Create Test" description="Add assessment sheet" icon={Plus} onClick={() => router.push('/admin/tests/new')} theme="primary" />
-        <QuickActionCard title="Manage Content" description="Edit question banks" icon={Zap} onClick={onManageContent} theme="dark" />
-        <QuickActionCard title="Backend Code" description="Copy Apps Script template" icon={Code2} onClick={() => copyToClipboard(GAS_CODE, "GAS Template")} theme="accent" />
-        <QuickActionCard title="Sync Cloud" description="Fetch latest Sheet data" icon={RefreshCcw} onClick={onSync} theme="light" />
+        <QuickActionCard title="Create Test" description="Add a new assessment" icon={Plus} onClick={() => router.push('/admin/tests/new')} theme="primary" />
+        <QuickActionCard title="Manage Tests" description="Edit questions and library" icon={Zap} onClick={onManageContent} theme="dark" />
+        <QuickActionCard title="GS Code" description="Copy Apps Script template" icon={Code2} onClick={() => copyToClipboard(GAS_CODE, "GS Code")} theme="accent" />
+        <QuickActionCard title="Sync Data" description="Refresh from Sheets" icon={RefreshCcw} onClick={onSync} theme="light" />
       </div>
     </div>
   );

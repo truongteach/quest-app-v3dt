@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -66,22 +65,22 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
             <User className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">Access Registry</CardTitle>
-            <CardDescription className="font-medium">Platform identity management and operator oversight</CardDescription>
+            <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">Student List</CardTitle>
+            <CardDescription className="font-medium">Manage student access and view their scores</CardDescription>
           </div>
         </div>
         <Button onClick={onAdd} className="rounded-full gap-2 font-black h-12 px-6 shadow-xl bg-primary">
-          <Plus className="w-4 h-4" /> New Identity
+          <Plus className="w-4 h-4" /> Add Student
         </Button>
       </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-              <TableHead className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">Identity Profile</TableHead>
-              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">Access Level</TableHead>
-              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">Sessions</TableHead>
-              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">Accuracy</TableHead>
+              <TableHead className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">Student Info</TableHead>
+              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">Role</TableHead>
+              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">Tests Done</TableHead>
+              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">Avg. Score</TableHead>
               <TableHead className="px-8 text-right font-black uppercase text-[10px] tracking-widest text-slate-400">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -114,7 +113,7 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center">
                       <span className="font-black text-slate-700">{s.count}</span>
-                      <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">Logs</span>
+                      <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">Tests</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
@@ -125,20 +124,20 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                       )}>
                         {s.count > 0 ? `${s.avg}%` : '--'}
                       </span>
-                      <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">Mean</span>
+                      <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">Avg</span>
                     </div>
                   </TableCell>
                   <TableCell className="px-8 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                       <Link href={`/admin/users/detail?email=${encodeURIComponent(u.email)}`}>
-                        <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-primary/5 text-primary">
+                        <Button variant="ghost" size="icon" title="View Profile" className="rounded-full h-10 w-10 hover:bg-primary/5 text-primary">
                           <Eye className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Button variant="ghost" size="icon" onClick={() => onEdit(u)} className="rounded-full h-10 w-10 hover:bg-slate-100">
+                      <Button variant="ghost" size="icon" title="Edit" onClick={() => onEdit(u)} className="rounded-full h-10 w-10 hover:bg-slate-100">
                         <Edit className="w-4 h-4 text-slate-400" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(u.email)} className="rounded-full h-10 w-10 text-destructive hover:bg-destructive/5">
+                      <Button variant="ghost" size="icon" title="Delete" onClick={() => onDelete(u.email)} className="rounded-full h-10 w-10 text-destructive hover:bg-destructive/5">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -151,7 +150,7 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                 <TableCell colSpan={5} className="py-24 text-center">
                   <div className="flex flex-col items-center gap-4 opacity-20">
                     <User className="w-12 h-12" />
-                    <p className="font-black uppercase tracking-[0.3em] text-xs">No Identities Registered</p>
+                    <p className="font-black uppercase tracking-[0.3em] text-xs">No students registered</p>
                   </div>
                 </TableCell>
               </TableRow>

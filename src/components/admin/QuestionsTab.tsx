@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -59,14 +58,14 @@ export function QuestionsTab({
               <HelpCircle className="w-6 h-6" />
             </div>
             <div>
-              <CardTitle className="font-black text-2xl text-slate-900">Question Bank</CardTitle>
-              <CardDescription>Content management for selected assessments</CardDescription>
+              <CardTitle className="font-black text-2xl text-slate-900">Question List</CardTitle>
+              <CardDescription>Manage the questions for this test</CardDescription>
             </div>
           </div>
           <div className="flex items-center gap-3">
              <Select value={selectedTestId} onValueChange={setSelectedTestId}>
               <SelectTrigger className="w-[220px] rounded-full font-bold border-2">
-                <SelectValue placeholder="Select an assessment" />
+                <SelectValue placeholder="Select test" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl">
                 {tests.map(t => (
@@ -75,10 +74,10 @@ export function QuestionsTab({
               </SelectContent>
             </Select>
             <Button variant="outline" onClick={onBulkEdit} className="rounded-full font-bold border-2">
-              <FileText className="w-4 h-4 mr-2" /> Bulk Edit
+              <FileText className="w-4 h-4 mr-2" /> JSON Editor
             </Button>
             <Button onClick={onAdd} className="rounded-full font-bold shadow-lg">
-              <Plus className="w-4 h-4 mr-2" /> Add Item
+              <Plus className="w-4 h-4 mr-2" /> Add Question
             </Button>
           </div>
         </CardHeader>
@@ -86,19 +85,19 @@ export function QuestionsTab({
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50/50">
-                <TableHead>ID</TableHead>
+                <TableHead>No.</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Question Content</TableHead>
+                <TableHead>Question Text</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {questions.map((q, i) => (
                 <TableRow key={i} className="group">
-                  <TableCell className="text-xs font-mono text-slate-400">{q.id}</TableCell>
+                  <TableCell className="text-xs font-mono text-slate-400">{i + 1}</TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="capitalize font-bold">
-                      {q.question_type?.replace('_', ' ') || 'Unknown'}
+                      {q.question_type?.replace('_', ' ') || 'Choice'}
                     </Badge>
                   </TableCell>
                   <TableCell className="max-w-md truncate font-bold text-slate-700">{q.question_text}</TableCell>
@@ -119,8 +118,8 @@ export function QuestionsTab({
                   <TableCell colSpan={4} className="text-center py-20 text-muted-foreground bg-slate-50/20">
                     <div className="flex flex-col items-center gap-2">
                       <HelpCircle className="w-10 h-10 opacity-20" />
-                      <p className="font-bold">No questions found for this test.</p>
-                      <Button variant="link" onClick={onAdd}>Create the first question</Button>
+                      <p className="font-bold">No questions found.</p>
+                      <Button variant="link" onClick={onAdd}>Create your first question</Button>
                     </div>
                   </TableCell>
                 </TableRow>

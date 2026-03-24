@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, useState } from 'react';
@@ -173,8 +172,8 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
     return (
       <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
         <AlertCircle className="w-12 h-12 text-slate-200 mb-4" />
-        <h3 className="text-xl font-black text-slate-400">No data to analyze yet</h3>
-        <p className="text-slate-400 text-sm">Waiting for your first test submission...</p>
+        <h3 className="text-xl font-black text-slate-400">No results yet</h3>
+        <p className="text-slate-400 text-sm">Waiting for the first student submission...</p>
       </div>
     );
   }
@@ -185,23 +184,23 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <AnalysisCard 
           icon={Users} 
-          label="Total Submissions" 
+          label="Total Results" 
           value={stats.total} 
-          subValue="All active tests"
+          subValue="All tests"
           color="blue"
         />
         <AnalysisCard 
           icon={Target} 
-          label="Global Avg. Score" 
+          label="Avg. Score" 
           value={`${stats.avgScore}%`} 
-          subValue="Across all users"
+          subValue="Global average"
           color="green"
         />
         <AnalysisCard 
           icon={Trophy} 
           label="Pass Rate" 
           value={`${stats.passRate}%`} 
-          subValue="Scores above 50%"
+          subValue="Students above 50%"
           color="purple"
         />
       </div>
@@ -212,9 +211,9 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
           <CardHeader className="bg-slate-50/50 border-b">
             <CardTitle className="text-lg font-black flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
-              Performance Distribution
+              Score Range
             </CardTitle>
-            <CardDescription>Breakdown of student achievement levels</CardDescription>
+            <CardDescription>Breakdown of student performance</CardDescription>
           </CardHeader>
           <CardContent className="pt-8 h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -241,9 +240,9 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
           <CardHeader className="bg-slate-50/50 border-b">
             <CardTitle className="text-lg font-black flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />
-              Success by Assessment
+              Best Scores by Test
             </CardTitle>
-            <CardDescription>Average scores grouped by Test ID</CardDescription>
+            <CardDescription>Average score per test ID</CardDescription>
           </CardHeader>
           <CardContent className="pt-8 h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -276,14 +275,14 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
         <CardHeader className="bg-slate-50/50 border-b p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">Comprehensive Logs</CardTitle>
-              <CardDescription className="font-medium">Complete historical record of all submissions</CardDescription>
+              <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">Full Result History</CardTitle>
+              <CardDescription className="font-medium">Every test attempt recorded in the system</CardDescription>
             </div>
             
             <div className="relative w-full md:w-80">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input 
-                placeholder="Filter by name, email or test..." 
+                placeholder="Find student or test..." 
                 className="h-12 pl-12 rounded-full bg-white border-none ring-1 ring-slate-100 focus:ring-primary/40 text-sm font-bold"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -299,20 +298,20 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                   className="font-black uppercase text-[10px] tracking-widest px-8 py-5 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('Timestamp')}
                 >
-                  <div className="flex items-center">Timestamp <SortIcon column="Timestamp" /></div>
+                  <div className="flex items-center">Date <SortIcon column="Timestamp" /></div>
                 </TableHead>
                 <TableHead 
                   className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('User Name')}
                 >
-                  <div className="flex items-center">Student Name <SortIcon column="User Name" /></div>
+                  <div className="flex items-center">Student <SortIcon column="User Name" /></div>
                 </TableHead>
-                <TableHead className="font-black uppercase text-[10px] tracking-widest px-4">Email/ID</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest px-4">Email</TableHead>
                 <TableHead 
                   className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('Test ID')}
                 >
-                  <div className="flex items-center">Assessment <SortIcon column="Test ID" /></div>
+                  <div className="flex items-center">Test ID <SortIcon column="Test ID" /></div>
                 </TableHead>
                 <TableHead 
                   className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
@@ -324,7 +323,7 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                   className="font-black uppercase text-[10px] tracking-widest px-8 text-right cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('Grade')}
                 >
-                  <div className="flex items-center justify-end">Grade <SortIcon column="Grade" /></div>
+                  <div className="flex items-center justify-end">Result <SortIcon column="Grade" /></div>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -336,10 +335,10 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                 return (
                   <TableRow key={i} className="hover:bg-slate-50/50 group border-b border-slate-50 last:border-none">
                     <TableCell className="px-8 py-5 text-[10px] font-medium text-slate-400">
-                      {new Date(r.Timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {new Date(r.Timestamp).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="px-4 font-black text-slate-900 truncate max-w-[150px]">{String(r['User Name'] || 'Guest')}</TableCell>
-                    <TableCell className="px-4 font-medium text-slate-500 truncate max-w-[150px]">{String(r['User Email'] || 'Anonymous')}</TableCell>
+                    <TableCell className="px-4 font-medium text-slate-500 truncate max-w-[150px]">{String(r['User Email'] || 'N/A')}</TableCell>
                     <TableCell className="px-4 font-bold text-slate-700">
                       <Badge variant="outline" className="font-mono text-[10px] rounded-md bg-slate-50">{String(r['Test ID'])}</Badge>
                     </TableCell>
@@ -360,7 +359,7 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                   <TableCell colSpan={6} className="text-center py-20 bg-slate-50/20">
                     <div className="flex flex-col items-center gap-2 opacity-30">
                       <Search className="w-10 h-10" />
-                      <p className="font-black uppercase tracking-widest text-xs">No matching logs found</p>
+                      <p className="font-black uppercase tracking-widest text-xs">No matching results found</p>
                     </div>
                   </TableCell>
                 </TableRow>
