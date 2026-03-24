@@ -26,19 +26,16 @@ import {
   Plus, 
   Trash2,
   Check,
-  Circle,
   Link2,
   Code2,
-  AlertCircle,
   Target,
   Grid,
-  MapPin,
-  CheckSquare,
-  Dot
+  MapPin
 } from "lucide-react";
 import { Question, QuestionType } from '@/types/quiz';
 import { cn } from "@/lib/utils";
 import { HotspotMapperDialog } from './HotspotMapperDialog';
+import { useLanguage } from '@/context/language-context';
 
 interface QuestionDialogProps {
   open: boolean;
@@ -49,20 +46,21 @@ interface QuestionDialogProps {
 }
 
 const QUESTION_TYPES = [
-  { value: 'single_choice', label: 'One Answer', icon: CheckCircle2, desc: 'Multiple choice (1 correct)' },
-  { value: 'multiple_choice', label: 'Many Answers', icon: Layers, desc: 'Multiple choice (select all)' },
-  { value: 'true_false', label: 'True/False', icon: CheckCircle2, desc: 'Yes or No' },
-  { value: 'multiple_true_false', label: 'Multi T/F', icon: ListOrdered, desc: 'List of T/F' },
-  { value: 'matrix_choice', label: 'Grid Select', icon: Grid, desc: 'Matrix selection' },
-  { value: 'short_text', label: 'Text Input', icon: Type, desc: 'Student types answer' },
-  { value: 'dropdown', label: 'Dropdown', icon: ListOrdered, desc: 'Pick from list' },
-  { value: 'ordering', label: 'Sorting', icon: ListOrdered, desc: 'Put in order' },
-  { value: 'matching', icon: Link2, label: 'Matching', desc: 'Match pairs' },
-  { value: 'hotspot', icon: ImageIcon, label: 'Point Map', desc: 'Click on image' },
-  { value: 'rating', icon: Star, label: 'Rating', desc: '1 to 5 stars' },
+  { value: 'single_choice', label: 'One Answer', icon: CheckCircle2 },
+  { value: 'multiple_choice', label: 'Many Answers', icon: Layers },
+  { value: 'true_false', label: 'True/False', icon: CheckCircle2 },
+  { value: 'multiple_true_false', label: 'Multi T/F', icon: ListOrdered },
+  { value: 'matrix_choice', label: 'Grid Select', icon: Grid },
+  { value: 'short_text', label: 'Text Input', icon: Type },
+  { value: 'dropdown', label: 'Dropdown', icon: ListOrdered },
+  { value: 'ordering', label: 'Sorting', icon: ListOrdered },
+  { value: 'matching', icon: Link2, label: 'Matching' },
+  { value: 'hotspot', icon: ImageIcon, label: 'Point Map' },
+  { value: 'rating', icon: Star, label: 'Rating' },
 ];
 
 export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId, onSave }: QuestionDialogProps) {
+  const { t } = useLanguage();
   const [selectedType, setSelectedType] = useState<QuestionType>('single_choice');
   const [optionsList, setOptionsList] = useState<string[]>([]);
   const [correctAnswers, setCorrectAnswers] = useState<string[]>([]);
@@ -75,25 +73,29 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
   useEffect(() => {
     if (open) {
       if (editingItem) {
-        const qType = editingItem.question_type as QuestionType;
+        const qType = (editingItem.question_type || 'single_choice') as QuestionType;
         setSelectedType(qType);
         
         const rawOptions = String(editingItem.options || "");
         const rawCorrect = String(editingItem.correct_answer || "");
         const rawOrderGroup = String(editingItem.order_group || "");
 
-        if (qType === 'ordering') {
-          setOptionsList(rawOrderGroup ? rawOrderGroup.split(',').map(o => o.trim()) : []);
+        // Set options list for standard types
+        if (['single_choice', 'multiple_choice', 'dropdown', 'matrix_choice', 'ordering'].includes(qType)) {
+          setOptionsList(rawOptions ? rawOptions.split(',').map(o => o.trim()) : (qType === 'ordering' ? (rawOrderGroup ? rawOrderGroup.split(',').map(o => o.trim()) : []) : []));
         } else {
-          setOptionsList(rawOptions ? rawOptions.split(',').map(o => o.trim()) : []);
+          setOptionsList([]);
         }
         
         setCorrectAnswers(rawCorrect ? rawCorrect.split(',').map(c => c.trim()) : []);
         setImageUrl(String(editingItem.image_url || ''));
         setMetadata(String(editingItem.metadata || ''));
         
+        // Matrix and MTF use order_group for rows/statements
         if (qType === 'multiple_true_false' || qType === 'matrix_choice') {
           setMatrixRows(rawOrderGroup ? rawOrderGroup.split(',').map(r => r.trim()) : []);
+        } else {
+          setMatrixRows([]);
         }
 
         if (qType === 'matching') {
@@ -108,7 +110,7 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
         setOptionsList(['Option 1', 'Option 2']);
         setCorrectAnswers([]);
         setMatchingPairs([{ left: '', right: '' }]);
-        setMatrixRows(['Row 1']);
+        setMatrixRows([]);
         setImageUrl('');
         setMetadata('');
       }
@@ -143,6 +145,7 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
       finalOptions = "True, False";
       finalCorrect = correctAnswers[0] || "True";
     } else if (selectedType === 'ordering') {
+      finalOptions = filteredOptions.join(', ');
       finalOrderGroup = filteredOptions.join(', ');
       finalCorrect = filteredOptions.join(', ');
     } else if (selectedType === 'matching') {
@@ -150,7 +153,11 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
       const pairsStr = validPairs.map(p => `${p.left.trim()}|${p.right.trim()}`).join(', ');
       finalOrderGroup = pairsStr;
       finalCorrect = pairsStr;
-    } else if (selectedType === 'multiple_true_false' || selectedType === 'matrix_choice') {
+    } else if (selectedType === 'multiple_true_false') {
+      finalOrderGroup = matrixRows.filter(r => r.trim()).join(', ');
+      finalOptions = "True, False";
+      finalCorrect = correctAnswers.filter(c => c.trim()).join(', ');
+    } else if (selectedType === 'matrix_choice') {
       finalOrderGroup = matrixRows.filter(r => r.trim()).join(', ');
       finalOptions = filteredOptions.join(', ');
       finalCorrect = correctAnswers.filter(c => c.trim()).join(', ');
@@ -181,7 +188,7 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
             <div className="flex items-center gap-4">
               <div className="bg-primary p-3 rounded-2xl shadow-xl rotate-3"><HelpCircle className="w-6 h-6 text-white" /></div>
               <div>
-                <DialogTitle className="text-3xl font-black uppercase tracking-tight">{editingItem ? 'Edit Question' : 'Add Question'}</DialogTitle>
+                <DialogTitle className="text-3xl font-black uppercase tracking-tight">{editingItem ? t('edit') : t('newTest')}</DialogTitle>
                 <DialogDescription className="text-white/40 font-bold uppercase tracking-widest text-[10px]">Test ID: {selectedTestId}</DialogDescription>
               </div>
             </div>
@@ -210,42 +217,17 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
 
             <div className="space-y-8">
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Write your question</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Question Text</Label>
                 <Textarea name="question_text" defaultValue={editingItem?.question_text} required className="rounded-[1.5rem] min-h-[100px] text-lg p-6 bg-slate-50 border-none ring-1 ring-slate-100 focus:ring-primary/40" placeholder="Type the question here..." />
               </div>
 
-              {selectedType === 'short_text' && (
-                <div className="space-y-4 p-8 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Correct Answer (Text)</Label>
-                  <Input name="correct_answer" defaultValue={editingItem?.correct_answer} placeholder="Type the exact correct answer..." className="h-14 rounded-xl bg-white font-bold text-lg" />
-                </div>
-              )}
-
-              {selectedType === 'hotspot' && (
-                <div className="space-y-6 p-8 bg-slate-900 rounded-[2.5rem] text-white overflow-hidden relative">
-                  <ImageIcon className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 rotate-12" />
-                  <div className="relative z-10 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/20 rounded-lg"><MapPin className="w-4 h-4 text-primary" /></div>
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Image Setup</Label>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Image URL</Label>
-                      <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." className="bg-white/5 border-none ring-1 ring-white/10 h-12 rounded-xl text-xs font-mono" />
-                    </div>
-
-                    <Button type="button" onClick={() => setMapperOpen(true)} disabled={!imageUrl} className="w-full h-14 rounded-xl bg-primary font-black uppercase text-xs tracking-widest gap-2">
-                      <Target className="w-4 h-4" /> Edit Points on Image
-                    </Button>
-                  </div>
-                </div>
-              )}
-
+              {/* Standard Options Editor */}
               {(['single_choice', 'multiple_choice', 'dropdown', 'matrix_choice', 'ordering'].includes(selectedType)) && (
                 <div className="space-y-4 p-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
                   <div className="flex items-center justify-between">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Answer Options</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">
+                      {selectedType === 'matrix_choice' ? 'Columns (Choices)' : 'Options'}
+                    </Label>
                     <Button type="button" size="sm" onClick={() => setOptionsList([...optionsList, `Option ${optionsList.length + 1}`])} className="rounded-full h-8 px-4 font-bold shadow-sm bg-slate-900 text-white"><Plus className="w-3 h-3 mr-2" /> Add</Button>
                   </div>
                   <div className="space-y-2">
@@ -262,6 +244,65 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
                         )}
                         <Input value={opt} onChange={(e) => { const n = [...optionsList]; n[i] = e.target.value; setOptionsList(n); }} className="rounded-xl h-12 bg-white flex-1" />
                         <Button type="button" variant="ghost" size="icon" onClick={() => setOptionsList(optionsList.filter((_, idx) => idx !== i))} className="h-12 w-12 text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rows Editor for MTF and Matrix */}
+              {(['multiple_true_false', 'matrix_choice'].includes(selectedType)) && (
+                <div className="space-y-4 p-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">
+                      {selectedType === 'multiple_true_false' ? 'Statements' : 'Rows'}
+                    </Label>
+                    <Button type="button" size="sm" onClick={() => setMatrixRows([...matrixRows, `Item ${matrixRows.length + 1}`])} className="rounded-full h-8 px-4 font-bold shadow-sm bg-slate-900 text-white">
+                      <Plus className="w-3 h-3 mr-2" /> Add {selectedType === 'multiple_true_false' ? 'Statement' : 'Row'}
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {matrixRows.map((row, i) => (
+                      <div key={i} className="flex gap-2 items-center">
+                        <Input value={row} onChange={(e) => { const n = [...matrixRows]; n[i] = e.target.value; setMatrixRows(n); }} className="rounded-xl h-12 bg-white flex-1 font-bold" />
+                        
+                        {selectedType === 'multiple_true_false' && (
+                          <div className="flex gap-1 bg-white border rounded-xl p-1 shrink-0">
+                            {['True', 'False'].map(val => (
+                              <button
+                                key={val}
+                                type="button"
+                                onClick={() => {
+                                  const n = [...correctAnswers];
+                                  n[i] = val;
+                                  setCorrectAnswers(n);
+                                }}
+                                className={cn(
+                                  "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all",
+                                  correctAnswers[i] === val ? "bg-primary text-white" : "text-slate-400 hover:bg-slate-50"
+                                )}
+                              >
+                                {val}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {selectedType === 'matrix_choice' && (
+                          <select 
+                            value={correctAnswers[i] || ""} 
+                            onChange={(e) => { const n = [...correctAnswers]; n[i] = e.target.value; setCorrectAnswers(n); }}
+                            className="h-12 rounded-xl bg-white border px-3 text-xs font-bold w-32"
+                          >
+                            <option value="">Select Correct</option>
+                            {optionsList.map((opt, idx) => <option key={idx} value={opt}>{opt}</option>)}
+                          </select>
+                        )}
+
+                        <Button type="button" variant="ghost" size="icon" onClick={() => {
+                          setMatrixRows(matrixRows.filter((_, idx) => idx !== i));
+                          setCorrectAnswers(correctAnswers.filter((_, idx) => idx !== i));
+                        }} className="h-12 w-12 text-destructive"><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     ))}
                   </div>
@@ -297,16 +338,39 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
                   </RadioGroup>
                 </div>
               )}
+
+              {selectedType === 'short_text' && (
+                <div className="space-y-4 p-8 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Correct Answer</Label>
+                  <Input name="correct_answer" defaultValue={editingItem?.correct_answer} placeholder="Type exactly the correct answer..." className="h-14 rounded-xl bg-white font-bold text-lg" />
+                </div>
+              )}
+
+              {selectedType === 'hotspot' && (
+                <div className="space-y-6 p-8 bg-slate-900 rounded-[2.5rem] text-white overflow-hidden relative">
+                  <ImageIcon className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 rotate-12" />
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/20 rounded-lg"><MapPin className="w-4 h-4 text-primary" /></div>
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Visual Asset</Label>
+                    </div>
+                    <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Image URL (https://...)" className="bg-white/5 border-none ring-1 ring-white/10 h-12 rounded-xl text-xs font-mono" />
+                    <Button type="button" onClick={() => setMapperOpen(true)} disabled={!imageUrl} className="w-full h-14 rounded-xl bg-primary font-black uppercase text-xs tracking-widest gap-2">
+                      <Target className="w-4 h-4" /> Open Zone Mapper
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <DialogFooter className="pt-10 border-t border-slate-100 sticky bottom-0 bg-white/90 backdrop-blur-xl pb-4">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3 px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100">
-                  <Checkbox id="required" name="required" defaultChecked={editingItem?.required === "TRUE" || editingItem?.required === true} />
-                  <Label htmlFor="required" className="text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer">Required</Label>
+                  <Checkbox id="required" name="required" defaultChecked={String(editingItem?.required).toUpperCase() === "TRUE"} />
+                  <Label htmlFor="required" className="text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer">Required Step</Label>
                 </div>
                 <Button type="submit" className="rounded-full px-12 h-16 font-black text-xl shadow-2xl bg-primary">
-                  <Save className="w-5 h-5 mr-3" /> Save Question
+                  <Save className="w-5 h-5 mr-3" /> {t('saveChanges')}
                 </Button>
               </div>
             </DialogFooter>
