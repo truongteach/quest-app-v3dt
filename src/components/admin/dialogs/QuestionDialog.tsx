@@ -36,7 +36,7 @@ import { Question, QuestionType } from '@/types/quiz';
 import { cn } from "@/lib/utils";
 import { HotspotMapperDialog } from './HotspotMapperDialog';
 import { useLanguage } from '@/context/language-context';
-import { parseRegistryArray } from '@/lib/quiz-utils';
+import { parseRegistryArray, getRegistryValue } from '@/lib/quiz-utils';
 
 interface QuestionDialogProps {
   open: boolean;
@@ -74,23 +74,25 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
   useEffect(() => {
     if (open) {
       if (editingItem) {
-        const qType = (editingItem.question_type || 'single_choice') as QuestionType;
+        // Use fuzzy matching to get values regardless of spreadsheet casing
+        const qTypeRaw = getRegistryValue(editingItem, ['question_type', 'type']);
+        const qType = (qTypeRaw || 'single_choice') as QuestionType;
         setSelectedType(qType);
         
-        const rawOptions = parseRegistryArray(editingItem.options);
-        const rawCorrect = parseRegistryArray(editingItem.correct_answer);
-        const rawOrderGroup = parseRegistryArray(editingItem.order_group);
+        const rawOptions = parseRegistryArray(getRegistryValue(editingItem, ['options', 'choices']));
+        const rawCorrect = parseRegistryArray(getRegistryValue(editingItem, ['correct_answer', 'answer']));
+        const rawOrderGroup = parseRegistryArray(getRegistryValue(editingItem, ['order_group', 'sequence', 'statements']));
 
         // Set options list for standard types
         if (['single_choice', 'multiple_choice', 'dropdown', 'matrix_choice', 'ordering'].includes(qType)) {
-          setOptionsList(rawOptions);
+          setOptionsList(rawOptions.length > 0 ? rawOptions : ['Option 1', 'Option 2']);
         } else {
           setOptionsList([]);
         }
         
         setCorrectAnswers(rawCorrect);
-        setImageUrl(String(editingItem.image_url || ''));
-        setMetadata(String(editingItem.metadata || ''));
+        setImageUrl(String(getRegistryValue(editingItem, ['image_url', 'image']) || ''));
+        setMetadata(String(getRegistryValue(editingItem, ['metadata', 'data']) || ''));
         
         // Matrix and MTF use order_group for rows/statements
         if (qType === 'multiple_true_false' || qType === 'matrix_choice') {
@@ -148,7 +150,7 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
     } else if (selectedType === 'ordering') {
       finalOptionsArr = filteredOptions;
       finalOrderGroupArr = filteredOptions;
-      finalCorrectArr = filteredOptions; // Correct is the order defined in editor
+      finalCorrectArr = filteredOptions;
     } else if (selectedType === 'matching') {
       const validPairs = matchingPairs.filter(p => p.left.trim() && p.right.trim());
       const pairsStr = validPairs.map(p => `${p.left.trim()}|${p.right.trim()}`);
@@ -219,7 +221,13 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
             <div className="space-y-8">
               <div className="space-y-2">
                 <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Question Text</Label>
-                <Textarea name="question_text" defaultValue={editingItem?.question_text} required className="rounded-[1.5rem] min-h-[100px] text-lg p-6 bg-slate-50 border-none ring-1 ring-slate-100 focus:ring-primary/40" placeholder="Type the question here..." />
+                <Textarea 
+                  name="question_text" 
+                  defaultValue={getRegistryValue(editingItem, ['question_text', 'text'])} 
+                  required 
+                  className="rounded-[1.5rem] min-h-[100px] text-lg p-6 bg-slate-50 border-none ring-1 ring-slate-100 focus:ring-primary/40" 
+                  placeholder="Type the question here..." 
+                />
               </div>
 
               {/* Standard Options Editor */}
@@ -343,7 +351,12 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
               {selectedType === 'short_text' && (
                 <div className="space-y-4 p-8 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
                   <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Correct Answer</Label>
-                  <Input name="correct_answer" defaultValue={editingItem?.correct_answer ? parseRegistryArray(editingItem.correct_answer)[0] : ""} placeholder="Type exactly the correct answer..." className="h-14 rounded-xl bg-white font-bold text-lg" />
+                  <Input 
+                    name="correct_answer" 
+                    defaultValue={correctAnswers[0] || ""} 
+                    placeholder="Type exactly the correct answer..." 
+                    className="h-14 rounded-xl bg-white font-bold text-lg" 
+                  />
                 </div>
               )}
 
@@ -367,7 +380,7 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
             <DialogFooter className="pt-10 border-t border-slate-100 sticky bottom-0 bg-white/90 backdrop-blur-xl pb-4">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3 px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100">
-                  <Checkbox id="required" name="required" defaultChecked={String(editingItem?.required).toUpperCase() === "TRUE"} />
+                  <Checkbox id="required" name="required" defaultChecked={String(getRegistryValue(editingItem, ['required'])).toUpperCase() === "TRUE"} />
                   <Label htmlFor="required" className="text-[10px] font-black uppercase tracking-widest text-slate-500 cursor-pointer">Required Step</Label>
                 </div>
                 <Button type="submit" className="rounded-full px-12 h-16 font-black text-xl shadow-2xl bg-primary">

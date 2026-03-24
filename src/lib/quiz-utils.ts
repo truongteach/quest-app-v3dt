@@ -5,13 +5,19 @@ import { Question, HotspotZone } from '@/types/quiz';
  */
 export const parseRegistryArray = (input: any): string[] => {
   if (!input) return [];
+  
+  // If it's already an array, just normalize items to strings
+  if (Array.isArray(input)) return input.map(item => String(item ?? "").trim());
+
   const str = String(input).trim();
+  if (!str) return [];
   
   // Try parsing as JSON first for maximum data integrity
-  if (str.startsWith('[') && str.endsWith(']')) {
+  if ((str.startsWith('[') && str.endsWith(']')) || (str.startsWith('{') && str.endsWith('}'))) {
     try {
       const parsed = JSON.parse(str);
-      if (Array.isArray(parsed)) return parsed.map(String);
+      if (Array.isArray(parsed)) return parsed.map(item => String(item ?? "").trim());
+      // Handle edge case where single items might be wrapped in brackets but aren't arrays
     } catch (e) {
       // Fallback to standard comma splitting if JSON is malformed
     }
@@ -19,6 +25,24 @@ export const parseRegistryArray = (input: any): string[] => {
   
   // Legacy or manual entry fallback: split by comma, handling potential empty segments
   return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+};
+
+/**
+ * Utility to find a value in a registry object by checking multiple key variations.
+ */
+export const getRegistryValue = (obj: any, keys: string[]): any => {
+  if (!obj) return undefined;
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null) return obj[k];
+    
+    // Check normalized version (lowercase, no spaces)
+    const normalizedK = k.toLowerCase().replace(/_/g, '').replace(/ /g, '');
+    for (const actualKey in obj) {
+      const normalizedActual = actualKey.toLowerCase().replace(/_/g, '').replace(/ /g, '');
+      if (normalizedActual === normalizedK) return obj[actualKey];
+    }
+  }
+  return undefined;
 };
 
 /**
@@ -62,7 +86,6 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
   } 
   
   if (questionType === 'matching') {
-    // Correct pairs are stored as "left|right" within the correctArr JSON array
     const userPairs = Object.entries(response as Record<string, string>).map(([k, v]) => `${k}|${v}`).sort();
     const sortedCorrect = [...correctArr].sort();
     if (sortedCorrect.length !== userPairs.length) return false;
