@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo } from 'react';
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
+import { useLanguage } from '@/context/language-context';
 
 interface UsersTabProps {
   users: any[];
@@ -34,6 +36,8 @@ interface UsersTabProps {
 }
 
 export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTabProps) {
+  const { t } = useLanguage();
+  
   const userStats = useMemo(() => {
     const stats: Record<string, { count: number, passed: number, avg: number }> = {};
     
@@ -65,23 +69,23 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
             <User className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">Student List</CardTitle>
+            <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">{t('studentList')}</CardTitle>
             <CardDescription className="font-medium">Manage student access and view their scores</CardDescription>
           </div>
         </div>
         <Button onClick={onAdd} className="rounded-full gap-2 font-black h-12 px-6 shadow-xl bg-primary">
-          <Plus className="w-4 h-4" /> Add Student
+          <Plus className="w-4 h-4" /> {t('addStudent')}
         </Button>
       </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-              <TableHead className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">Student Info</TableHead>
-              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">Role</TableHead>
-              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">Tests Done</TableHead>
-              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">Avg. Score</TableHead>
-              <TableHead className="px-8 text-right font-black uppercase text-[10px] tracking-widest text-slate-400">Actions</TableHead>
+              <TableHead className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">{t('studentInfo')}</TableHead>
+              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">{t('role')}</TableHead>
+              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">{t('testsDone')}</TableHead>
+              <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">{t('avgScore')}</TableHead>
+              <TableHead className="px-8 text-right font-black uppercase text-[10px] tracking-widest text-slate-400">{t('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -134,10 +138,10 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                           <Eye className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Button variant="ghost" size="icon" title="Edit" onClick={() => onEdit(u)} className="rounded-full h-10 w-10 hover:bg-slate-100">
+                      <Button variant="ghost" size="icon" title={t('edit')} onClick={() => onEdit(u)} className="rounded-full h-10 w-10 hover:bg-slate-100">
                         <Edit className="w-4 h-4 text-slate-400" />
                       </Button>
-                      <Button variant="ghost" size="icon" title="Delete" onClick={() => onDelete(u.email)} className="rounded-full h-10 w-10 text-destructive hover:bg-destructive/5">
+                      <Button variant="ghost" size="icon" title={t('delete')} onClick={() => onDelete(u.email)} className="rounded-full h-10 w-10 text-destructive hover:bg-destructive/5">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -150,7 +154,7 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                 <TableCell colSpan={5} className="py-24 text-center">
                   <div className="flex flex-col items-center gap-4 opacity-20">
                     <User className="w-12 h-12" />
-                    <p className="font-black uppercase tracking-[0.3em] text-xs">No students registered</p>
+                    <p className="font-black uppercase tracking-[0.3em] text-xs">{t('noStudents')}</p>
                   </div>
                 </TableCell>
               </TableRow>

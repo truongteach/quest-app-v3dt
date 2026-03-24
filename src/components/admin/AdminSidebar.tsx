@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -7,7 +8,8 @@ import {
   ClipboardList, 
   Zap, 
   LogOut,
-  MessageSquare
+  MessageSquare,
+  Languages
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -25,6 +27,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLanguage, Language } from '@/context/language-context';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export type AdminTab = 'overview' | 'tests' | 'users' | 'responses';
 
@@ -36,12 +45,13 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
 
   const menuItems = [
-    { id: 'overview', label: 'Dashboard', icon: BarChart3, href: '/admin' },
-    { id: 'tests', label: 'Test Library', icon: ClipboardList, href: '/admin/tests' },
-    { id: 'users', label: 'Student List', icon: UsersIcon, href: '/admin/users' },
-    { id: 'responses', label: 'Result Logs', icon: MessageSquare, href: '/admin/responses' }
+    { id: 'overview', label: t('dashboard'), icon: BarChart3, href: '/admin' },
+    { id: 'tests', label: t('testLibrary'), icon: ClipboardList, href: '/admin/tests' },
+    { id: 'users', label: t('students'), icon: UsersIcon, href: '/admin/users' },
+    { id: 'responses', label: t('results'), icon: MessageSquare, href: '/admin/responses' }
   ];
 
   return (
@@ -53,7 +63,7 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
           </div>
           <div>
             <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase leading-none">DNTRNG</h1>
-            <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1.5">Admin Console</p>
+            <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1.5">{t('adminConsole')}</p>
           </div>
         </div>
       </SidebarHeader>
@@ -82,6 +92,27 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <div className="px-4 mt-10">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Region Protocol</p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full h-10 rounded-xl justify-between border-slate-200 font-bold text-xs uppercase tracking-widest">
+                  <span className="flex items-center gap-2">
+                    <Languages className="w-3.5 h-3.5 text-primary" />
+                    {language === 'en' ? 'English' : language === 'vi' ? 'Tiếng Việt' : 'Español'}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[180px] rounded-xl p-1" align="start">
+                <DropdownMenuItem onClick={() => setLanguage('en')} className="font-bold cursor-pointer rounded-lg">English (US)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('vi')} className="font-bold cursor-pointer rounded-lg">Tiếng Việt</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('es')} className="font-bold cursor-pointer rounded-lg">Español</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </SidebarContent>
       <SidebarFooter className="p-6 border-t bg-slate-50/50">
         <div className="p-5 bg-white rounded-[2rem] border shadow-sm flex items-center justify-between">

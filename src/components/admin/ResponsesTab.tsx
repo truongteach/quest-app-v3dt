@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo, useState } from 'react';
@@ -38,6 +39,7 @@ import {
   ChevronDown,
   ArrowUpDown
 } from "lucide-react";
+import { useLanguage } from '@/context/language-context';
 
 interface ResponsesTabProps {
   responses: any[];
@@ -51,6 +53,7 @@ type SortConfig = {
 export function ResponsesTab({ responses }: ResponsesTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'Timestamp', direction: 'desc' });
+  const { t } = useLanguage();
 
   // --- DATA ANALYSIS LOGIC ---
   
@@ -172,8 +175,8 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
     return (
       <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
         <AlertCircle className="w-12 h-12 text-slate-200 mb-4" />
-        <h3 className="text-xl font-black text-slate-400">No results yet</h3>
-        <p className="text-slate-400 text-sm">Waiting for the first student submission...</p>
+        <h3 className="text-xl font-black text-slate-400">{t('noResults')}</h3>
+        <p className="text-slate-400 text-sm">{t('waitingFirst')}</p>
       </div>
     );
   }
@@ -191,14 +194,14 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
         />
         <AnalysisCard 
           icon={Target} 
-          label="Avg. Score" 
+          label={t('avgScore')} 
           value={`${stats.avgScore}%`} 
           subValue="Global average"
           color="green"
         />
         <AnalysisCard 
           icon={Trophy} 
-          label="Pass Rate" 
+          label={t('passRate')} 
           value={`${stats.passRate}%`} 
           subValue="Students above 50%"
           color="purple"
@@ -275,7 +278,7 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
         <CardHeader className="bg-slate-50/50 border-b p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">Full Result History</CardTitle>
+              <CardTitle className="font-black text-2xl text-slate-900 uppercase tracking-tight">{t('fullResultHistory')}</CardTitle>
               <CardDescription className="font-medium">Every test attempt recorded in the system</CardDescription>
             </div>
             
@@ -298,15 +301,15 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                   className="font-black uppercase text-[10px] tracking-widest px-8 py-5 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('Timestamp')}
                 >
-                  <div className="flex items-center">Date <SortIcon column="Timestamp" /></div>
+                  <div className="flex items-center">{t('date')} <SortIcon column="Timestamp" /></div>
                 </TableHead>
                 <TableHead 
                   className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('User Name')}
                 >
-                  <div className="flex items-center">Student <SortIcon column="User Name" /></div>
+                  <div className="flex items-center">{t('student')} <SortIcon column="User Name" /></div>
                 </TableHead>
-                <TableHead className="font-black uppercase text-[10px] tracking-widest px-4">Email</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest px-4">{t('email')}</TableHead>
                 <TableHead 
                   className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('Test ID')}
@@ -317,13 +320,13 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                   className="font-black uppercase text-[10px] tracking-widest px-4 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('Score')}
                 >
-                  <div className="flex items-center">Score <SortIcon column="Score" /></div>
+                  <div className="flex items-center">{t('score')} <SortIcon column="Score" /></div>
                 </TableHead>
                 <TableHead 
                   className="font-black uppercase text-[10px] tracking-widest px-8 text-right cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('Grade')}
                 >
-                  <div className="flex items-center justify-end">Result <SortIcon column="Grade" /></div>
+                  <div className="flex items-center justify-end">{t('result')} <SortIcon column="Grade" /></div>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -348,7 +351,7 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
                         "font-black px-4 py-1.5 rounded-full border-none shadow-sm text-[9px] uppercase tracking-widest",
                         pct >= 80 ? "bg-green-100 text-green-700" : pct >= 50 ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
                       )}>
-                        {pct >= 80 ? 'EXCELLENT' : pct >= 50 ? 'PASS' : 'FAIL'}
+                        {pct >= 80 ? t('excellent') : pct >= 50 ? t('pass') : t('fail')}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -356,7 +359,7 @@ export function ResponsesTab({ responses }: ResponsesTabProps) {
               })}
               {processedResponses.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-20 bg-slate-50/20">
+                  <TableCell colSpan={6} className="text-center py-24 bg-slate-50/20">
                     <div className="flex flex-col items-center gap-2 opacity-30">
                       <Search className="w-10 h-10" />
                       <p className="font-black uppercase tracking-widest text-xs">No matching results found</p>

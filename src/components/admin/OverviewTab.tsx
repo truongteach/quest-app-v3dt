@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo } from 'react';
@@ -42,6 +43,7 @@ import { generateDailyPassword } from '@/lib/security-utils';
 import { addDays, format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { GAS_CODE } from '@/app/lib/gas-template';
+import { useLanguage } from '@/context/language-context';
 
 interface OverviewTabProps {
   data: { tests: any[], users: any[], responses: any[] };
@@ -56,6 +58,7 @@ interface OverviewTabProps {
 export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync, onSeed, setActiveTab }: OverviewTabProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const currentDailyKey = generateDailyPassword();
 
@@ -104,13 +107,13 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
             </span>
-            <span className="text-xs font-black uppercase tracking-widest text-slate-400">Status: Active</span>
+            <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('statusActive')}</span>
           </div>
           {lastSync && (
             <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border shadow-sm">
               <Clock className="w-3 h-3 text-primary" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                Last Sync: {lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {t('lastSync')}: {lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
           )}
@@ -121,11 +124,11 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
             <Key className="w-4 h-4 text-primary group-hover:rotate-12 transition-transform" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Access Key</span>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('accessKey')}</span>
             <div className="flex items-center gap-3">
               <span className="text-lg font-black text-white tracking-[0.2em] font-mono leading-none">{currentDailyKey}</span>
               <button 
-                onClick={() => copyToClipboard(currentDailyKey, "Access Key")}
+                onClick={() => copyToClipboard(currentDailyKey, t('accessKey'))}
                 className="text-slate-600 hover:text-primary transition-colors"
               >
                 <Copy className="w-3 h-3" />
@@ -138,7 +141,7 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-[10px] uppercase tracking-widest gap-2">
                   <CalendarDays className="w-3.5 h-3.5 text-primary" />
-                  Weekly Schedule
+                  {t('weeklySchedule')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0 rounded-[2rem] overflow-hidden border-none shadow-2xl" align="end">
@@ -171,7 +174,7 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
                   ))}
                 </div>
                 <div className="bg-slate-50 p-4 border-t text-center">
-                  <p className="text-[9px] font-medium text-slate-400">Keys change automatically at midnight.</p>
+                  <p className="text-[9px] font-medium text-slate-400">{t('weeklyKeys')}</p>
                 </div>
               </PopoverContent>
             </Popover>
@@ -180,10 +183,10 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard icon={LayoutGrid} label="Total Tests" value={data.tests.length} color="blue" />
-        <StatCard icon={UsersIcon} label="Total Students" value={data.users.length} color="green" />
-        <StatCard icon={TrendingUp} label="Test Results" value={data.responses.length} color="purple" />
-        <StatCard icon={Activity} label="Avg. Score" value={avgScore} color="orange" />
+        <StatCard icon={LayoutGrid} label={t('totalTests')} value={data.tests.length} color="blue" />
+        <StatCard icon={UsersIcon} label={t('totalStudents')} value={data.users.length} color="green" />
+        <StatCard icon={TrendingUp} label={t('testResults')} value={data.responses.length} color="purple" />
+        <StatCard icon={Activity} label={t('avgScore')} value={avgScore} color="orange" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -191,7 +194,7 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
           <CardHeader className="border-b bg-slate-50/50">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-black text-slate-900">Activity Trend</CardTitle>
+                <CardTitle className="text-lg font-black text-slate-900">{t('activityTrend')}</CardTitle>
                 <CardDescription>Number of tests completed this week</CardDescription>
               </div>
               <Badge variant="secondary" className="px-3 py-1 font-bold">LIVE</Badge>
@@ -225,8 +228,8 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
 
         <Card className="lg:col-span-4 border-none shadow-sm flex flex-col bg-white">
           <CardHeader className="border-b bg-slate-50/50">
-            <CardTitle className="text-lg font-black text-slate-900">Recent Results</CardTitle>
-            <CardDescription>Latest student submissions</CardDescription>
+            <CardTitle className="text-lg font-black text-slate-900">{t('recentResults')}</CardTitle>
+            <CardDescription>{t('recentSubmissions')}</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-0">
             <div className="divide-y">
@@ -249,17 +252,17 @@ export function OverviewTab({ data, lastSync, onNewTest, onManageContent, onSync
           </CardContent>
           <CardFooter className="border-t p-4">
             <Button variant="ghost" className="w-full font-bold text-xs rounded-xl" onClick={() => setActiveTab('responses')}>
-              See All Results
+              {t('seeAllResults')}
             </Button>
           </CardFooter>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <QuickActionCard title="Create Test" description="Add a new assessment" icon={Plus} onClick={() => router.push('/admin/tests/new')} theme="primary" />
-        <QuickActionCard title="Manage Tests" description="Edit questions and library" icon={Zap} onClick={onManageContent} theme="dark" />
-        <QuickActionCard title="GS Code" description="Copy Apps Script template" icon={Code2} onClick={() => copyToClipboard(GAS_CODE, "GS Code")} theme="accent" />
-        <QuickActionCard title="Sync Data" description="Refresh from Sheets" icon={RefreshCcw} onClick={onSync} theme="light" />
+        <QuickActionCard title={t('createTest')} description="Add a new assessment" icon={Plus} onClick={() => router.push('/admin/tests/new')} theme="primary" />
+        <QuickActionCard title={t('manageTests')} description="Edit questions and library" icon={Zap} onClick={onManageContent} theme="dark" />
+        <QuickActionCard title={t('gsCode')} description="Copy Apps Script template" icon={Code2} onClick={() => copyToClipboard(GAS_CODE, t('gsCode'))} theme="accent" />
+        <QuickActionCard title={t('syncData')} description="Refresh from Sheets" icon={RefreshCcw} onClick={onSync} theme="light" />
       </div>
     </div>
   );
