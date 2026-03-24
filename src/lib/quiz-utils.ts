@@ -1,26 +1,47 @@
 import { Question, HotspotZone } from '@/types/quiz';
 
 /**
+ * Robustly parses a registry field that might be a JSON array or a comma-separated string.
+ */
+export const parseRegistryArray = (input: any): string[] => {
+  if (!input) return [];
+  const str = String(input).trim();
+  
+  // Try parsing as JSON first for maximum data integrity
+  if (str.startsWith('[') && str.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(str);
+      if (Array.isArray(parsed)) return parsed.map(String);
+    } catch (e) {
+      // Fallback to standard comma splitting if JSON is malformed
+    }
+  }
+  
+  // Legacy or manual entry fallback: split by comma, handling potential empty segments
+  return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+};
+
+/**
  * Calculates whether a user's response is correct for a given question.
  */
 export const calculateScoreForQuestion = (q: Question, response: any): boolean => {
   if (q.correct_answer === undefined || q.correct_answer === null || response === undefined || response === null) return false;
   
   const questionType = q.question_type;
-  const correctAnswerStr = q.correct_answer.toString();
+  const correctArr = parseRegistryArray(q.correct_answer);
 
   if (['single_choice', 'true_false', 'short_text', 'dropdown'].includes(questionType)) {
-    return response.toString().toLowerCase().trim() === correctAnswerStr.toLowerCase().trim();
+    const target = correctArr[0] || "";
+    return response.toString().toLowerCase().trim() === target.toLowerCase().trim();
   } 
   
   if (questionType === 'multiple_choice') {
     const resArr = (Array.isArray(response) ? response : []).map((r: any) => r.toString().trim().toLowerCase()).sort();
-    const correctArr = correctAnswerStr.split(',').map(c => c.trim().toLowerCase()).sort();
-    return JSON.stringify(resArr) === JSON.stringify(correctArr);
+    const sortedCorrect = [...correctArr].map(c => c.toLowerCase()).sort();
+    return JSON.stringify(resArr) === JSON.stringify(sortedCorrect);
   } 
   
   if (questionType === 'ordering') {
-    const correctArr = correctAnswerStr.split(',').map(c => c.trim());
     const responseArr = (Array.isArray(response) ? response : []).map((r: any) => r.toString().trim());
     return JSON.stringify(responseArr) === JSON.stringify(correctArr);
   } 
@@ -41,15 +62,15 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
   } 
   
   if (questionType === 'matching') {
-    const correctPairs = correctAnswerStr.split(',').map(p => p.trim());
-    const userPairs = Object.entries(response as Record<string, string>).map(([k, v]) => `${k}|${v}`);
-    if (correctPairs.length !== userPairs.length) return false;
-    return correctPairs.every(cp => userPairs.includes(cp));
+    // Correct pairs are stored as "left|right" within the correctArr JSON array
+    const userPairs = Object.entries(response as Record<string, string>).map(([k, v]) => `${k}|${v}`).sort();
+    const sortedCorrect = [...correctArr].sort();
+    if (sortedCorrect.length !== userPairs.length) return false;
+    return JSON.stringify(userPairs) === JSON.stringify(sortedCorrect);
   }
 
   if (questionType === 'multiple_true_false') {
-    const correctArr = correctAnswerStr.split(',').map(c => c.trim().toLowerCase());
-    const statements = q.order_group?.split(',').map(s => s.trim()) || [];
+    const statements = parseRegistryArray(q.order_group);
     const userResp = response as Record<string, string>;
     
     return statements.every((s, i) => {
@@ -60,8 +81,7 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
   }
 
   if (questionType === 'matrix_choice') {
-    const correctArr = correctAnswerStr.split(',').map(c => c.trim().toLowerCase());
-    const rows = q.order_group?.split(',').map(r => r.trim()) || [];
+    const rows = parseRegistryArray(q.order_group);
     const userResp = response as Record<string, string>;
 
     return rows.every((row, i) => {

@@ -23,6 +23,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { parseRegistryArray } from '@/lib/quiz-utils';
 
 interface Props {
   question: Question;
@@ -38,21 +39,20 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   const [initialShuffledOrder, setInitialShuffledOrder] = useState<string[]>([]);
 
   const options = useMemo(() => {
-    if (!question.options) return [];
-    return String(question.options).split(',').map(o => o.trim());
+    return parseRegistryArray(question.options);
   }, [question.options]);
 
   const matchingPairs = useMemo(() => {
-    if (question.question_type !== 'matching' || !question.order_group) return [];
-    return String(question.order_group).split(',').map(p => {
+    if (question.question_type !== 'matching') return [];
+    const pairsArr = parseRegistryArray(question.order_group);
+    return pairsArr.map(p => {
       const [left, right] = p.split('|');
       return { left: (left || "").trim(), right: (right || "").trim() };
     });
   }, [question.order_group, question.question_type]);
 
   const initialOrderItems = useMemo(() => {
-    if (!question.order_group) return [];
-    return String(question.order_group).split(',').map(i => i.trim());
+    return parseRegistryArray(question.order_group);
   }, [question.order_group]);
 
   useEffect(() => {
@@ -60,7 +60,6 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       const pool = matchingPairs.map(p => p.right).sort(() => 0.5 - Math.random());
       setShuffledItemsPool(pool);
     } else if (question.question_type === 'ordering') {
-      // Shuffle the sequence once for the session if no value is provided
       const shuffled = [...initialOrderItems].sort(() => Math.random() - 0.5);
       setInitialShuffledOrder(shuffled);
     }
@@ -80,7 +79,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
         )}>
           <RadioGroupItem value={option} id={`q-${question.id}-${idx}`} />
           <Label htmlFor={`q-${question.id}-${idx}`} className="flex-1 cursor-pointer font-medium text-lg">{option}</Label>
-          {reviewMode && option === String(question.correct_answer) && <CheckCircle2 className="w-6 h-6 text-green-500" />}
+          {reviewMode && option === parseRegistryArray(question.correct_answer)[0] && <CheckCircle2 className="w-6 h-6 text-green-500" />}
         </div>
       ))}
     </RadioGroup>
@@ -94,7 +93,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       onChange(next);
     };
 
-    const correctArr = question.correct_answer ? String(question.correct_answer).split(',').map(c => c.trim()) : [];
+    const correctArr = parseRegistryArray(question.correct_answer);
 
     return (
       <div className="space-y-3">
@@ -140,9 +139,8 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   };
 
   const renderOrdering = () => {
-    // Start with the user's value or the shuffled initial order
     const currentOrder = (value as string[]) || initialShuffledOrder;
-    const correctOrder = question.correct_answer ? String(question.correct_answer).split(',').map(i => i.trim()) : [];
+    const correctOrder = parseRegistryArray(question.correct_answer);
 
     const handleDragOver = (e: React.DragEvent, index: number) => {
       e.preventDefault();
@@ -156,7 +154,6 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       onChange(newOrder);
     };
 
-    // Wait for initial shuffle state to hydration properly
     if (!reviewMode && currentOrder.length === 0 && initialOrderItems.length > 0) {
       return <div className="h-40 flex items-center justify-center text-slate-300 font-bold animate-pulse">Initializing Sequence...</div>;
     }
@@ -352,8 +349,8 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   };
 
   const renderMultipleTrueFalse = () => {
-    const statements = question.order_group ? String(question.order_group).split(',').map(s => s.trim()) : [];
-    const correctAnswers = question.correct_answer ? String(question.correct_answer).split(',').map(c => c.trim()) : [];
+    const statements = parseRegistryArray(question.order_group);
+    const correctAnswers = parseRegistryArray(question.correct_answer);
     const responses = (value as Record<string, string>) || {};
 
     const handleUpdate = (statement: string, val: string) => {
@@ -405,9 +402,9 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   };
 
   const renderMatrixChoice = () => {
-    const rows = question.order_group ? String(question.order_group).split(',').map(r => r.trim()) : [];
+    const rows = parseRegistryArray(question.order_group);
     const columns = options;
-    const correctAnswers = question.correct_answer ? String(question.correct_answer).split(',').map(c => c.trim()) : [];
+    const correctAnswers = parseRegistryArray(question.correct_answer);
     const responses = (value as Record<string, string>) || {};
 
     const handleUpdate = (row: string, col: string) => {
@@ -501,12 +498,13 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   };
 
   const renderDefault = () => {
+    const correctArr = parseRegistryArray(question.correct_answer);
     switch(question.question_type) {
       case 'short_text':
         return (
           <div className="space-y-4">
             <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder="Answer..." disabled={reviewMode} className="h-16 text-xl font-bold border-2 rounded-2xl px-6" />
-            {reviewMode && <div className="p-4 bg-green-50 rounded-2xl border-2 border-green-100 font-bold text-green-900">Correct: {question.correct_answer}</div>}
+            {reviewMode && <div className="p-4 bg-green-50 rounded-2xl border-2 border-green-100 font-bold text-green-900">Correct: {correctArr[0]}</div>}
           </div>
         );
       case 'dropdown':
@@ -520,7 +518,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                 {options.map((o, i) => <SelectItem key={i} value={o}>{o}</SelectItem>)}
               </SelectContent>
             </Select>
-            {reviewMode && <div className="p-4 bg-green-50 rounded-2xl border-2 border-green-100 font-bold text-green-900">Correct: {question.correct_answer}</div>}
+            {reviewMode && <div className="p-4 bg-green-50 rounded-2xl border-2 border-green-100 font-bold text-green-900">Correct: {correctArr[0]}</div>}
           </div>
         );
       case 'true_false':
@@ -530,7 +528,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                <div key={o} className={cn("flex items-center space-x-3 p-6 rounded-[2rem] border-2 transition-all", value === o ? 'bg-primary/5 border-primary shadow-lg' : 'bg-slate-50/50')}>
                 <RadioGroupItem value={o} id={`tf-${question.id}-${o}`} className="w-6 h-6" />
                 <Label htmlFor={`tf-${question.id}-${o}`} className="flex-1 cursor-pointer font-black text-2xl">{o}</Label>
-                {reviewMode && o === String(question.correct_answer) && <CheckCircle2 className="w-8 h-8 text-green-600" />}
+                {reviewMode && o === correctArr[0] && <CheckCircle2 className="w-8 h-8 text-green-600" />}
               </div>
              ))}
           </RadioGroup>

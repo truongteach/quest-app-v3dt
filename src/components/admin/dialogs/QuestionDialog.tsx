@@ -36,6 +36,7 @@ import { Question, QuestionType } from '@/types/quiz';
 import { cn } from "@/lib/utils";
 import { HotspotMapperDialog } from './HotspotMapperDialog';
 import { useLanguage } from '@/context/language-context';
+import { parseRegistryArray } from '@/lib/quiz-utils';
 
 interface QuestionDialogProps {
   open: boolean;
@@ -76,34 +77,34 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
         const qType = (editingItem.question_type || 'single_choice') as QuestionType;
         setSelectedType(qType);
         
-        const rawOptions = String(editingItem.options || "");
-        const rawCorrect = String(editingItem.correct_answer || "");
-        const rawOrderGroup = String(editingItem.order_group || "");
+        const rawOptions = parseRegistryArray(editingItem.options);
+        const rawCorrect = parseRegistryArray(editingItem.correct_answer);
+        const rawOrderGroup = parseRegistryArray(editingItem.order_group);
 
         // Set options list for standard types
         if (['single_choice', 'multiple_choice', 'dropdown', 'matrix_choice', 'ordering'].includes(qType)) {
-          setOptionsList(rawOptions ? rawOptions.split(',').map(o => o.trim()) : (qType === 'ordering' ? (rawOrderGroup ? rawOrderGroup.split(',').map(o => o.trim()) : []) : []));
+          setOptionsList(rawOptions);
         } else {
           setOptionsList([]);
         }
         
-        setCorrectAnswers(rawCorrect ? rawCorrect.split(',').map(c => c.trim()) : []);
+        setCorrectAnswers(rawCorrect);
         setImageUrl(String(editingItem.image_url || ''));
         setMetadata(String(editingItem.metadata || ''));
         
         // Matrix and MTF use order_group for rows/statements
         if (qType === 'multiple_true_false' || qType === 'matrix_choice') {
-          setMatrixRows(rawOrderGroup ? rawOrderGroup.split(',').map(r => r.trim()) : []);
+          setMatrixRows(rawOrderGroup);
         } else {
           setMatrixRows([]);
         }
 
         if (qType === 'matching') {
-          const pairs = rawOrderGroup?.split(',').map(p => {
+          const pairs = rawOrderGroup.map(p => {
             const [l, r] = p.split('|');
             return { left: (l || "").trim(), right: (r || "").trim() };
-          }) || [{ left: '', right: '' }];
-          setMatchingPairs(pairs);
+          });
+          setMatchingPairs(pairs.length > 0 ? pairs : [{ left: '', right: '' }]);
         }
       } else {
         setSelectedType('single_choice');
@@ -132,45 +133,45 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
     
-    let finalOptions = "";
-    let finalCorrect = "";
-    let finalOrderGroup = "";
+    let finalOptionsArr: string[] = [];
+    let finalCorrectArr: string[] = [];
+    let finalOrderGroupArr: string[] = [];
 
     const filteredOptions = optionsList.filter(o => o.trim());
 
     if (['single_choice', 'multiple_choice', 'dropdown'].includes(selectedType)) {
-      finalOptions = filteredOptions.join(', ');
-      finalCorrect = correctAnswers.filter(c => c.trim()).join(', ');
+      finalOptionsArr = filteredOptions;
+      finalCorrectArr = correctAnswers.filter(c => c.trim());
     } else if (selectedType === 'true_false') {
-      finalOptions = "True, False";
-      finalCorrect = correctAnswers[0] || "True";
+      finalOptionsArr = ["True", "False"];
+      finalCorrectArr = [correctAnswers[0] || "True"];
     } else if (selectedType === 'ordering') {
-      finalOptions = filteredOptions.join(', ');
-      finalOrderGroup = filteredOptions.join(', ');
-      finalCorrect = filteredOptions.join(', ');
+      finalOptionsArr = filteredOptions;
+      finalOrderGroupArr = filteredOptions;
+      finalCorrectArr = filteredOptions; // Correct is the order defined in editor
     } else if (selectedType === 'matching') {
       const validPairs = matchingPairs.filter(p => p.left.trim() && p.right.trim());
-      const pairsStr = validPairs.map(p => `${p.left.trim()}|${p.right.trim()}`).join(', ');
-      finalOrderGroup = pairsStr;
-      finalCorrect = pairsStr;
+      const pairsStr = validPairs.map(p => `${p.left.trim()}|${p.right.trim()}`);
+      finalOrderGroupArr = pairsStr;
+      finalCorrectArr = pairsStr;
     } else if (selectedType === 'multiple_true_false') {
-      finalOrderGroup = matrixRows.filter(r => r.trim()).join(', ');
-      finalOptions = "True, False";
-      finalCorrect = correctAnswers.filter(c => c.trim()).join(', ');
+      finalOrderGroupArr = matrixRows.filter(r => r.trim());
+      finalOptionsArr = ["True", "False"];
+      finalCorrectArr = correctAnswers.filter(c => c.trim());
     } else if (selectedType === 'matrix_choice') {
-      finalOrderGroup = matrixRows.filter(r => r.trim()).join(', ');
-      finalOptions = filteredOptions.join(', ');
-      finalCorrect = correctAnswers.filter(c => c.trim()).join(', ');
+      finalOrderGroupArr = matrixRows.filter(r => r.trim());
+      finalOptionsArr = filteredOptions;
+      finalCorrectArr = correctAnswers.filter(c => c.trim());
     } else if (selectedType === 'short_text') {
-      finalCorrect = String(data.correct_answer || "");
+      finalCorrectArr = [String(data.correct_answer || "").trim()];
     }
 
     onSave({
       ...data,
       id: editingItem?.id || `q_${Date.now()}`,
-      options: finalOptions,
-      correct_answer: finalCorrect,
-      order_group: finalOrderGroup,
+      options: JSON.stringify(finalOptionsArr),
+      correct_answer: JSON.stringify(finalCorrectArr),
+      order_group: JSON.stringify(finalOrderGroupArr),
       image_url: imageUrl,
       metadata: metadata,
       question_type: selectedType
@@ -342,7 +343,7 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
               {selectedType === 'short_text' && (
                 <div className="space-y-4 p-8 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
                   <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Correct Answer</Label>
-                  <Input name="correct_answer" defaultValue={editingItem?.correct_answer} placeholder="Type exactly the correct answer..." className="h-14 rounded-xl bg-white font-bold text-lg" />
+                  <Input name="correct_answer" defaultValue={editingItem?.correct_answer ? parseRegistryArray(editingItem.correct_answer)[0] : ""} placeholder="Type exactly the correct answer..." className="h-14 rounded-xl bg-white font-bold text-lg" />
                 </div>
               )}
 
