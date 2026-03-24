@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -79,10 +78,10 @@ export default function AdminDashboard() {
   };
 
   const handleSeedData = async () => {
-    toast({ title: "Seeding Started", description: "Synchronizing demo library with your Google Sheet..." });
+    toast({ title: "Seeding Started", description: "Initializing demo library across all nodes..." });
     
     try {
-      // Seed Tests using static IDs from demo-data.ts to avoid duplication via GAS upsertRow
+      // Step 1: Create all test entries in the Tests tab
       for (const test of AVAILABLE_TESTS) {
         await handlePost('saveTest', { data: {
           id: test.id,
@@ -95,19 +94,21 @@ export default function AdminDashboard() {
         }});
       }
 
-      // Seed Questions for the primary demo test
-      // saveQuestions clears the sheet first, ensuring no duplicates for that specific test
-      await handlePost('saveQuestions', { 
-        testId: 'demo-full', 
-        questions: DEMO_QUESTIONS 
-      });
+      // Step 2: Provision questions for every test
+      // Each test receives the full suite of demo questions for testing purposes
+      for (const test of AVAILABLE_TESTS) {
+        await handlePost('saveQuestions', { 
+          testId: test.id, 
+          questions: DEMO_QUESTIONS 
+        });
+      }
 
-      toast({ title: "Sync Complete", description: "Demo content is now live in your database." });
+      toast({ title: "Sync Complete", description: "All assessment modules are now live." });
       
       // Refresh local data to reflect changes
       setTimeout(fetchData, 2000);
     } catch (error) {
-      toast({ variant: "destructive", title: "Seed Error", description: "Could not complete the sync." });
+      toast({ variant: "destructive", title: "Seed Error", description: "Could not complete the library sync." });
     }
   };
 
@@ -137,14 +138,14 @@ export default function AdminDashboard() {
           }
           const ok = await handlePost('saveTest', { data: payload });
           if (ok) {
-            toast({ title: "Success", description: "Assessment record updated." });
+            toast({ title: "Success", description: "Test record updated." });
             fetchData();
           }
         }}
         onSaveUser={async (userData) => {
           const ok = await handlePost('saveUser', { data: userData });
           if (ok) {
-            toast({ title: "Success", description: "User record updated." });
+            toast({ title: "Success", description: "Student record updated." });
             fetchData();
           }
         }}
