@@ -69,7 +69,10 @@ const translations: Record<Language, Record<string, string>> = {
     noTests: "No Tests Found",
     noStudents: "No students registered",
     noResults: "No results yet",
-    waitingFirst: "Waiting for the first student submission..."
+    waitingFirst: "Waiting for the first student submission...",
+    confirmDeleteTitle: "Are you sure?",
+    confirmDeleteDesc: "This will permanently remove this item and all its associated data. This action cannot be undone.",
+    cancel: "Cancel"
   },
   vi: {
     dashboard: "Bảng điều khiển",
@@ -128,7 +131,10 @@ const translations: Record<Language, Record<string, string>> = {
     noTests: "Không tìm thấy bài thi nào",
     noStudents: "Chưa có học sinh đăng ký",
     noResults: "Chưa có kết quả",
-    waitingFirst: "Đang chờ bài nộp đầu tiên từ học sinh..."
+    waitingFirst: "Đang chờ bài nộp đầu tiên từ học sinh...",
+    confirmDeleteTitle: "Bạn có chắc chắn không?",
+    confirmDeleteDesc: "Thao tác này sẽ xóa vĩnh viễn mục này và tất cả dữ liệu liên quan. Hành động này không thể hoàn tác.",
+    cancel: "Hủy"
   },
   es: {
     dashboard: "Panel",
@@ -187,7 +193,10 @@ const translations: Record<Language, Record<string, string>> = {
     noTests: "No se encontraron pruebas",
     noStudents: "No hay estudiantes registrados",
     noResults: "Aún no hay resultados",
-    waitingFirst: "Esperando la primera entrega del estudiante..."
+    waitingFirst: "Esperando la primera entrega del estudiante...",
+    confirmDeleteTitle: "¿Estás seguro?",
+    confirmDeleteDesc: "Esto eliminará permanentemente este elemento y todos sus datos asociados. Esta acción no se puede deshacer.",
+    cancel: "Cancelar"
   }
 };
 

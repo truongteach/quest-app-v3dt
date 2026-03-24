@@ -33,6 +33,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/context/language-context';
 
@@ -47,12 +57,20 @@ interface TestsTabProps {
 export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: TestsTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const { t } = useLanguage();
 
   const filtered = tests.filter(t => 
-    (t.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (t.id || "").toLowerCase().includes(searchTerm.toLowerCase())
+    (String(t.title || "")).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (String(t.id || "")).toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDelete = () => {
+    if (deleteConfirmId) {
+      onDelete(deleteConfirmId);
+      setDeleteConfirmId(null);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
@@ -132,7 +150,7 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
                         <Button variant="ghost" size="icon" onClick={() => onEdit(t_item)} className="rounded-full h-8 w-8 hover:bg-slate-100">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => onDelete(t_item.id)} className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/5">
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteConfirmId(t_item.id)} className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/5">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -174,7 +192,7 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
                       <DropdownMenuItem onClick={() => onEdit(t_item)} className="rounded-xl font-bold p-3 cursor-pointer">
                         <Edit className="w-4 h-4 mr-2" /> {t('edit')}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDelete(t_item.id)} className="rounded-xl font-bold p-3 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
+                      <DropdownMenuItem onClick={() => setDeleteConfirmId(t_item.id)} className="rounded-xl font-bold p-3 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
                         <Trash2 className="w-4 h-4 mr-2" /> {t('delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -224,6 +242,30 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900">
+              {t('confirmDeleteTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg font-medium text-slate-500 leading-relaxed">
+              {t('confirmDeleteDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
+            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase text-xs tracking-widest flex-1">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="h-14 rounded-full bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-xs tracking-widest flex-1 shadow-xl shadow-destructive/20"
+            >
+              {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
