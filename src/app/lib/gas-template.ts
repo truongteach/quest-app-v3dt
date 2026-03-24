@@ -1,6 +1,6 @@
 
 export const GAS_CODE = `/**
- * QUESTFLOW BACKEND v17.6 - ACTIVITY TRACKING
+ * QUESTFLOW BACKEND v17.7 - SECURITY ENHANCED
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions, getActivity
@@ -75,14 +75,16 @@ function doPost(e) {
 
     if (action === 'logActivity') {
       let sheet = ss.getSheetByName('Activity') || ss.insertSheet('Activity');
-      const headers = ['Timestamp', 'User Name', 'User Email', 'Event'];
+      const headers = ['Timestamp', 'User Name', 'User Email', 'Event', 'IP Address', 'Device'];
       if (sheet.getLastRow() === 0) sheet.appendRow(headers);
       
       const rowData = [
         new Date(), 
         payload.name || 'Unknown', 
         payload.email || 'N/A', 
-        payload.event || 'Unknown'
+        payload.event || 'Unknown',
+        payload.ip || 'N/A',
+        payload.device || 'N/A'
       ];
       sheet.appendRow(rowData);
       return createResponse({ status: 'success' });

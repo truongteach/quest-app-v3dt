@@ -32,13 +32,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  const getDeviceDetails = () => {
+    if (typeof window === 'undefined') return 'N/A';
+    const ua = navigator.userAgent;
+    let device = "Unknown Device";
+    
+    if (/android/i.test(ua)) device = "Android";
+    else if (/iPad|iPhone|iPod/.test(ua)) device = "iOS";
+    else if (/Windows/i.test(ua)) device = "Windows";
+    else if (/Mac/i.test(ua)) device = "macOS";
+    else if (/Linux/i.test(ua)) device = "Linux";
+    
+    let browser = "Browser";
+    if (/chrome|crios/i.test(ua)) browser = "Chrome";
+    else if (/firefox|fxios/i.test(ua)) browser = "Firefox";
+    else if (/safari/i.test(ua)) browser = "Safari";
+    else if (/edg/i.test(ua)) browser = "Edge";
+    
+    return `${device} (${browser})`;
+  };
+
   const logActivity = async (email: string, name: string, event: 'Login' | 'Logout') => {
     if (!API_URL) return;
     try {
+      let ip = 'N/A';
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        ip = ipData.ip;
+      } catch (e) {
+        console.warn("Could not fetch IP", e);
+      }
+
+      const device = getDeviceDetails();
+
       await fetch(API_URL, {
         method: 'POST',
         mode: 'no-cors',
-        body: JSON.stringify({ action: 'logActivity', email, name, event })
+        body: JSON.stringify({ 
+          action: 'logActivity', 
+          email, 
+          name, 
+          event,
+          ip,
+          device
+        })
       });
     } catch (e) {
       console.error("Failed to log activity", e);
@@ -67,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(newUser);
         localStorage.setItem('questflow_user', JSON.stringify(newUser));
         
-        // Log Login Activity
+        // Log Login Activity with IP and Device
         logActivity(newUser.email, newUser.displayName || 'User', 'Login');
         
         return true;

@@ -78,7 +78,9 @@ const translations: Record<Language, Record<string, string>> = {
     timestamp: "Timestamp",
     event: "Event",
     systemActivity: "System Activity Logs",
-    monitorAccess: "Monitor student login/logout events"
+    monitorAccess: "Monitor student login/logout events",
+    ipAddress: "IP Address",
+    device: "Device"
   },
   vi: {
     dashboard: "Bảng điều khiển",
@@ -146,7 +148,9 @@ const translations: Record<Language, Record<string, string>> = {
     timestamp: "Thời gian",
     event: "Sự kiện",
     systemActivity: "Nhật ký hệ thống",
-    monitorAccess: "Theo dõi đăng nhập/đăng xuất của học sinh"
+    monitorAccess: "Theo dõi đăng nhập/đăng xuất của học sinh",
+    ipAddress: "Địa chỉ IP",
+    device: "Thiết bị"
   },
   es: {
     dashboard: "Panel",
@@ -214,7 +218,9 @@ const translations: Record<Language, Record<string, string>> = {
     timestamp: "Fecha y hora",
     event: "Evento",
     systemActivity: "Registros de actividad",
-    monitorAccess: "Monitorear eventos de inicio y cierre de sesión"
+    monitorAccess: "Monitorear eventos de inicio y cierre de sesión",
+    ipAddress: "Dirección IP",
+    device: "Dispositivo"
   }
 };
 

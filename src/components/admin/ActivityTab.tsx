@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo, useState } from 'react';
@@ -17,7 +18,9 @@ import {
   Search, 
   LogIn, 
   LogOut, 
-  Clock
+  Clock,
+  Globe,
+  Smartphone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/context/language-context';
@@ -33,7 +36,8 @@ export function ActivityTab({ activities }: ActivityTabProps) {
   const filtered = useMemo(() => {
     return activities.filter(a => 
       String(a['User Name'] || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(a['User Email'] || '').toLowerCase().includes(searchTerm.toLowerCase())
+      String(a['User Email'] || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(a['IP Address'] || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [activities, searchTerm]);
 
@@ -43,7 +47,7 @@ export function ActivityTab({ activities }: ActivityTabProps) {
         <div className="relative w-full md:w-80">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
-            placeholder="Search operator..." 
+            placeholder="Search operator or IP..." 
             className="h-12 pl-12 rounded-full bg-white border-none ring-1 ring-slate-100 focus:ring-primary/40 text-sm font-bold shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -59,6 +63,8 @@ export function ActivityTab({ activities }: ActivityTabProps) {
                 <TableHead className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">{t('timestamp')}</TableHead>
                 <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">{t('student')}</TableHead>
                 <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 text-center">{t('event')}</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">{t('ipAddress')}</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">{t('device')}</TableHead>
                 <TableHead className="px-8 text-right font-black uppercase text-[10px] tracking-widest text-slate-400">Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -98,6 +104,20 @@ export function ActivityTab({ activities }: ActivityTabProps) {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-slate-600 font-mono text-xs">
+                        <Globe className="w-3 h-3 text-slate-300" />
+                        {a['IP Address'] || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="w-3 h-3 text-slate-300" />
+                        <span className="text-[10px] font-bold text-slate-500 truncate max-w-[150px]" title={a['Device']}>
+                          {a['Device'] || 'N/A'}
+                        </span>
+                      </div>
+                    </TableCell>
                     <TableCell className="px-8 text-right">
                       <Badge variant="outline" className="rounded-full bg-slate-50 border-slate-200 text-[9px] font-black uppercase px-3">
                         Verified
@@ -108,7 +128,7 @@ export function ActivityTab({ activities }: ActivityTabProps) {
               })}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-32 text-center bg-slate-50/20">
+                  <TableCell colSpan={6} className="py-32 text-center bg-slate-50/20">
                     <div className="flex flex-col items-center gap-4 opacity-20">
                       <History className="w-12 h-12" />
                       <p className="font-black uppercase tracking-[0.3em] text-xs">No activity logs detected</p>
