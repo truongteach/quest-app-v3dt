@@ -9,10 +9,12 @@
  * 
  * This key is valid only for the specific 24-hour period of the input date.
  */
-export function generateDailyPassword(targetDate?: Date, customSalt?: string): string {
+export function generateDailyPassword(targetDate?: Date, customSalt?: any): string {
   // Use the custom salt if provided (e.g. from admin settings), otherwise fallback to the hardcoded default
-  const salt = (customSalt && customSalt.trim().length > 0) 
-    ? customSalt.trim() 
+  // HARDENING: Ensure customSalt is treated as a string to prevent .trim() errors if the sheet data is non-string
+  const saltStr = String(customSalt || "").trim();
+  const salt = (saltStr.length > 0) 
+    ? saltStr 
     : "DNTRNG-ULTIMATE-V17-SECURE-KEY-PRO-2025";
   
   const date = targetDate || new Date();

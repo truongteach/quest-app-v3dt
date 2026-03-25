@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -46,11 +47,9 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 };
 
 export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
-  const [draggingItem, setDraggingItem] = useState<string | null>(null);
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
-  const [shuffledItemsPool, setShuffledItemsPool] = useState<string[]>([]);
-  const [initialShuffledOrder, setInitialShuffledOrder] = useState<string[]>([]);
-  const [imgSrc, setImgSrc] = useState<string | undefined>(question.image_url || undefined);
+  const [draggingItem, setDraggingItem] = useState<string | null>(null);
+  const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
   const [hasImageError, setHasImageError] = useState(false);
 
   // Randomize standard options (Choices, Dropdown, Matrix Columns)
@@ -74,25 +73,21 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
     });
   }, [question.order_group, question.question_type]);
 
-  const initialOrderItems = useMemo(() => {
-    return parseRegistryArray(question.order_group);
-  }, [question.order_group]);
+  const shuffledItemsPool = useMemo(() => {
+    if (question.question_type !== 'matching') return [];
+    return shuffleArray(matchingPairs.map(p => p.right));
+  }, [matchingPairs, question.question_type]);
+
+  const initialShuffledOrder = useMemo(() => {
+    if (question.question_type !== 'ordering') return [];
+    return shuffleArray(parseRegistryArray(question.order_group));
+  }, [question.id, question.order_group, question.question_type]);
 
   useEffect(() => {
-    // Ensure we don't pass an empty string to src
-    setImgSrc(question.image_url || undefined);
+    // Ensure we don't pass an empty string to src to avoid Next.js hydration warnings
+    setImgSrc(question.image_url && question.image_url.trim() !== "" ? question.image_url : undefined);
     setHasImageError(false);
   }, [question.id, question.image_url]);
-
-  useEffect(() => {
-    if (question.question_type === 'matching') {
-      const pool = matchingPairs.map(p => p.right).sort(() => 0.5 - Math.random());
-      setShuffledItemsPool(pool);
-    } else if (question.question_type === 'ordering') {
-      const shuffled = [...initialOrderItems].sort(() => Math.random() - 0.5);
-      setInitialShuffledOrder(shuffled);
-    }
-  }, [matchingPairs, initialOrderItems, question.question_type]);
 
   const handleImageError = () => {
     setImgSrc('https://picsum.photos/seed/dntrng-placeholder/800/450');
@@ -188,7 +183,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       onChange(newOrder);
     };
 
-    if (!reviewMode && currentOrder.length === 0 && initialOrderItems.length > 0) {
+    if (!reviewMode && currentOrder.length === 0 && parseRegistryArray(question.order_group).length > 0) {
       return <div className="h-40 flex items-center justify-center text-slate-300 font-bold animate-pulse">Initializing Sequence...</div>;
     }
 
@@ -607,7 +602,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
         <div className="h-1.5 w-20 bg-primary/10 rounded-full mt-6" />
       </div>
 
-      {/* Global Visual Asset Rendering (explicit truthiness check to avoid empty string src) */}
+      {/* Global Visual Asset Rendering */}
       {!!imgSrc && question.question_type !== 'hotspot' && (
         <div className="mb-10 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-100 relative group">
           <img 
