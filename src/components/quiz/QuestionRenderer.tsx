@@ -20,7 +20,8 @@ import {
   RotateCcw, 
   Trash2,
   Table as TableIcon,
-  AlertCircle
+  AlertCircle,
+  ImageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseRegistryArray } from '@/lib/quiz-utils';
@@ -37,6 +38,8 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
   const [shuffledItemsPool, setShuffledItemsPool] = useState<string[]>([]);
   const [initialShuffledOrder, setInitialShuffledOrder] = useState<string[]>([]);
+  const [imgSrc, setImgSrc] = useState<string | undefined>(question.image_url);
+  const [hasImageError, setHasImageError] = useState(false);
 
   const options = useMemo(() => {
     return parseRegistryArray(question.options);
@@ -56,6 +59,11 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   }, [question.order_group]);
 
   useEffect(() => {
+    setImgSrc(question.image_url);
+    setHasImageError(false);
+  }, [question.id, question.image_url]);
+
+  useEffect(() => {
     if (question.question_type === 'matching') {
       const pool = matchingPairs.map(p => p.right).sort(() => 0.5 - Math.random());
       setShuffledItemsPool(pool);
@@ -64,6 +72,11 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       setInitialShuffledOrder(shuffled);
     }
   }, [matchingPairs, initialOrderItems, question.question_type]);
+
+  const handleImageError = () => {
+    setImgSrc('https://picsum.photos/seed/dntrng-placeholder/800/450');
+    setHasImageError(true);
+  };
 
   const renderSingleChoice = () => (
     <RadioGroup 
@@ -483,7 +496,13 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
             onChange({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 });
           }}
         >
-          <img src={question.image_url} alt="Question" className="w-full h-full object-cover select-none" draggable={false} />
+          <img 
+            src={imgSrc} 
+            alt="Question" 
+            className="w-full h-full object-cover select-none" 
+            draggable={false} 
+            onError={handleImageError}
+          />
           {coords && (
             <div className="absolute w-10 h-10 border-4 border-white rounded-full -translate-x-1/2 -translate-y-1/2 shadow-2xl ring-8 bg-primary/80 ring-primary/10" style={{ left: `${coords.x}%`, top: `${coords.y}%` }} />
           )}
@@ -560,6 +579,28 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
         </h2>
         <div className="h-1.5 w-20 bg-primary/10 rounded-full mt-6" />
       </div>
+
+      {/* Global Visual Asset Rendering (for all types except Hotspot which handles its own) */}
+      {question.image_url && question.question_type !== 'hotspot' && (
+        <div className="mb-10 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-100 relative group">
+          <img 
+            src={imgSrc} 
+            alt="Step Asset" 
+            className="w-full h-auto object-cover max-h-[450px] transition-transform duration-700 group-hover:scale-[1.02]"
+            onError={handleImageError}
+          />
+          {hasImageError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/10 backdrop-blur-sm text-slate-400">
+              <ImageIcon className="w-12 h-12 mb-4 opacity-20" />
+              <p className="text-[10px] font-black uppercase tracking-[0.4em]">Media Sync Failed • Placeholder Active</p>
+            </div>
+          )}
+          <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/20 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-[8px] font-black text-white uppercase tracking-widest bg-black/40 px-2 py-1 rounded-md backdrop-blur-md">Visual Context Protocol</span>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-10">{renderContent()}</div>
     </div>
   );
