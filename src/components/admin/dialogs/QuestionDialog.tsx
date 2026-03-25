@@ -30,7 +30,8 @@ import {
   Code2,
   Target,
   Grid,
-  MapPin
+  MapPin,
+  ImageIcon as LucideImageIcon
 } from "lucide-react";
 import { Question, QuestionType } from '@/types/quiz';
 import { cn } from "@/lib/utils";
@@ -230,6 +231,38 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
                 />
               </div>
 
+              {/* Universal Image URL Input */}
+              <div className="space-y-4 p-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <LucideImageIcon className="w-4 h-4 text-primary" />
+                  </div>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Media Asset (Optional Image URL)</Label>
+                </div>
+                <div className="space-y-4">
+                  <Input 
+                    value={imageUrl} 
+                    onChange={(e) => setImageUrl(e.target.value)} 
+                    placeholder="https://images.unsplash.com/photo-..." 
+                    className="rounded-xl h-12 bg-white border-none ring-1 ring-slate-200 focus:ring-primary/40 text-xs font-mono" 
+                  />
+                  
+                  {selectedType === 'hotspot' && (
+                    <div className="animate-in fade-in slide-in-from-top-2">
+                      <Button 
+                        type="button" 
+                        onClick={() => setMapperOpen(true)} 
+                        disabled={!imageUrl} 
+                        className="w-full h-12 rounded-xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-[0.2em] gap-2 shadow-xl hover:scale-[1.02] transition-all"
+                      >
+                        <Target className="w-4 h-4" /> Open Point Mapper Registry
+                      </Button>
+                      {!imageUrl && <p className="text-[9px] font-bold text-orange-500 uppercase tracking-widest text-center mt-2">Provide an Image URL above to enable mapping</p>}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Standard Options Editor */}
               {(['single_choice', 'multiple_choice', 'dropdown', 'matrix_choice', 'ordering'].includes(selectedType)) && (
                 <div className="space-y-4 p-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
@@ -357,22 +390,6 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
                     placeholder="Type exactly the correct answer..." 
                     className="h-14 rounded-xl bg-white font-bold text-lg" 
                   />
-                </div>
-              )}
-
-              {selectedType === 'hotspot' && (
-                <div className="space-y-6 p-8 bg-slate-900 rounded-[2.5rem] text-white overflow-hidden relative">
-                  <ImageIcon className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 rotate-12" />
-                  <div className="relative z-10 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/20 rounded-lg"><MapPin className="w-4 h-4 text-primary" /></div>
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Visual Asset</Label>
-                    </div>
-                    <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Image URL (https://...)" className="bg-white/5 border-none ring-1 ring-white/10 h-12 rounded-xl text-xs font-mono" />
-                    <Button type="button" onClick={() => setMapperOpen(true)} disabled={!imageUrl} className="w-full h-14 rounded-xl bg-primary font-black uppercase text-xs tracking-widest gap-2">
-                      <Target className="w-4 h-4" /> Open Zone Mapper
-                    </Button>
-                  </div>
                 </div>
               )}
             </div>
