@@ -16,7 +16,8 @@ import {
   User,
   Activity,
   History,
-  Target
+  Target,
+  Clock
 } from "lucide-react";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
@@ -38,6 +39,8 @@ interface QuizResultsProps {
   responses: UserResponse[];
   userName: string;
   onRestart: () => void;
+  startTime?: number;
+  endTime?: number;
 }
 
 export function QuizResults({
@@ -47,7 +50,9 @@ export function QuizResults({
   questions,
   responses,
   userName,
-  onRestart
+  onRestart,
+  startTime,
+  endTime
 }: QuizResultsProps) {
   const percentage = Math.round((score / totalQuestions) * 100);
   
@@ -80,6 +85,16 @@ export function QuizResults({
     if (pct >= 50) return "Completed. Optimization recommended.";
     return "Alignment incomplete. Re-engagement advised.";
   };
+
+  // Duration Calculation
+  const durationMs = (endTime && startTime) ? endTime - startTime : 0;
+  const formatDuration = (ms: number) => {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+  };
+  const formattedDuration = formatDuration(durationMs);
 
   // Circular Gauge Calculation
   const radius = 70;
@@ -184,9 +199,10 @@ export function QuizResults({
               </div>
             </Card>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatSmall icon={History} label="Attempts" value="01" />
               <StatSmall icon={Target} label="Precision" value={isMastery ? "High" : isPass ? "Med" : "Low"} />
+              <StatSmall icon={Clock} label="Time Taken" value={formattedDuration} />
               <StatSmall icon={Activity} label="Efficiency" value="Live" />
             </div>
           </div>

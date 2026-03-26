@@ -258,7 +258,7 @@ function QuizContent() {
     }
     setQuiz(prev => ({ 
       ...prev, 
-      questions: q,
+      questions: q, 
       startTime: Date.now(),
       mode: mode,
       flaggedQuestionIds: []
@@ -298,6 +298,8 @@ function QuizContent() {
         responses={quiz.responses}
         userName={user?.displayName || guestName || 'Guest User'}
         onRestart={restart}
+        startTime={quiz.startTime}
+        endTime={quiz.endTime}
       />
     );
   }
