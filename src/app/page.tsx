@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -13,12 +14,22 @@ import {
   Globe,
   Cpu,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Languages
 } from "lucide-react";
 import { UserNav } from '@/components/UserNav';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/language-context';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function LandingPage() {
+  const { t, language, setLanguage } = useLanguage();
+
   return (
     <div className="min-h-screen bg-white flex flex-col selection:bg-primary selection:text-white">
       {/* Navigation */}
@@ -31,12 +42,28 @@ export default function LandingPage() {
             <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase">DNTRNG</h1>
           </div>
           
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 md:gap-8">
             <nav className="hidden md:flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-              <Link href="/tests" className="hover:text-primary transition-colors">Library</Link>
-              <Link href="/setup-guide" className="hover:text-primary transition-colors">Setup Guide</Link>
+              <Link href="/tests" className="hover:text-primary transition-colors">{t('library')}</Link>
+              <Link href="/setup-guide" className="hover:text-primary transition-colors">{t('setupGuide')}</Link>
             </nav>
+            
             <div className="h-6 w-px bg-slate-100 hidden md:block" />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-10 rounded-full gap-2 border-slate-100 font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-50">
+                  <Languages className="w-3.5 h-3.5 text-primary" />
+                  <span className="hidden sm:inline">{language === 'en' ? 'EN' : language === 'vi' ? 'VI' : 'ES'}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[180px] rounded-2xl p-2 shadow-2xl border-none" align="end">
+                <DropdownMenuItem onClick={() => setLanguage('en')} className="font-bold cursor-pointer rounded-xl p-3">English (US)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('vi')} className="font-bold cursor-pointer rounded-xl p-3">Tiếng Việt</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('es')} className="font-bold cursor-pointer rounded-xl p-3">Español</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <UserNav />
           </div>
         </div>
@@ -53,29 +80,29 @@ export default function LandingPage() {
           <div className="container max-w-6xl mx-auto px-6 text-center">
             <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-50 border border-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-[0.25em] mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-              Professional Assessment Engine
+              {t('heroBadge')}
             </div>
             
             <h2 className="text-6xl md:text-9xl font-black mb-10 tracking-tighter text-slate-900 leading-[0.85] animate-in fade-in slide-in-from-bottom-6 duration-1000">
-              Testing <br />
-              <span className="text-primary italic">Re-imagined.</span>
+              {t('heroTitleMain')} <br />
+              <span className="text-primary italic">{t('heroTitleItalic')}</span>
             </h2>
             
             <p className="text-lg md:text-2xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed mb-16 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-              The high-performance platform for interactive assessments, visual learning, and real-time intelligence tracking.
+              {t('heroDesc')}
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-6 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
               <Link href="/tests">
                 <Button size="lg" className="h-20 px-14 text-xl rounded-full shadow-[0_25px_50px_-12px_rgba(var(--primary),0.25)] hover:scale-105 transition-all bg-primary font-black uppercase tracking-tight">
-                  Enter Library
+                  {t('enterLibrary')}
                   <ArrowRight className="w-6 h-6 ml-3" />
                 </Button>
               </Link>
               <Link href="/quiz?id=demo-full">
                 <Button size="lg" variant="outline" className="h-20 px-14 text-xl rounded-full hover:bg-slate-50 border-4 border-slate-100 text-slate-900 font-black uppercase tracking-tight transition-all">
                   <Play className="w-5 h-5 mr-3 fill-slate-900" />
-                  Try Demo
+                  {t('tryDemo')}
                 </Button>
               </Link>
             </div>
@@ -88,15 +115,15 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-2 gap-24 items-center">
               <div className="space-y-10">
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-[0.4em] text-primary mb-6">Built for Learning</h3>
-                  <h4 className="text-5xl font-black text-slate-900 tracking-tight leading-tight">Master skills with <br /> deep interactions.</h4>
+                  <h3 className="text-sm font-black uppercase tracking-[0.4em] text-primary mb-6">{t('builtForLearning')}</h3>
+                  <h4 className="text-5xl font-black text-slate-900 tracking-tight leading-tight">{t('masterSkills')}</h4>
                 </div>
                 
                 <div className="space-y-8">
                   {[
-                    { title: "Visual Hotspots", desc: "Interact with image-based challenges using precision mapping.", icon: Sparkles },
-                    { title: "Logical Sequence", desc: "Drag and drop modules to organize complex sequences.", icon: Cpu },
-                    { title: "Instant Feedback", desc: "Get real-time insights into your performance levels.", icon: CheckCircle }
+                    { title: t('feature1Title'), desc: t('feature1Desc'), icon: Sparkles },
+                    { title: t('feature2Title'), desc: t('feature2Desc'), icon: Cpu },
+                    { title: t('feature3Title'), desc: t('feature3Desc'), icon: CheckCircle }
                   ].map((item, i) => (
                     <div key={i} className="flex gap-6 group">
                       <div className="w-14 h-14 rounded-2xl bg-white shadow-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-500">
@@ -132,16 +159,16 @@ export default function LandingPage() {
             
             <div className="relative z-10 space-y-10">
               <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-none">
-                Start your <br />
-                <span className="text-primary italic">Assessment.</span>
+                {t('ctaTitle')} <br />
+                <span className="text-primary italic">{t('ctaItalic')}</span>
               </h3>
               <p className="text-slate-400 text-xl md:text-2xl font-medium max-w-xl mx-auto">
-                No setup required for students. Simply browse the library and begin your journey.
+                {t('ctaDesc')}
               </p>
               <div className="flex justify-center">
                 <Link href="/tests">
                   <Button size="lg" className="h-20 px-16 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 font-black uppercase tracking-tight transition-all hover:scale-105 shadow-2xl">
-                    Open Library
+                    {t('openLibrary')}
                     <ArrowRight className="w-6 h-6 ml-3" />
                   </Button>
                 </Link>
@@ -166,24 +193,24 @@ export default function LandingPage() {
                 <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase">DNTRNG</h1>
               </div>
               <p className="text-slate-400 font-medium max-w-sm text-lg leading-relaxed">
-                Empowering students and educators with precision assessment protocols and real-time intelligence.
+                {t('footerDesc')}
               </p>
             </div>
             
             <div className="grid grid-cols-2 gap-24">
               <div className="space-y-6">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">Platform</h4>
+                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">{t('platform')}</h4>
                 <nav className="flex flex-col gap-4 text-sm font-bold text-slate-400">
-                  <Link href="/tests" className="hover:text-primary transition-colors">Test Library</Link>
-                  <Link href="/admin" className="hover:text-primary transition-colors">Admin Console</Link>
-                  <Link href="/setup-guide" className="hover:text-primary transition-colors">Setup Protocol</Link>
+                  <Link href="/tests" className="hover:text-primary transition-colors">{t('testLibrary')}</Link>
+                  <Link href="/admin" className="hover:text-primary transition-colors">{t('adminConsole')}</Link>
+                  <Link href="/setup-guide" className="hover:text-primary transition-colors">{t('setupProtocol')}</Link>
                 </nav>
               </div>
               <div className="space-y-6">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">Resources</h4>
+                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">{t('resources')}</h4>
                 <nav className="flex flex-col gap-4 text-sm font-bold text-slate-400">
-                  <span className="cursor-pointer hover:text-primary transition-colors">Identity Guide</span>
-                  <span className="cursor-pointer hover:text-primary transition-colors">Cloud Sync</span>
+                  <span className="cursor-pointer hover:text-primary transition-colors">{t('identityGuide')}</span>
+                  <span className="cursor-pointer hover:text-primary transition-colors">{t('cloudSync')}</span>
                 </nav>
               </div>
             </div>
@@ -196,7 +223,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-8">
               <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-full border border-slate-100">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">System: Optimal</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('systemOptimal')}</span>
               </div>
             </div>
           </div>
