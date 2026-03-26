@@ -44,7 +44,8 @@ function QuizContent() {
     score: 0,
     startTime: Date.now(),
     mode: 'test',
-    highestStepReached: 0
+    highestStepReached: 0,
+    flaggedQuestionIds: []
   });
 
   useEffect(() => {
@@ -136,6 +137,7 @@ function QuizContent() {
             ...prev, 
             currentQuestionIndex: 0, 
             responses: [],
+            flaggedQuestionIds: [],
             highestStepReached: Math.max(prev.highestStepReached, prev.currentQuestionIndex + 1)
           }));
           setIsWrongInRace(false);
@@ -160,6 +162,16 @@ function QuizContent() {
     }
   };
 
+  const handleToggleFlag = (id: string) => {
+    setQuiz(prev => {
+      const current = prev.flaggedQuestionIds || [];
+      const updated = current.includes(id) 
+        ? current.filter(fid => fid !== id) 
+        : [...current, id];
+      return { ...prev, flaggedQuestionIds: updated };
+    });
+  };
+
   const submit = async () => {
     const currentQuestion = quiz.questions[quiz.currentQuestionIndex];
     if (quiz.mode === 'race') {
@@ -167,7 +179,7 @@ function QuizContent() {
       if (!resp || !resp.isCorrect) {
         setIsWrongInRace(true);
         setTimeout(() => {
-          setQuiz(prev => ({ ...prev, currentQuestionIndex: 0, responses: [] }));
+          setQuiz(prev => ({ ...prev, currentQuestionIndex: 0, responses: [], flaggedQuestionIds: [] }));
           setIsWrongInRace(false);
         }, 1500);
         return;
@@ -228,7 +240,8 @@ function QuizContent() {
       startTime: Date.now(),
       mode: quiz.mode,
       highestStepReached: 0,
-      questions: q
+      questions: q,
+      flaggedQuestionIds: []
     });
   };
 
@@ -247,7 +260,8 @@ function QuizContent() {
       ...prev, 
       questions: q,
       startTime: Date.now(),
-      mode: mode 
+      mode: mode,
+      flaggedQuestionIds: []
     }));
   };
 
@@ -299,6 +313,7 @@ function QuizContent() {
       onPrev={handlePrev}
       onSubmit={submit}
       onJump={jumpToQuestion}
+      onToggleFlag={handleToggleFlag}
     />
   );
 }

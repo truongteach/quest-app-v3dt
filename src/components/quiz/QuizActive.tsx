@@ -48,6 +48,7 @@ interface QuizActiveProps {
   onPrev: () => void;
   onSubmit: () => void;
   onJump: (idx: number) => void;
+  onToggleFlag: (id: string) => void;
 }
 
 export function QuizActive({
@@ -59,7 +60,8 @@ export function QuizActive({
   onNext,
   onPrev,
   onSubmit,
-  onJump
+  onJump,
+  onToggleFlag
 }: QuizActiveProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -68,6 +70,7 @@ export function QuizActive({
   const progress = quiz.questions.length > 0 ? ((quiz.currentQuestionIndex + 1) / quiz.questions.length) * 100 : 0;
 
   const currentResponse = quiz.responses.find(r => r.questionId === currentQuestion?.id)?.answer;
+  const isFlagged = quiz.flaggedQuestionIds?.includes(currentQuestion?.id);
 
   const isAnswered = (questionId: string) => {
     const resp = quiz.responses.find(r => r.questionId === questionId)?.answer;
@@ -158,12 +161,17 @@ export function QuizActive({
                         key={q.id}
                         variant={quiz.currentQuestionIndex === idx ? "default" : "outline"}
                         className={cn(
-                          "h-16 rounded-2xl font-black text-lg transition-all",
+                          "h-16 rounded-2xl font-black text-lg transition-all relative",
                           isAnswered(q.id) && quiz.currentQuestionIndex !== idx && "bg-primary/5 text-primary border-primary/20"
                         )}
                         onClick={() => { onJump(idx); setIsSidebarOpen(false); }}
                       >
                         {idx + 1}
+                        {quiz.flaggedQuestionIds?.includes(q.id) && (
+                          <div className="absolute top-1.5 right-1.5">
+                            <Flag className="w-3 h-3 text-orange-500 fill-current" />
+                          </div>
+                        )}
                       </Button>
                     ))}
                   </div>
@@ -208,10 +216,16 @@ export function QuizActive({
 
             <Button 
               variant="ghost" 
-              className="rounded-xl h-12 gap-2 text-slate-500 font-bold bg-[#F1F5F9] border-none hidden lg:flex"
+              onClick={() => currentQuestion && onToggleFlag(currentQuestion.id)}
+              className={cn(
+                "rounded-xl h-12 gap-2 font-bold border-none hidden lg:flex transition-all",
+                isFlagged 
+                  ? "bg-orange-500 text-white hover:bg-orange-600" 
+                  : "text-slate-500 bg-[#F1F5F9] hover:bg-slate-200"
+              )}
             >
-              <Flag className="w-4 h-4" />
-              Mark for Later
+              <Flag className={cn("w-4 h-4", isFlagged && "fill-current")} />
+              {isFlagged ? 'Flagged' : 'Mark for Later'}
             </Button>
 
             {quiz.currentQuestionIndex === quiz.questions.length - 1 ? (

@@ -50,4 +50,5 @@ export interface QuizState {
   endTime?: number;
   mode: QuizMode;
   highestStepReached: number;
+  flaggedQuestionIds?: string[];
 }
