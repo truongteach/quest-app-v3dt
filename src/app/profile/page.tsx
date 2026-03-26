@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { API_URL } from '@/lib/api-config';
@@ -26,9 +26,11 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { AILoader } from '@/components/ui/ai-loader';
 import { Mail, Shield } from 'lucide-react';
+import { useLanguage } from '@/context/language-context';
 
 export default function ProfilePage() {
   const { user, logout, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const [responses, setResponses] = useState<any[]>([]);
   const [testsCount, setTestsCount] = useState(0);
@@ -107,7 +109,7 @@ export default function ProfilePage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">Identity Registry</h1>
+              <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">{t('identityRegistry')}</h1>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">DNTRNG™ Node: Active</p>
             </div>
           </div>
@@ -127,6 +129,7 @@ export default function ProfilePage() {
               </div>
               <div className="px-8 pb-10 -mt-16 relative z-10 text-center">
                 <Avatar className="h-32 w-32 border-8 border-white dark:border-slate-900 shadow-2xl mx-auto mb-6">
+                  {user.image_url && <AvatarImage src={user.image_url} alt={user.displayName} className="object-cover" />}
                   <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-primary font-black text-4xl">
                     {user.displayName?.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -143,14 +146,14 @@ export default function ProfilePage() {
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex items-center gap-4 border border-slate-100 dark:border-slate-800">
                     <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm"><Mail className="w-4 h-4 text-slate-400 dark:text-slate-500" /></div>
                     <div className="min-w-0">
-                      <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">Identity Key</p>
+                      <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">{t('identityKey')}</p>
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">{user.email}</p>
                     </div>
                   </div>
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex items-center gap-4 border border-slate-100 dark:border-slate-800">
                     <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm"><Shield className="w-4 h-4 text-slate-400 dark:text-slate-500" /></div>
                     <div className="min-w-0">
-                      <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">Access Protocol</p>
+                      <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">{t('accessProtocol')}</p>
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">{user.role === 'admin' ? 'Elevated Oversight' : 'Standard Student'}</p>
                     </div>
                   </div>
@@ -162,7 +165,7 @@ export default function ProfilePage() {
                   className="w-full mt-10 rounded-full font-black text-xs uppercase tracking-[0.2em] text-destructive hover:bg-destructive/5 h-12"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Terminate Session
+                  {t('terminateSession')}
                 </Button>
               </div>
             </Card>
@@ -172,7 +175,7 @@ export default function ProfilePage() {
                 <div className="absolute top-0 right-0 p-6 opacity-10">
                   <Settings className="w-24 h-24" />
                 </div>
-                <h3 className="text-xl font-black uppercase tracking-tight mb-4">Admin Console</h3>
+                <h3 className="text-xl font-black uppercase tracking-tight mb-4">{t('adminConsole')}</h3>
                 <p className="text-sm text-slate-400 font-medium leading-relaxed mb-8">
                   You have full structural oversight. Manage intelligence modules, student identity, and global logs.
                 </p>
@@ -190,14 +193,14 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <StatCard 
                 icon={History} 
-                label="Assessments" 
+                label={t('results')} 
                 value={userStats.total} 
                 sub="Completions"
                 theme="blue"
               />
               <StatCard 
                 icon={TrendingUp} 
-                label="Efficiency" 
+                label={t('avgScore')} 
                 value={`${userStats.avg}%`} 
                 sub="Average Score"
                 theme="green"
@@ -214,8 +217,8 @@ export default function ProfilePage() {
             <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 min-h-[500px] flex flex-col">
               <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 p-8 flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Intelligence Log</CardTitle>
-                  <CardDescription className="font-medium text-slate-500 dark:text-slate-400">Your historical interaction with the DNTRNG Registry</CardDescription>
+                  <CardTitle className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{t('sessionArchive')}</CardTitle>
+                  <CardDescription className="font-medium text-slate-500 dark:text-slate-400">{t('historicalInteraction')}</CardDescription>
                 </div>
                 {loadingStats && <AILoader className="mb-0" iconClassName="w-6 h-6" />}
               </CardHeader>
@@ -257,11 +260,11 @@ export default function ProfilePage() {
                     <div className="bg-slate-50 dark:bg-slate-800 w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6">
                       <Database className="w-10 h-10 text-slate-200 dark:text-slate-700" />
                     </div>
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">No Logs Detected</h3>
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{t('noLogsDetected')}</h3>
                     <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mt-2">You haven't initialized any intelligence modules yet. Your history will appear here once you complete a test.</p>
                     <Link href="/tests" className="mt-8">
                       <Button className="rounded-full bg-primary font-black px-8 h-12 shadow-xl shadow-primary/20">
-                        Explore Library
+                        {t('exploreLibrary')}
                       </Button>
                     </Link>
                   </div>
@@ -272,27 +275,27 @@ export default function ProfilePage() {
             {user.role === 'admin' && (
               <div className="grid md:grid-cols-2 gap-8">
                 <Card className="border-none shadow-sm rounded-[2.5rem] p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                  <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400 dark:text-slate-500 mb-6">Registry Overview</h4>
+                  <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400 dark:text-slate-500 mb-6">{t('registryOverview')}</h4>
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-slate-500 dark:text-slate-400">Active Modules</span>
+                      <span className="text-sm font-bold text-slate-500 dark:text-slate-400">{t('activeModules')}</span>
                       <span className="text-lg font-black text-slate-900 dark:text-white">{testsCount}</span>
                     </div>
                     <Progress value={85} className="h-2 bg-slate-50 dark:bg-slate-800" />
-                    <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500">Structural integrity: 100% Optimal</p>
+                    <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500">{t('structuralIntegrity')}</p>
                   </div>
                 </Card>
                 <Card className="border-none shadow-sm rounded-[2.5rem] p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                  <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400 dark:text-slate-500 mb-6">Quick Protocol</h4>
+                  <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400 dark:text-slate-500 mb-6">{t('quickProtocol')}</h4>
                   <div className="flex flex-col gap-3">
                     <Link href="/admin/tests/new">
                       <Button variant="outline" className="w-full h-11 rounded-full border-2 border-slate-200 dark:border-slate-700 font-black text-xs hover:bg-slate-50 dark:hover:bg-slate-800">
-                        Inject New Test
+                        {t('injectNewTest')}
                       </Button>
                     </Link>
                     <Link href="/setup-guide">
                       <Button variant="ghost" className="w-full h-11 rounded-full font-black text-xs text-primary hover:bg-primary/5">
-                        View Setup Guide
+                        {t('viewSetupGuide')}
                       </Button>
                     </Link>
                   </div>

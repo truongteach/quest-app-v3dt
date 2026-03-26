@@ -30,11 +30,13 @@ import { API_URL } from '@/lib/api-config';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
 import { AILoader } from '@/components/ui/ai-loader';
+import { useLanguage } from '@/context/language-context';
 
 function UserDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const email = searchParams.get('email') || "";
 
   const [loading, setLoading] = useState(true);
@@ -102,11 +104,11 @@ function UserDetailContent() {
 
   if (!user || !email) return (
     <div className="text-center py-32 space-y-6">
-      <div className="w-20 h-20 bg-slate-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-slate-300">
+      <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-slate-300">
         <UserIcon className="w-10 h-10" />
       </div>
-      <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900">Identity Not Found</h2>
-      <p className="text-slate-500 font-medium max-w-xs mx-auto">The requested identity key could not be located in the DNTRNG registry.</p>
+      <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">Identity Not Found</h2>
+      <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mx-auto">The requested identity key could not be located in the DNTRNG registry.</p>
       <Button onClick={() => router.back()} className="rounded-full px-8">Return to Registry</Button>
     </div>
   );
@@ -122,45 +124,49 @@ function UserDetailContent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Left Column: Identity Card */}
         <div className="lg:col-span-4 space-y-8">
-          <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white">
+          <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white dark:bg-slate-900">
             <div className="h-32 bg-slate-900 relative">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
               <div className="absolute top-0 right-0 p-6 opacity-5"><Target className="w-24 h-24 text-white" /></div>
             </div>
             <div className="px-8 pb-10 -mt-16 relative z-10 text-center">
-              <div className="w-32 h-32 rounded-full border-8 border-white bg-slate-100 mx-auto mb-6 flex items-center justify-center font-black text-4xl text-primary shadow-xl">
-                {user.name?.charAt(0).toUpperCase()}
+              <div className="w-32 h-32 rounded-full border-8 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 mx-auto mb-6 flex items-center justify-center font-black text-4xl text-primary shadow-xl overflow-hidden">
+                {user.image_url ? (
+                  <img src={user.image_url} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  user.name?.charAt(0).toUpperCase()
+                )}
               </div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-2">{user.name}</h2>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase mb-2">{user.name}</h2>
               <Badge className="rounded-full bg-primary/10 text-primary font-black uppercase text-[10px] tracking-widest px-4 py-1.5 border-none">
                 {user.role} Operator
               </Badge>
 
               <div className="mt-10 space-y-4 text-left">
-                <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-4 border border-slate-100">
-                  <div className="p-2 bg-white rounded-xl shadow-sm"><Mail className="w-4 h-4 text-slate-400" /></div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex items-center gap-4 border border-slate-100 dark:border-slate-800">
+                  <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm"><Mail className="w-4 h-4 text-slate-400" /></div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Communication Key</p>
-                    <p className="text-sm font-bold text-slate-700 truncate">{user.email}</p>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">{user.email}</p>
                   </div>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-4 border border-slate-100">
-                  <div className="p-2 bg-white rounded-xl shadow-sm"><Shield className="w-4 h-4 text-slate-400" /></div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex items-center gap-4 border border-slate-100 dark:border-slate-800">
+                  <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm"><Shield className="w-4 h-4 text-slate-400" /></div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Access Profile</p>
-                    <p className="text-sm font-bold text-slate-700 truncate">{user.role === 'admin' ? 'Root Administrator' : 'Standard Student'}</p>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">{user.role === 'admin' ? 'Root Administrator' : 'Standard Student'}</p>
                   </div>
                 </div>
               </div>
             </div>
           </Card>
 
-          <Card className="border-none shadow-sm rounded-[2.5rem] bg-white p-8 space-y-6">
+          <Card className="border-none shadow-sm rounded-[2.5rem] bg-white dark:bg-slate-900 p-8 space-y-6">
             <h3 className="font-black text-[10px] uppercase tracking-[0.3em] text-slate-400">Registry Clearance</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm font-bold">
-                <span className="text-slate-500">Progress to Goal</span>
-                <span className="text-slate-900">{stats.passed} / {stats.total} Cleared</span>
+                <span className="text-slate-500 dark:text-slate-400">Progress to Goal</span>
+                <span className="text-slate-900 dark:text-white">{stats.passed} / {stats.total} Cleared</span>
               </div>
               <Progress value={(stats.passed / (stats.total || 1)) * 100} className="h-2 rounded-full" />
               <p className="text-[10px] font-medium text-slate-400 leading-relaxed">
@@ -178,23 +184,23 @@ function UserDetailContent() {
             <StatSmall icon={Trophy} label="Peak Record" value={`${stats.best}%`} color="purple" />
           </div>
 
-          <Card className="border-none shadow-sm rounded-[3rem] overflow-hidden bg-white min-h-[500px] flex flex-col">
-            <CardHeader className="bg-slate-50/50 border-b p-8 flex flex-row items-center justify-between">
+          <Card className="border-none shadow-sm rounded-[3rem] overflow-hidden bg-white dark:bg-slate-900 min-h-[500px] flex flex-col border border-transparent dark:border-slate-800">
+            <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 p-8 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">Intelligence Log</CardTitle>
-                <CardDescription className="font-medium">Historical session history for this identity</CardDescription>
+                <CardTitle className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{t('sessionArchive')}</CardTitle>
+                <CardDescription className="font-medium text-slate-500 dark:text-slate-400">Historical session history for this identity</CardDescription>
               </div>
-              <BarChart3 className="w-6 h-6 text-slate-200" />
+              <BarChart3 className="w-6 h-6 text-slate-200 dark:text-slate-700" />
             </CardHeader>
             <CardContent className="p-0 flex-1">
               {responses.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent border-none">
-                      <TableHead className="px-8 font-black uppercase text-[9px] tracking-widest">Timestamp</TableHead>
-                      <TableHead className="font-black uppercase text-[9px] tracking-widest">Assessment</TableHead>
-                      <TableHead className="font-black uppercase text-[9px] tracking-widest text-center">Score</TableHead>
-                      <TableHead className="px-8 text-right font-black uppercase text-[9px] tracking-widest">Efficiency</TableHead>
+                      <TableHead className="px-8 font-black uppercase text-[9px] tracking-widest text-slate-400">Timestamp</TableHead>
+                      <TableHead className="font-black uppercase text-[9px] tracking-widest text-slate-400">Assessment</TableHead>
+                      <TableHead className="font-black uppercase text-[9px] tracking-widest text-center text-slate-400">Score</TableHead>
+                      <TableHead className="px-8 text-right font-black uppercase text-[9px] tracking-widest text-slate-400">Efficiency</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -204,16 +210,16 @@ function UserDetailContent() {
                       const pct = Math.round((score / total) * 100);
                       
                       return (
-                        <TableRow key={i} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-none">
+                        <TableRow key={i} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-none">
                           <TableCell className="px-8 py-5">
                             <div className="flex items-center gap-2">
-                              <Calendar className="w-3 h-3 text-slate-300" />
-                              <span className="text-[10px] font-bold text-slate-400">
+                              <Calendar className="w-3 h-3 text-slate-300 dark:text-slate-600" />
+                              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                                 {new Date(resp.Timestamp).toLocaleDateString()}
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="font-black text-slate-700 text-sm">
+                          <TableCell className="font-black text-slate-700 dark:text-slate-300 text-sm">
                             {resp['Test ID']}
                           </TableCell>
                           <TableCell className="text-center font-bold text-slate-500">
@@ -234,11 +240,11 @@ function UserDetailContent() {
                 </Table>
               ) : (
                 <div className="flex flex-col items-center justify-center py-32 text-center px-10">
-                  <div className="bg-slate-50 w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6">
-                    <Database className="w-10 h-10 text-slate-200" />
+                  <div className="bg-slate-50 dark:bg-slate-800 w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6">
+                    <Database className="w-10 h-10 text-slate-200 dark:text-slate-700" />
                   </div>
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Session Data</h3>
-                  <p className="text-slate-500 font-medium max-w-xs mt-2">This operator has not initialized any intelligence modules in this registry cycle.</p>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">No Session Data</h3>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mt-2">This operator has not initialized any intelligence modules in this registry cycle.</p>
                 </div>
               )}
             </CardContent>
@@ -251,20 +257,20 @@ function UserDetailContent() {
 
 function StatSmall({ icon: Icon, label, value, color }: any) {
   const colors: Record<string, string> = {
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    green: "bg-green-50 text-green-600 border-green-100",
-    purple: "bg-purple-50 text-purple-600 border-purple-100"
+    blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900",
+    green: "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-100 dark:border-green-900",
+    purple: "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-900"
   };
   
   return (
-    <Card className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-xl transition-all rounded-[2.5rem]">
+    <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden group hover:shadow-xl transition-all rounded-[2.5rem] border border-transparent dark:border-slate-800">
       <CardContent className="pt-6 flex items-center gap-5">
         <div className={cn("p-4 rounded-2xl border-2 transition-transform group-hover:scale-110", colors[color])}>
           <Icon className="w-6 h-6" />
         </div>
         <div>
-          <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">{label}</p>
-          <p className="text-2xl font-black text-slate-900 tracking-tighter">{value}</p>
+          <p className="text-[9px] font-black text-muted-foreground dark:text-slate-500 uppercase tracking-[0.2em] mb-1">{label}</p>
+          <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">{value}</p>
         </div>
       </CardContent>
     </Card>
