@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
@@ -31,6 +32,7 @@ function QuizContent() {
   const [timeLeft, setTimeLeft] = useState(900); // 15 minutes default
   const [isWrongInRace, setIsWrongInRace] = useState(false);
   const [protocolSalt, setProtocolSalt] = useState("");
+  const [isProtectionEnabled, setIsProtectionEnabled] = useState(true);
   
   // Master registry to keep the original order for Training/Race
   const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
@@ -73,6 +75,7 @@ function QuizContent() {
     try {
       let fetched: Question[] = [];
       let salt = "";
+      let protection = true;
       
       if (API_URL) {
         const [qRes, sRes] = await Promise.all([
@@ -90,11 +93,13 @@ function QuizContent() {
         }
         
         salt = sData.daily_key_salt || "";
+        protection = sData.access_key_protection_enabled !== "false";
       } else {
         fetched = DEMO_QUESTIONS;
       }
       
       setProtocolSalt(salt);
+      setIsProtectionEnabled(protection);
       setOriginalQuestions(fetched);
       setQuiz(prev => ({ ...prev, questions: fetched, startTime: Date.now() }));
     } catch (err) {
@@ -281,6 +286,7 @@ function QuizContent() {
         guestName={guestName}
         setGuestName={setGuestName}
         protocolSalt={protocolSalt}
+        isProtectionEnabled={isProtectionEnabled}
         onStart={handleStart}
       />
     );

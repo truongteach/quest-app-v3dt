@@ -33,6 +33,7 @@ interface QuizStartProps {
   guestName: string;
   setGuestName: (name: string) => void;
   protocolSalt?: string;
+  isProtectionEnabled?: boolean;
   onStart: (mode: QuizMode) => void;
 }
 
@@ -47,9 +48,10 @@ export function QuizStart({
   guestName,
   setGuestName,
   protocolSalt,
+  isProtectionEnabled = true,
   onStart
 }: QuizStartProps) {
-  const [step, setStep] = useState<Step>('gate');
+  const [step, setStep] = useState<Step>(isProtectionEnabled ? 'gate' : (user ? 'mode' : 'identity'));
   const [password, setPassword] = useState('');
   const [selectedMode, setSelectedMode] = useState<QuizMode>('test');
   const { toast } = useToast();
@@ -269,12 +271,14 @@ export function QuizStart({
                 >
                   Change Identity Registry
                 </button>
-                <button 
-                  onClick={() => { setStep('gate'); setPassword(''); }}
-                  className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 hover:text-slate-500 transition-colors"
-                >
-                  Lock Assessment Session
-                </button>
+                {isProtectionEnabled && (
+                  <button 
+                    onClick={() => { setStep('gate'); setPassword(''); }}
+                    className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 hover:text-slate-500 transition-colors"
+                  >
+                    Lock Assessment Session
+                  </button>
+                )}
               </div>
             </div>
           )}

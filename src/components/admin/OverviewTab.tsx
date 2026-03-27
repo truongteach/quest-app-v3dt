@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { 
   Area, 
   AreaChart, 
@@ -85,6 +86,7 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
 
   const protocolSalt = settings.daily_key_salt || "";
   const currentDailyKey = generateDailyPassword(undefined, protocolSalt);
+  const isProtectionEnabled = settings.access_key_protection_enabled !== "false";
 
   const protocolSchedule = useMemo(() => {
     return Array.from({ length: 8 }).map((_, i) => {
@@ -167,6 +169,18 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
                 </button>
               )}
             </div>
+          </div>
+
+          <div className="ml-4 pl-4 border-l border-white/10 flex items-center gap-3">
+            <Switch 
+              id="protection-toggle"
+              checked={isProtectionEnabled} 
+              onCheckedChange={(checked) => onSaveSetting('access_key_protection_enabled', String(checked))}
+              className="data-[state=checked]:bg-primary"
+            />
+            <Label htmlFor="protection-toggle" className="text-[9px] font-black uppercase tracking-widest text-slate-500 cursor-pointer">
+              {isProtectionEnabled ? "Protected" : "Open Access"}
+            </Label>
           </div>
           
           <div className="ml-4 pl-4 border-l border-white/10 flex items-center gap-2">
