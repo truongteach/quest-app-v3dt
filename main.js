@@ -1,5 +1,26 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
+const { spawn } = require('child_process');
+const http = require('http');
+
+let serverProcess = null;
+const PORT = 9005;
+
+function startNextServer() {
+  // In production (packaged), we need to start the Next.js server
+  if (app.isPackaged) {
+    const nextBin = path.join(process.resourcesPath, 'app', 'node_modules', 'next', 'dist', 'bin', 'next');
+    const appPath = path.join(process.resourcesPath, 'app');
+    
+    serverProcess = spawn('node', [nextBin, 'start', '-p', PORT.toString()], {
+      cwd: appPath,
+      env: { ...process.env, NODE_ENV: 'production' }
+    });
+
+    serverProcess.stdout.on('data', (data) => console.log(`Server: ${data}`));
+    serverProcess.stderr.on('data', (data) => console.error(`Server Error: ${data}`));
+  }
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -10,16 +31,31 @@ function createWindow() {
       contextIsolation: true,
     },
     backgroundColor: '#ffffff',
-    title: 'DNTRNG™ - Intelligence Simplified',
-    autoHideMenuBar: false, // Standard menu for professional desktop node
-    icon: path.join(__dirname, 'public/favicon.ico')
+    title: 'DNTRNG™ - Intelligence Simplified (Initializing...)',
+    show: false // Hide until ready
   });
 
-  // Protocol v18.2: Use designated Electron Dev Port 9005
-  // In production, this would load the server or file path
-  win.loadURL('http://localhost:9005');
+  const url = `http://localhost:${PORT}`;
+
+  // Protocol: Connection Retry Logic
+  const checkServer = () => {
+    http.get(url, (res) => {
+      win.loadURL(url);
+      win.show();
+      win.setTitle('DNTRNG™ - Intelligence Simplified');
+    }).on('error', () => {
+      console.log('Waiting for registry node...');
+      setTimeout(checkServer, 1000);
+    });
+  };
+
+  if (app.isPackaged) {
+    checkServer();
+  } else {
+    win.loadURL(url);
+    win.show();
+  }
   
-  // Custom Menu Template for DNTRNG Node
   const template = [
     {
       label: 'Node',
@@ -44,6 +80,9 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  if (app.isPackaged) {
+    startNextServer();
+  }
   createWindow();
 
   app.on('activate', () => {
@@ -54,6 +93,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  if (serverProcess) serverProcess.kill();
   if (process.platform !== 'darwin') {
     app.quit();
   }
