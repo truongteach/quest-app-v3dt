@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -29,6 +30,24 @@ export default function AdminResponsesPage() {
     fetchResponses();
   }, []);
 
+  const handlePost = async (action: string, payload: any) => {
+    if (!API_URL) return;
+    setLoading(true);
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ action, ...payload })
+      });
+      toast({ title: "Success", description: "Registry updated." });
+      setTimeout(fetchResponses, 1500);
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading && responses.length === 0) {
     return (
       <div className="py-20">
@@ -39,7 +58,10 @@ export default function AdminResponsesPage() {
 
   return (
     <div className="space-y-6">
-      <ResponsesTab responses={responses} />
+      <ResponsesTab 
+        responses={responses} 
+        onDelete={(timestamp, email) => handlePost('deleteResponse', { timestamp, email })}
+      />
     </div>
   );
 }

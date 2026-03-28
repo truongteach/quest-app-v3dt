@@ -1,10 +1,10 @@
 
 export const GAS_CODE = `/**
- * QUESTFLOW BACKEND v17.8 - SETTINGS ENABLED
+ * QUESTFLOW BACKEND v17.9 - RESULT DELETION ENABLED
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions, getActivity, getSettings
- * - POST: submitResponse, saveTest, deleteTest, saveUser, deleteUser, saveQuestions, saveUsers, logActivity, saveSetting
+ * - POST: submitResponse, saveTest, deleteTest, saveUser, deleteUser, saveQuestions, saveUsers, logActivity, saveSetting, deleteResponse
  */
 
 function doGet(e) {
@@ -45,7 +45,7 @@ function doGet(e) {
     if (action === 'getResponses') {
       const sheet = ss.getSheetByName('Responses');
       if (!sheet) return createResponse([]);
-      return createResponse(getRowsAsObjects(sheet).reverse().slice(0, 100));
+      return createResponse(getRowsAsObjects(sheet).reverse().slice(0, 500));
     }
 
     if (action === 'getActivity') {
@@ -106,6 +106,29 @@ function doPost(e) {
       return createResponse({ status: 'success' });
     }
 
+    if (action === 'deleteResponse') {
+      const sheet = ss.getSheetByName('Responses');
+      if (sheet) {
+        const data = sheet.getDataRange().getValues();
+        const headers = data[0];
+        const tsIdx = headers.indexOf('Timestamp');
+        const emailIdx = headers.indexOf('User Email');
+        
+        for (let i = data.length - 1; i >= 1; i--) {
+          const rowTs = new Date(data[i][tsIdx]).getTime();
+          const targetTs = new Date(payload.timestamp).getTime();
+          const rowEmail = String(data[i][emailIdx]).toLowerCase();
+          const targetEmail = String(payload.email).toLowerCase();
+          
+          if (rowTs === targetTs && rowEmail === targetEmail) {
+            sheet.deleteRow(i + 1);
+            break; 
+          }
+        }
+      }
+      return createResponse({ status: 'success' });
+    }
+
     if (action === 'submitResponse') {
       let sheet = ss.getSheetByName('Responses') || ss.insertSheet('Responses');
       const headers = ['Timestamp', 'User Name', 'User Email', 'Test ID', 'Score', 'Total', 'Duration (ms)', 'Raw Responses'];
@@ -155,14 +178,14 @@ function doPost(e) {
 
     if (action === 'saveUser') {
       const sheet = ss.getSheetByName('Users') || ss.insertSheet('Users');
-      if (sheet.getLastRow() === 0) sheet.appendRow(['id', 'name', 'email', 'role', 'password']);
+      if (sheet.getLastRow() === 0) sheet.appendRow(['id', 'name', 'email', 'role', 'password', 'image_url']);
       upsertRow(sheet, 'email', payload.data.email, payload.data);
       return createResponse({ status: 'success' });
     }
 
     if (action === 'saveUsers') {
       const sheet = ss.getSheetByName('Users') || ss.insertSheet('Users');
-      if (sheet.getLastRow() === 0) sheet.appendRow(['id', 'name', 'email', 'role', 'password']);
+      if (sheet.getLastRow() === 0) sheet.appendRow(['id', 'name', 'email', 'role', 'password', 'image_url']);
       const users = payload.data;
       if (Array.isArray(users)) {
         users.forEach(user => {
