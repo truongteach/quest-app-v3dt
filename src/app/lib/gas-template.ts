@@ -1,6 +1,5 @@
-
 export const GAS_CODE = `/**
- * QUESTFLOW BACKEND v17.9 - RESULT DELETION ENABLED
+ * QUESTFLOW BACKEND v18.0 - REGISTRY SYNC ENABLED
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions, getActivity, getSettings
