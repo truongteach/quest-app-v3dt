@@ -3,22 +3,21 @@ const path = require('path');
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1200,
+    width: 1280,
     height: 800,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
     },
     backgroundColor: '#ffffff',
-    title: 'DNTRNG™ - Intelligence Simplified'
+    title: 'DNTRNG™ - Intelligence Simplified',
+    autoHideMenuBar: true
   });
 
-  // Load the local Next.js server
-  // Note: Ensure the port matches your package.json dev script
-  win.loadURL('http://localhost:9002');
+  // Points to the specific port defined in package.json electron:dev script
+  win.loadURL('http://localhost:9005');
   
-  // Optional: Hide menu bar for a cleaner 'app' look
-  // win.setMenuBarVisibility(false);
+  // win.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
