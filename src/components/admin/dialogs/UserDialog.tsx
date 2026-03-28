@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Users as UsersIcon, Zap, ShieldCheck, UserPlus, ListOrdered, Mail, Lock, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,10 +32,9 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
     const data = Object.fromEntries(formData.entries());
     
     // Note: On edit, email is readOnly so it's included in FormData.
-    // If it was disabled, it would be missing.
     
     // Safety: Omit password if editing to prevent accidentally clearing the existing password in the sheet
-    // unless you want to allow changing it from here.
+    // if the user left the field empty.
     if (editingItem && !data.password) {
       delete data.password;
     }
@@ -141,24 +139,14 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
               
               <div className="space-y-2">
                 <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Password Registry</Label>
-                {editingItem && (
-                  <Alert className="bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 rounded-2xl mb-4 border shadow-sm">
-                    <AlertCircle className="h-4 w-4 text-orange-600" />
-                    <AlertTitle className="text-[10px] font-black uppercase text-orange-800">Registry Lock Active</AlertTitle>
-                    <AlertDescription className="text-[11px] font-medium text-orange-700 dark:text-orange-400 leading-relaxed">
-                      To change this student's password, please edit the <strong className="font-black">"password"</strong> column directly in your Google Sheet. UI updates are currently disabled.
-                    </AlertDescription>
-                  </Alert>
-                )}
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                   <Input 
                     name="password" 
                     type="password" 
-                    placeholder={editingItem ? "Update via Google Sheet only" : "Set password"} 
+                    placeholder={editingItem ? "Leave blank to keep current" : "Set password"} 
                     required={!editingItem} 
-                    disabled={!!editingItem}
-                    className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-900" 
+                    className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40" 
                   />
                 </div>
               </div>
