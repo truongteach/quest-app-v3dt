@@ -1,5 +1,5 @@
 export const GAS_CODE = `/**
- * QUESTFLOW BACKEND v18.2 - REGISTRY SYNC ENABLED
+ * QUESTFLOW BACKEND v18.2 - REGISTRY TRANSPARENCY PROTOCOL
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions, getActivity, getSettings
@@ -38,7 +38,7 @@ function doGet(e) {
     if (action === 'getUsers') {
       const sheet = ss.getSheetByName('Users');
       if (!sheet) return createResponse([]);
-      // v18.2: Removed password exclusion for administrative transparency
+      // v18.2 Transparency: Passwords included for administrative oversight in the dashboard
       return createResponse(getRowsAsObjects(sheet));
     }
 
@@ -256,12 +256,12 @@ function upsertRow(sheet, idKey, idValue, data) {
   }
   
   const rowData = headers.map((h, i) => {
-    // v18.1: Logic to preserve existing value if the key is missing from the payload
+    // v18.1 Persistence: Only update columns present in the payload data
     if (h in data) {
       const val = data[h];
       return (val !== undefined && val !== null) ? val : "";
     }
-    // If key is missing from payload, preserve existing value if it's an update
+    // If column key is missing from payload, preserve the existing registry value
     return (rowIndex > -1) ? existingRow[i] : "";
   });
 

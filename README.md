@@ -24,16 +24,16 @@ To run or build the DNTRNG™ Desktop Application on your local machine:
 
 ### 1. Development Mode
 Runs the app in a standalone window for testing.
-1.  **Clone Source**: Download this repository to your local machine.
-2.  **Install Dependencies**: Run `npm install` in your terminal.
-3.  **Launch Node**: Execute `npm run electron:dev`.
-    *   Starts the engine on port `9005`.
-    *   The DNTRNG™ window opens automatically.
+1. **Clone Source**: Download this repository to your local machine.
+2. **Install Dependencies**: Run `npm install` in your terminal.
+3. **Launch Node**: Execute `npm run electron:dev`.
+    * Starts the engine on port `9005`.
+    * The DNTRNG™ window opens automatically.
 
 ### 2. Building the Installer (.exe / .app)
 Creates a file you can send to others to install the app.
-1.  **Run Build**: Execute `npm run electron:build`.
-2.  **Get Installer**: Look in the `dist/` folder for your `.exe` (Windows) or `.dmg` (Mac).
+1. **Run Build**: Execute `npm run electron:build`.
+2. **Get Installer**: Look in the `dist/` folder for your `.exe` (Windows) or `.dmg` (Mac).
 
 ---
 
@@ -42,10 +42,12 @@ Creates a file you can send to others to install the app.
 ### Phase 01: Sheet Architecture
 Create a new Google Sheet and provision the following core tabs (Case-Sensitive).
 
-1.  **`Tests`**: `id`, `title`, `description`, `category`, `difficulty`, `duration`, `image_url`
-2.  **`Users`**: `id`, `name`, `email`, `role`, `password`
-3.  **`Responses`**: `Timestamp`, `User Name`, `User Email`, `Test ID`, `Score`, `Total`, `Duration (ms)`, `Raw Responses`
-4.  **Module Tabs**: Create a tab for every test `id` using: `id`, `question_text`, `question_type`, `options`, `correct_answer`, `order_group`, `image_url`, `metadata`, `required`
+1. **`Tests`**: `id`, `title`, `description`, `category`, `difficulty`, `duration`, `image_url`
+2. **`Users`**: `id`, `name`, `email`, `role`, `password`
+3. **`Responses`**: `Timestamp`, `User Name`, `User Email`, `Test ID`, `Score`, `Total`, `Duration (ms)`, `Raw Responses`
+4. **`Activity`**: `Timestamp`, `User Name`, `User Email`, `Event`, `IP Address`, `Device`
+5. **`Settings`**: `key`, `value`
+6. **Module Tabs**: Create a tab for every test `id` using: `id`, `question_text`, `question_type`, `options`, `correct_answer`, `order_group`, `image_url`, `metadata`, `required`
 
 ### Phase 02: Logic Injection
 1. Open Google Sheet > **Extensions > Apps Script**.
@@ -58,8 +60,8 @@ Create a new Google Sheet and provision the following core tabs (Case-Sensitive)
 
 ## 🔐 Identity Provisioning
 Access the **DNTRNG™ Console** using default admin credentials:
-*   **Identity:** `admin@dntrng.com`
-*   **Secret:** `admin123`
+* **Identity:** `admin@dntrng.com`
+* **Secret:** `admin123`
 
 ## ⚖️ License
 This project is part of the **DNTRNG™ Open Source Initiative**. All rights reserved.

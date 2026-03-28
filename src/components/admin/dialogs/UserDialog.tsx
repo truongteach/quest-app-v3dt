@@ -59,25 +59,25 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
 
   // Determine if the save button should be disabled (Change-Aware Guard)
   const isSaveDisabled = editingItem ? (
-    // In edit mode: disable if NO fields have changed
+    // In edit mode: disable if NO fields have changed from the registry record
     formData.name === (editingItem.name || '') &&
     formData.email === (editingItem.email || '') &&
     formData.password === (editingItem.password || '') &&
     formData.role === (editingItem.role || 'user')
   ) : (
-    // In add mode: disable if required fields are empty
+    // In add mode: disable if required identity fields are empty
     !formData.name.trim() || !formData.email.trim()
   );
 
   const handleSingleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Protocol v18.1: Omit password if it matches the current registry value or is empty
-    // but in v18.2 we show current, so we send the update if it's different.
     const payload: any = { ...formData };
     
-    // If password hasn't changed from original, we can omit it to let backend preserve it
-    if (editingItem && formData.password === editingItem.password) {
+    // Protocol v18.2 Transparency: We send the password if it's visible/edited.
+    // If it hasn't changed from original, backend v18.2 upsertRow will handle it correctly.
+    // However, if it's empty, we omit it to let backend preserve existing values.
+    if (editingItem && !formData.password.trim()) {
       delete payload.password;
     }
     
@@ -163,12 +163,12 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required 
                     placeholder="Student Name" 
-                    className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40" 
+                    className="h-14 pl-11 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40" 
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email (Identity Key)</Label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                   <Input 
@@ -178,9 +178,9 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required 
                     readOnly={!!editingItem} 
-                    placeholder="student@email.com" 
+                    placeholder="student@dntrng.com" 
                     className={cn(
-                      "h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40",
+                      "h-14 pl-11 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40",
                       !!editingItem && "opacity-60 cursor-not-allowed"
                     )} 
                   />
@@ -188,7 +188,7 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
               </div>
               
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Password Registry</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Registry Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                   <Input 
@@ -197,37 +197,40 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder="Set registry password" 
-                    className="h-12 pl-11 pr-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40" 
+                    className="h-14 pl-11 pr-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40" 
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {editingItem && (
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Visible to administrators only (v18.2)</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Account Role</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Access Protocol (Role)</Label>
                 <select 
                   name="role" 
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                  className="w-full h-12 px-4 rounded-xl border-none ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black text-sm outline-none focus:ring-primary/40 cursor-pointer"
+                  className="w-full h-14 px-4 rounded-2xl border-none ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black text-sm outline-none focus:ring-primary/40 cursor-pointer"
                 >
-                  <option value="user">Student</option>
-                  <option value="admin">Admin</option>
+                  <option value="user">Student Operator</option>
+                  <option value="admin">Root Administrator</option>
                 </select>
               </div>
               <DialogFooter className="pt-6">
                 <Button 
                   type="submit" 
                   disabled={isSaveDisabled}
-                  className="rounded-full w-full h-16 font-black text-lg bg-slate-900 dark:bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl transition-all"
+                  className="rounded-full w-full h-16 font-black text-lg bg-slate-900 dark:bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl transition-all hover:scale-[1.02]"
                 >
-                  Save Student Profile
+                  Save Registry Record
                 </Button>
               </DialogFooter>
             </form>
@@ -235,9 +238,9 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
 
           <TabsContent value="batch">
             <form onSubmit={handleBatchSubmit} className="p-10 space-y-6">
-              <div className="p-6 bg-primary/5 dark:bg-primary/10 rounded-[2rem] border-2 border-dashed border-primary/20 mb-4">
-                <p className="text-[10px] font-medium text-primary/60 leading-relaxed">
-                  Generate multiple accounts at once. Use <code className="font-bold">{"{{n}}"}</code> in the email field for the number.
+              <div className="p-6 bg-primary/5 dark:bg-primary/10 rounded-[2rem] border-2 border-dashed border-primary/20 mb-4 text-center">
+                <p className="text-[10px] font-black text-primary/60 uppercase tracking-widest leading-relaxed">
+                  Bulk Provisioning Registry. Use <code className="font-bold">{"{{n}}"}</code> for sequence.
                 </p>
               </div>
 
@@ -258,23 +261,23 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
 
               <div className="space-y-2">
                 <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email Pattern</Label>
-                <Input name="emailPattern" required placeholder="student{{n}}@school.com" className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-mono text-xs" />
+                <Input name="emailPattern" required placeholder="student{{n}}@dntrng.com" className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-mono text-xs" />
               </div>
 
               <div className="space-y-2">
-                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Shared Password</Label>
+                <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Initial Password</Label>
                 <div className="relative">
                   <Input 
                     name="password" 
                     type={showBatchPassword ? "text" : "password"} 
                     required 
                     defaultValue="admin123" 
-                    className="h-12 pr-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold" 
+                    className="h-12 pr-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold" 
                   />
                   <button
                     type="button"
                     onClick={() => setShowBatchPassword(!showBatchPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1"
                   >
                     {showBatchPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -282,8 +285,8 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
               </div>
 
               <DialogFooter className="pt-6">
-                <Button type="submit" className="rounded-full w-full h-16 font-black text-lg bg-primary text-white shadow-xl">
-                  Batch Add Students
+                <Button type="submit" className="rounded-full w-full h-16 font-black text-lg bg-primary text-white shadow-xl hover:scale-[1.02] transition-all">
+                  Initialize Batch Provisioning
                 </Button>
               </DialogFooter>
             </form>
