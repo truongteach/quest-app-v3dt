@@ -57,7 +57,7 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
     }
   }, [open, editingItem]);
 
-  // Determine if the save button should be disabled
+  // Determine if the save button should be disabled (Change-Aware Guard)
   const isSaveDisabled = editingItem ? (
     // In edit mode: disable if NO fields have changed
     formData.name === (editingItem.name || '') &&
@@ -72,14 +72,13 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
   const handleSingleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Create a copy of the data to send
-    const payload = { ...formData };
+    // Protocol v18.1: Omit password if it matches the current registry value or is empty
+    // but in v18.2 we show current, so we send the update if it's different.
+    const payload: any = { ...formData };
     
-    // Safety: Omit password if editing and it stayed empty (though we show it now in v18.2)
-    // In v18.2 we show the password, so we send what's in the field.
-    if (editingItem && !payload.password) {
-      // If it was empty in state and we are editing, we might want to preserve it
-      // but since v18.2 shows it, the state will be populated with the current one.
+    // If password hasn't changed from original, we can omit it to let backend preserve it
+    if (editingItem && formData.password === editingItem.password) {
+      delete payload.password;
     }
     
     onSave(payload);
@@ -132,7 +131,7 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
                 {editingItem ? 'Edit Profile' : 'Add Students'}
               </DialogTitle>
               <DialogDescription className="text-white/40 font-bold uppercase tracking-widest text-[10px] mt-1">
-                Student Access List
+                Registry Protocol v18.2
               </DialogDescription>
             </div>
           </div>
@@ -197,8 +196,7 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
                     type={showPassword ? "text" : "password"} 
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder={editingItem ? "Update password..." : "Set password"} 
-                    required={!editingItem} 
+                    placeholder="Set registry password" 
                     className="h-12 pl-11 pr-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold focus:ring-primary/40" 
                   />
                   <button
@@ -227,9 +225,9 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
                 <Button 
                   type="submit" 
                   disabled={isSaveDisabled}
-                  className="rounded-full w-full h-16 font-black text-lg bg-slate-900 dark:bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-full w-full h-16 font-black text-lg bg-slate-900 dark:bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl transition-all"
                 >
-                  Save Student
+                  Save Student Profile
                 </Button>
               </DialogFooter>
             </form>
@@ -284,8 +282,8 @@ export function UserDialog({ open, onOpenChange, editingItem, onSave, onSaveBatc
               </div>
 
               <DialogFooter className="pt-6">
-                <Button type="submit" className="rounded-full w-full h-16 font-black text-lg bg-primary text-white">
-                  Add All Students
+                <Button type="submit" className="rounded-full w-full h-16 font-black text-lg bg-primary text-white shadow-xl">
+                  Batch Add Students
                 </Button>
               </DialogFooter>
             </form>

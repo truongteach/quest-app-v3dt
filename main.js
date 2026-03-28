@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 
 function createWindow() {
@@ -11,13 +11,36 @@ function createWindow() {
     },
     backgroundColor: '#ffffff',
     title: 'DNTRNG™ - Intelligence Simplified',
-    autoHideMenuBar: true
+    autoHideMenuBar: false, // Standard menu for professional desktop node
+    icon: path.join(__dirname, 'public/favicon.ico')
   });
 
-  // Points to the specific port defined in package.json electron:dev script
+  // Protocol v18.2: Use designated Electron Dev Port 9005
+  // In production, this would load the server or file path
   win.loadURL('http://localhost:9005');
   
-  // win.webContents.openDevTools();
+  // Custom Menu Template for DNTRNG Node
+  const template = [
+    {
+      label: 'Node',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'togglefullscreen' },
+        { role: 'toggleDevTools' }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
 }
 
 app.whenReady().then(() => {

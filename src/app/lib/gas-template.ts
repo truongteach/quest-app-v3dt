@@ -38,7 +38,7 @@ function doGet(e) {
     if (action === 'getUsers') {
       const sheet = ss.getSheetByName('Users');
       if (!sheet) return createResponse([]);
-      // v18.2: Included passwords for admin visibility
+      // v18.2: Removed password exclusion for administrative transparency
       return createResponse(getRowsAsObjects(sheet));
     }
 
