@@ -24,6 +24,16 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/context/language-context';
@@ -45,6 +55,7 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState<string | null>(null);
   
   const userStats = useMemo(() => {
     const stats: Record<string, { count: number, passed: number, avg: number }> = {};
@@ -137,11 +148,18 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
       : <ChevronDown className="ml-2 h-4 w-4 text-primary" />;
   };
 
+  const handleDelete = () => {
+    if (deleteConfirmEmail) {
+      onDelete(deleteConfirmEmail);
+      setDeleteConfirmEmail(null);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">{t('studentList')}</h2>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{t('studentList')}</h2>
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Identity Management & Analytics</p>
         </div>
         
@@ -150,7 +168,7 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input 
               placeholder="Search by name or email..." 
-              className="h-12 pl-12 rounded-full bg-white border-none ring-1 ring-slate-100 focus:ring-primary/40 text-sm font-bold shadow-sm"
+              className="h-12 pl-12 rounded-full bg-white dark:bg-slate-900 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-primary/40 text-sm font-bold shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -161,11 +179,11 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
         </div>
       </div>
 
-      <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
+      <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
+              <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-none">
                 <TableHead 
                   className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort('name')}
@@ -199,10 +217,10 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                 const s = userStats[email] || { count: 0, passed: 0, avg: 0 };
                 
                 return (
-                  <TableRow key={i} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-none">
+                  <TableRow key={i} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-none">
                     <TableCell className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-primary text-xs shrink-0 overflow-hidden border-2 border-white shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-primary text-xs shrink-0 overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm">
                           {u.image_url ? (
                             <img src={u.image_url} alt={u.name} className="w-full h-full object-cover" />
                           ) : (
@@ -210,7 +228,7 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                           )}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="font-black text-slate-900 leading-none mb-1 truncate">{u.name}</span>
+                          <span className="font-black text-slate-900 dark:text-white leading-none mb-1 truncate">{u.name}</span>
                           <span className="text-xs font-medium text-slate-400 truncate">{u.email}</span>
                         </div>
                       </div>
@@ -218,26 +236,26 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                     <TableCell>
                       <Badge className={cn(
                         "font-black uppercase text-[9px] tracking-widest px-3 py-1 rounded-full border-none shadow-sm",
-                        u.role === 'admin' ? "bg-slate-900 text-white" : "bg-primary/5 text-primary"
+                        u.role === 'admin' ? "bg-slate-900 dark:bg-slate-700 text-white" : "bg-primary/5 text-primary"
                       )}>
                         {u.role}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center">
-                        <span className="font-black text-slate-700">{s.count}</span>
-                        <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">Sessions</span>
+                        <span className="font-black text-slate-700 dark:text-slate-300">{s.count}</span>
+                        <span className="text-[9px] font-black uppercase text-slate-300 dark:text-slate-600 tracking-widest">Sessions</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center">
                         <span className={cn(
                           "font-black text-base",
-                          s.avg >= 80 ? "text-green-600" : s.avg >= 50 ? "text-orange-600" : "text-slate-400"
+                          s.avg >= 80 ? "text-green-600" : s.avg >= 50 ? "text-orange-600" : "text-slate-400 dark:text-slate-600"
                         )}>
                           {s.count > 0 ? `${s.avg}%` : '--'}
                         </span>
-                        <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">Mean</span>
+                        <span className="text-[9px] font-black uppercase text-slate-300 dark:text-slate-600 tracking-widest">Mean</span>
                       </div>
                     </TableCell>
                     <TableCell className="px-8 text-right">
@@ -247,10 +265,10 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                             <Eye className="w-4 h-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="icon" title={t('edit')} onClick={() => onEdit(u)} className="rounded-full h-10 w-10 hover:bg-slate-100">
-                          <Edit className="w-4 h-4 text-slate-400" />
+                        <Button variant="ghost" size="icon" title={t('edit')} onClick={() => onEdit(u)} className="rounded-full h-10 w-10 hover:bg-slate-100 dark:hover:bg-slate-800">
+                          <Edit className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                         </Button>
-                        <Button variant="ghost" size="icon" title={t('delete')} onClick={() => onDelete(u.email)} className="rounded-full h-10 w-10 text-destructive hover:bg-destructive/5">
+                        <Button variant="ghost" size="icon" title={t('delete')} onClick={() => setDeleteConfirmEmail(u.email)} className="rounded-full h-10 w-10 text-destructive hover:bg-destructive/5">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -262,7 +280,7 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
                 <TableRow>
                   <TableCell colSpan={5} className="py-32 text-center bg-slate-50/20">
                     <div className="flex flex-col items-center gap-4 opacity-20">
-                      <Search className="w-12 h-12" />
+                      <User className="w-12 h-12" />
                       <p className="font-black uppercase tracking-[0.3em] text-xs">No matching students found</p>
                     </div>
                   </TableCell>
@@ -272,6 +290,30 @@ export function UsersTab({ users, responses, onEdit, onDelete, onAdd }: UsersTab
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteConfirmEmail} onOpenChange={(open) => !open && setDeleteConfirmEmail(null)}>
+        <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl dark:bg-slate-900">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+              {t('confirmDeleteTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+              {t('confirmDeleteDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
+            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase text-xs tracking-widest flex-1 dark:border-slate-700 dark:text-slate-400">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="h-14 rounded-full bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-xs tracking-widest flex-1 shadow-xl shadow-destructive/20 border-none"
+            >
+              {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
