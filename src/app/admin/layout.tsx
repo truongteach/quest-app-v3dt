@@ -30,6 +30,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     pathname.startsWith('/admin/responses') ? 'responses' :
                     pathname.startsWith('/admin/activity') ? 'activity' : 'overview';
 
+  // Breadcrumb Resolver: Humanizes technical path segments
+  const getHeaderTitle = () => {
+    if (pathname === '/admin') return 'Dashboard';
+    const last = pathname.split('/').pop() || '';
+    if (last === 'new') return 'New Test';
+    return last.replace(/-/g, ' ');
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50/30 dark:bg-slate-950">
@@ -72,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <SidebarTrigger className="lg:hidden" />
                 <div>
                   <h2 className="text-xl font-black capitalize tracking-tight text-slate-900 dark:text-white">
-                    {pathname === '/admin' ? 'Dashboard' : pathname.split('/').pop()?.replace('-', ' ')}
+                    {getHeaderTitle()}
                   </h2>
                 </div>
               </div>
