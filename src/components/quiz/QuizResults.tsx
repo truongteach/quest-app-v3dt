@@ -113,12 +113,60 @@ export function QuizResults({
     fetchComparison();
   }, [testId, percentage]);
 
-  const getCompliment = (pct: number) => {
-    if (pct >= 95) return "Exceptional mastery! Absolute precision detected.";
-    if (pct >= 80) return "Outstanding! Peak cognitive synchronization.";
-    if (pct >= 70) return "Success! Core requirements fully met.";
-    if (pct >= 50) return "Completed. Optimization recommended.";
-    return "Alignment incomplete. Re-engagement advised.";
+  const getVerdictData = (pct: number) => {
+    if (pct >= 95) return { 
+      message: "Elite status verified. Perfect cognitive execution.", 
+      highlight: "Elite",
+      color: "text-emerald-400",
+      border: "border-l-emerald-500",
+      bg: "bg-emerald-500/10",
+      icon: <Trophy className="w-5 h-5 text-emerald-400" />
+    };
+    if (pct >= 80) return { 
+      message: "Outstanding performance. High-precision synchronization achieved.", 
+      highlight: "Precision",
+      color: "text-primary",
+      border: "border-l-primary",
+      bg: "bg-primary/10",
+      icon: <Zap className="w-5 h-5 text-primary" />
+    };
+    if (pct >= 60) return { 
+      message: "Alignment success. Functional mastery established.", 
+      highlight: "Mastery",
+      color: "text-amber-400",
+      border: "border-l-amber-500",
+      bg: "bg-amber-500/10",
+      icon: <Target className="w-5 h-5 text-amber-400" />
+    };
+    if (pct >= 40) return { 
+      message: "Optimization recommended. Foundational gaps identified.", 
+      highlight: "Optimization",
+      color: "text-orange-400",
+      border: "border-l-orange-500",
+      bg: "bg-orange-500/10",
+      icon: <AlertCircle className="w-5 h-5 text-orange-400" />
+    };
+    return { 
+      message: "Critical realignment required. Baseline protocols not met.", 
+      highlight: "Critical",
+      color: "text-rose-400",
+      border: "border-l-rose-500",
+      bg: "bg-rose-500/10",
+      icon: <XCircle className="w-5 h-5 text-rose-400" />
+    };
+  };
+
+  const verdict = getVerdictData(percentage);
+
+  const renderVerdictMessage = (msg: string, highlight: string, colorClass: string) => {
+    const parts = msg.split(highlight);
+    return (
+      <>
+        {parts[0]}
+        <span className={colorClass}>{highlight}</span>
+        {parts[1]}
+      </>
+    );
   };
 
   const durationMs = (endTime && startTime) ? endTime - startTime : 0;
@@ -218,16 +266,18 @@ export function QuizResults({
           {/* Right: Diagnostics & Metrics */}
           <div className="lg:col-span-7 space-y-8 flex flex-col">
             <Card className="flex-1 border-none shadow-2xl rounded-[3rem] bg-[#1E2130] border border-white/[0.08] p-12 flex flex-col justify-center relative overflow-hidden">
+              {/* Refined System Verdict Card */}
               <div className={cn(
-                "p-10 rounded-[2rem] border-2 border-dashed mb-10",
-                isMastery ? "bg-emerald-500/5 border-emerald-500/20" : isPass ? "bg-amber-500/5 border-amber-500/20" : "bg-rose-500/5 border-rose-500/20"
+                "p-8 rounded-2xl border-l-4 mb-10 transition-all duration-500",
+                verdict.border,
+                verdict.bg
               )}>
-                <div className="flex items-center gap-3 mb-6">
-                  {isMastery ? <Trophy className="w-6 h-6 text-emerald-400" /> : <Zap className="w-6 h-6 text-primary" />}
-                  <h4 className={cn("text-[11px] font-black uppercase tracking-[0.3em]", statusColor)}>Protocol Assessment</h4>
+                <div className="flex items-center gap-3 mb-4">
+                  {verdict.icon}
+                  <h4 className={cn("text-[10px] font-black uppercase tracking-[0.3em]", verdict.color)}>System Verdict</h4>
                 </div>
-                <p className="text-white font-black text-4xl leading-[1.15] tracking-tight">
-                  "{getCompliment(percentage)}"
+                <p className="text-white font-black text-2xl leading-tight tracking-tight">
+                  "{renderVerdictMessage(verdict.message, verdict.highlight, verdict.color)}"
                 </p>
               </div>
 
