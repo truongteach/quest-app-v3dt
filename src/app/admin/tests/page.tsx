@@ -55,6 +55,7 @@ export default function AdminTestsPage() {
     <div className="space-y-6">
       <TestsTab 
         tests={tests} 
+        loading={loading}
         onEdit={(item) => { setEditingItem(item); setDialogs({ ...dialogs, test: true }); }}
         onDelete={(id) => handlePost('deleteTest', { id })}
         onManageQuestions={(id) => router.push(`/admin/tests/${id}`)}

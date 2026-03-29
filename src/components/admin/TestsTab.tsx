@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -45,16 +44,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/context/language-context';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TestsTabProps {
   tests: any[];
+  loading?: boolean;
   onEdit: (test: any) => void;
   onDelete: (id: string) => void;
   onManageQuestions: (id: string) => void;
   onAdd: () => void;
 }
 
-export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: TestsTabProps) {
+export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, onAdd }: TestsTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -129,7 +130,28 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((t_item, i) => (
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i} className="border-b border-slate-50 last:border-none">
+                      <TableCell className="px-8 py-6">
+                        <Skeleton className="h-4 w-12 rounded" />
+                      </TableCell>
+                      <TableCell className="px-8 py-6">
+                        <Skeleton className="h-5 w-48 rounded" />
+                      </TableCell>
+                      <TableCell className="px-8 py-6">
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                      </TableCell>
+                      <TableCell className="px-8 py-6 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Skeleton className="h-8 w-20 rounded-full" />
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : filtered.map((t_item, i) => (
                   <TableRow key={i} className="group border-b border-slate-50 last:border-none">
                     <TableCell className="px-8 py-5">
                       <Badge variant="outline" className="font-mono text-[10px] bg-slate-50 rounded-md border-slate-200">
@@ -159,7 +181,7 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
                 ))}
               </TableBody>
             </Table>
-            {filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <div className="py-24 text-center">
                 <p className="font-black text-slate-300 uppercase tracking-widest">{t('noTests')}</p>
               </div>
@@ -168,7 +190,25 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((t_item, i) => (
+          {loading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden border-none shadow-sm rounded-[2.5rem] bg-white flex flex-col">
+                <Skeleton className="aspect-video w-full" />
+                <CardHeader className="flex-1 pb-2">
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <Skeleton className="h-4 w-12 rounded" />
+                    <Skeleton className="h-4 w-16 rounded" />
+                  </div>
+                  <Skeleton className="h-7 w-3/4 rounded mt-2" />
+                  <Skeleton className="h-4 w-full rounded mt-4" />
+                  <Skeleton className="h-4 w-5/6 rounded mt-2" />
+                </CardHeader>
+                <CardFooter className="pt-0 p-4 mt-auto">
+                  <Skeleton className="h-12 w-full rounded-full" />
+                </CardFooter>
+              </Card>
+            ))
+          ) : filtered.map((t_item, i) => (
             <Card key={i} className="group overflow-hidden border-none shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 rounded-[2.5rem] bg-white flex flex-col">
               <div className="relative aspect-video overflow-hidden bg-slate-100">
                 <img 
@@ -240,6 +280,11 @@ export function TestsTab({ tests, onEdit, onDelete, onManageQuestions, onAdd }: 
               </CardFooter>
             </Card>
           ))}
+          {!loading && filtered.length === 0 && (
+            <div className="col-span-full py-24 text-center">
+              <p className="font-black text-slate-300 uppercase tracking-widest">{t('noTests')}</p>
+            </div>
+          )}
         </div>
       )}
 
