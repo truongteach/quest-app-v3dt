@@ -6,10 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Zap, LogIn, Loader2, ArrowLeft, Mail, Lock } from "lucide-react";
+import { Zap, LogIn, Loader2, ArrowLeft, Mail, Lock, UserPlus } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -18,6 +26,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +40,6 @@ export default function LoginPage() {
         title: "Access Granted",
         description: "Authenticated with DNTRNG identity provider.",
       });
-      // Redirect to profile page instead of tests library
       router.push('/profile');
     } else {
       toast({
@@ -105,6 +113,18 @@ export default function LoginPage() {
               Sign In
             </Button>
           </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-sm font-medium text-slate-500">
+              Don't have an account?{" "}
+              <button 
+                onClick={() => setIsSignUpDialogOpen(true)}
+                className="text-primary font-black hover:underline underline-offset-4 transition-all"
+              >
+                Sign Up
+              </button>
+            </p>
+          </div>
         </CardContent>
         <CardFooter className="bg-slate-50/80 p-6 flex flex-col items-center gap-2 text-center">
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
@@ -112,6 +132,28 @@ export default function LoginPage() {
           </p>
         </CardFooter>
       </Card>
+
+      <Dialog open={isSignUpDialogOpen} onOpenChange={setIsSignUpDialogOpen}>
+        <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] p-10 border-none shadow-2xl bg-white">
+          <DialogHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-2">
+              <UserPlus className="w-8 h-8 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900">Account Required</DialogTitle>
+            <DialogDescription className="text-base font-medium text-slate-500 leading-relaxed">
+              To access the platform, please contact your administrator to have an account created for you. Once your account is ready, return here and sign in with the credentials provided.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-8">
+            <Button 
+              onClick={() => setIsSignUpDialogOpen(false)}
+              className="w-full h-14 rounded-full bg-slate-900 font-black uppercase text-xs tracking-widest"
+            >
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
