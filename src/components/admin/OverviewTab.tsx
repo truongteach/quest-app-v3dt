@@ -118,11 +118,11 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
     return Object.entries(counts).map(([date, count]) => ({ date, count })).reverse().slice(-7);
   }, [data.responses]);
 
-  const avgScore = useMemo(() => {
-    if (data.responses.length === 0) return '0%';
+  const avgScoreValue = useMemo(() => {
+    if (data.responses.length === 0) return 0;
     const totalPossible = data.responses.reduce((acc, r) => acc + (Number(r.Total) || 1), 0);
     const totalEarned = data.responses.reduce((acc, r) => acc + (Number(r.Score) || 0), 0);
-    return `${Math.round((totalEarned / totalPossible) * 100)}%`;
+    return Math.round((totalEarned / totalPossible) * 100);
   }, [data.responses]);
 
   const copyToClipboard = (text: string, label: string) => {
@@ -136,6 +136,14 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
   const handleUpdateSalt = () => {
     onSaveSetting('daily_key_salt', newSalt);
     setIsSaltDialogOpen(false);
+  };
+
+  const getScoreBadgeStyles = (score: number, total: number) => {
+    const p = (score / (total || 1)) * 100;
+    if (p <= 40) return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+    if (p <= 70) return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
+    if (p <= 90) return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+    return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
   };
 
   return (
@@ -159,21 +167,21 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 bg-slate-900 p-4 rounded-[1.5rem] shadow-xl border border-white/5 group">
+        <div className="flex flex-wrap items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-white/5 group">
           <div className="flex items-center gap-4">
             <div className="p-2 bg-primary/10 rounded-xl">
               <Key className="w-4 h-4 text-primary group-hover:rotate-12 transition-transform" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('accessKey')}</span>
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">{t('accessKey')}</span>
               <div className="flex items-center gap-3">
-                <span className="text-lg font-black text-white tracking-[0.2em] font-mono leading-none">
+                <span className="text-lg font-black text-slate-900 dark:text-white tracking-[0.2em] font-mono leading-none">
                   {(!mounted || !lastSync) ? "••••••••" : currentDailyKey}
                 </span>
                 {mounted && lastSync && (
                   <button 
                     onClick={() => copyToClipboard(currentDailyKey, t('accessKey'))}
-                    className="text-slate-600 hover:text-primary transition-colors"
+                    className="text-slate-400 hover:text-primary transition-colors"
                   >
                     <Copy className="w-3 h-3" />
                   </button>
@@ -182,7 +190,7 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
             </div>
           </div>
 
-          <div className="sm:ml-4 sm:pl-4 sm:border-l border-white/10 flex items-center gap-3">
+          <div className="sm:ml-4 sm:pl-4 sm:border-l border-slate-100 dark:border-white/10 flex items-center gap-3">
             <Switch 
               id="protection-toggle"
               checked={localProtectionEnabled} 
@@ -197,10 +205,10 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
             </Label>
           </div>
           
-          <div className="sm:ml-4 sm:pl-4 sm:border-l border-white/10 flex items-center gap-2">
+          <div className="sm:ml-4 sm:pl-4 sm:border-l border-slate-100 dark:border-white/10 flex items-center gap-2">
             <Dialog open={isSaltDialogOpen} onOpenChange={setIsSaltDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-primary">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-primary">
                   <Settings2 className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
@@ -241,7 +249,7 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black text-[10px] uppercase tracking-widest gap-2">
+                <Button variant="ghost" size="sm" className="h-10 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-white font-black text-[10px] uppercase tracking-widest gap-2">
                   <CalendarDays className="w-3.5 h-3.5 text-primary" />
                   {t('weeklySchedule')}
                 </Button>
@@ -295,7 +303,13 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
         <StatCard icon={LayoutGrid} label={t('totalTests')} value={data.tests.length} color="blue" />
         <StatCard icon={UsersIcon} label={t('totalStudents')} value={data.users.length} color="green" />
         <StatCard icon={TrendingUp} label={t('testResults')} value={data.responses.length} color="purple" />
-        <StatCard icon={Activity} label={t('avgScore')} value={avgScore} color="orange" />
+        <StatCard 
+          icon={Activity} 
+          label={t('avgScore')} 
+          value={`${avgScoreValue}%`} 
+          color="orange" 
+          trend={<TrendingUp className="w-3 h-3 text-emerald-500 inline-block ml-1" />}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -345,14 +359,16 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
               {data.responses.slice(0, 6).map((resp, i) => (
                 <div key={i} className="p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-xs",
-                    (Number(resp.Score) / Number(resp.Total)) >= 0.7 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-[10px]",
+                    getScoreBadgeStyles(Number(resp.Score), Number(resp.Total))
                   )}>
                     {resp.Score}/{resp.Total}
                   </div>
                   <div className="flex-1 min-w-0 text-slate-700 dark:text-slate-300">
                     <p className="font-bold text-sm truncate">{resp['Test ID']}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">{new Date(resp.Timestamp).toLocaleDateString()}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium truncate">
+                      {resp['User Name'] || 'Anonymous'} · {new Date(resp.Timestamp).toLocaleDateString()}
+                    </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600" />
                 </div>
@@ -378,7 +394,7 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
   );
 }
 
-function StatCard({ icon: Icon, label, value, color }: any) {
+function StatCard({ icon: Icon, label, value, color, trend }: any) {
   const colors: Record<string, string> = {
     blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
     green: "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400",
@@ -391,7 +407,10 @@ function StatCard({ icon: Icon, label, value, color }: any) {
         <div className={cn("p-4 rounded-2xl", colors[color])}><Icon className="w-6 h-6" /></div>
         <div>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
-          <p className="text-3xl font-black text-slate-900 dark:text-white">{value}</p>
+          <p className="text-3xl font-black text-slate-900 dark:text-white">
+            {value}
+            {trend}
+          </p>
         </div>
       </CardContent>
     </Card>
@@ -404,7 +423,7 @@ function QuickActionCard({ title, description, icon: Icon, onClick, theme }: any
     dark: "bg-slate-900 text-white border dark:border-slate-800",
     accent: "bg-accent text-white shadow-lg shadow-accent/20",
     light: "bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white",
-    warning: "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+    warning: "bg-orange-50 text-white shadow-lg shadow-orange-500/20"
   };
   return (
     <Card className={cn("border-none shadow-sm cursor-pointer hover:scale-[1.02] transition-transform", themes[theme])} onClick={onClick}>

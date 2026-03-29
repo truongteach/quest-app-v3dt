@@ -74,10 +74,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <h2 className="text-xl font-black capitalize tracking-tight text-slate-900 dark:text-white">
                     {pathname === '/admin' ? 'Dashboard' : pathname.split('/').pop()?.replace('-', ' ')}
                   </h2>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    Console Active
-                  </span>
                 </div>
               </div>
             </header>

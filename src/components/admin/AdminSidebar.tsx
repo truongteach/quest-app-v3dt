@@ -96,7 +96,7 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
 
         <div className="px-4 mt-10">
           <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Region Protocol</p>
+            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Language</p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full h-10 rounded-xl justify-between border-slate-200 dark:border-slate-700 font-bold text-xs uppercase tracking-widest bg-white dark:bg-slate-800">
