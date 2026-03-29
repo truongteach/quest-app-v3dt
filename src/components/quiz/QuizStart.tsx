@@ -76,29 +76,25 @@ export function QuizStart({
   const modes = [
     {
       id: 'training' as QuizMode,
-      title: 'Training',
+      title: 'Practice',
       icon: Gamepad2,
-      desc: 'No pressure. Practice at your own pace with instant feedback.',
-      features: ['Unlimited Time', 'Instant Feedback', 'Retries Allowed'],
-      color: 'blue'
+      desc: 'No time limit, instant feedback'
     },
     {
       id: 'test' as QuizMode,
       title: 'Test',
       icon: Target,
-      desc: 'Standard protocol. Fixed time limit. No feedback until the end.',
-      features: ['Fixed Timer', 'Final Score Only', 'One Attempt'],
-      color: 'primary'
+      desc: 'Timed, score revealed at the end'
     },
     {
       id: 'race' as QuizMode,
       title: 'Race',
       icon: Flame,
-      desc: 'High stakes. Speed & accuracy. One mistake and you start over.',
-      features: ['Speed Focus', 'Permadeath Reset', 'Streak Tracking'],
-      color: 'orange'
+      desc: 'Speed & accuracy, one attempt'
     }
   ];
+
+  const currentModeInfo = modes.find(m => m.id === selectedMode);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
@@ -113,7 +109,7 @@ export function QuizStart({
           <CardDescription className="text-lg font-medium text-slate-500 mt-2">
             {step === 'gate' && 'Security Protocol Required'}
             {step === 'identity' && (description || 'Identity Registration')}
-            {step === 'mode' && 'Select Initialization Protocol'}
+            {step === 'mode' && 'Choose your mode'}
           </CardDescription>
         </CardHeader>
 
@@ -193,75 +189,43 @@ export function QuizStart({
           )}
 
           {step === 'mode' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="text-center">
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">How do you want to take this test?</p>
+              </div>
+
+              <div className="bg-slate-100/50 p-2 rounded-full flex items-center justify-between border border-slate-100 shadow-inner">
                 {modes.map((mode) => (
                   <button
                     key={mode.id}
                     onClick={() => setSelectedMode(mode.id)}
                     className={cn(
-                      "flex flex-col p-6 rounded-[2rem] border-4 transition-all text-left relative group overflow-hidden",
+                      "flex-1 flex items-center justify-center gap-3 py-4 px-2 rounded-full transition-all duration-300",
                       selectedMode === mode.id 
-                        ? "border-primary bg-primary/5 shadow-xl scale-105 z-10" 
-                        : "border-slate-50 bg-slate-50/50 hover:border-slate-200"
+                        ? "bg-primary text-white shadow-xl shadow-primary/20 scale-100" 
+                        : "text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"
                     )}
                   >
-                    <div className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110",
-                      selectedMode === mode.id ? "bg-primary text-white" : "bg-white text-slate-400 shadow-sm"
-                    )}>
-                      <mode.icon className="w-6 h-6" />
-                    </div>
-                    <h3 className={cn("text-xl font-black uppercase tracking-tighter mb-2", selectedMode === mode.id ? "text-primary" : "text-slate-900")}>
-                      {mode.title}
-                    </h3>
-                    <p className="text-xs font-bold text-slate-400 leading-relaxed mb-6">{mode.desc}</p>
-                    
-                    <div className="space-y-2">
-                      {mode.features.map((f, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className={cn("w-3 h-3", selectedMode === mode.id ? "text-primary" : "text-slate-300")} />
-                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{f}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {selectedMode === mode.id && (
-                      <div className="absolute top-4 right-4 animate-in zoom-in-50">
-                        <div className="w-3 h-3 bg-primary rounded-full ring-4 ring-primary/20" />
-                      </div>
-                    )}
+                    <mode.icon className={cn("w-5 h-5", selectedMode === mode.id ? "text-white" : "text-slate-400")} />
+                    <span className="text-sm font-black uppercase tracking-tight">{mode.title}</span>
                   </button>
                 ))}
               </div>
 
-              <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                  {selectedMode === 'training' && <Gamepad2 className="w-32 h-32" />}
-                  {selectedMode === 'test' && <Target className="w-32 h-32" />}
-                  {selectedMode === 'race' && <Flame className="w-32 h-32" />}
-                </div>
-                
-                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                  <div className="space-y-2 text-center md:text-left">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Protocol Ready</p>
-                    <h4 className="text-2xl font-black uppercase tracking-tight">
-                      Initialize {selectedMode} Mode
-                    </h4>
-                    <p className="text-sm text-slate-400 font-medium">
-                      {selectedMode === 'training' && "Master the content with no time constraints."}
-                      {selectedMode === 'test' && "Simulate a real-world assessment environment."}
-                      {selectedMode === 'race' && "Test your speed. Precision is mandatory."}
-                    </p>
-                  </div>
-                  <Button 
-                    onClick={() => onStart(selectedMode)}
-                    className="h-16 px-12 rounded-full bg-primary font-black text-lg shadow-2xl hover:scale-110 transition-all shrink-0"
-                  >
-                    Start Intelligence
-                    <Play className="w-5 h-5 ml-3 fill-current" />
-                  </Button>
-                </div>
+              <div className="text-center min-h-[20px] animate-in fade-in duration-500">
+                <p className="text-lg font-bold text-slate-600 italic">
+                  {currentModeInfo?.desc}
+                </p>
+              </div>
+
+              <div className="pt-4">
+                <Button 
+                  onClick={() => onStart(selectedMode)}
+                  className="w-full h-20 rounded-full bg-primary font-black text-2xl shadow-2xl hover:scale-[1.02] transition-all uppercase tracking-tighter"
+                >
+                  Start Assessment
+                  <Play className="w-6 h-6 ml-3 fill-current" />
+                </Button>
               </div>
 
               <div className="flex flex-col gap-4">
