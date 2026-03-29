@@ -53,18 +53,17 @@ export default function LoginPage() {
       </Link>
 
       <Card className="w-full max-w-md border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
-        <div className="h-3 bg-primary" />
         <CardHeader className="text-center pt-12">
           <div className="mx-auto w-20 h-20 bg-primary/10 rounded-[1.5rem] flex items-center justify-center mb-6">
             <Zap className="w-10 h-10 text-primary fill-current" />
           </div>
-          <CardTitle className="text-3xl font-black tracking-tight uppercase">DNTRNG Login</CardTitle>
-          <CardDescription className="text-base font-medium">Platform authentication required.</CardDescription>
+          <CardTitle className="text-3xl font-black tracking-tight uppercase">Sign In</CardTitle>
+          <CardDescription className="text-base font-medium">Welcome back. Enter your details to continue.</CardDescription>
         </CardHeader>
-        <CardContent className="px-10 pb-10">
+        <CardContent className="px-10 pb-6">
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Identity (Email)</Label>
+              <Label htmlFor="email" className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                 <Input 
@@ -79,7 +78,7 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Secure Key</Label>
+              <Label htmlFor="password" className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                 <Input 
@@ -103,13 +102,13 @@ export default function LoginPage() {
               ) : (
                 <LogIn className="w-5 h-5 mr-2" />
               )}
-              Authenticate
+              Sign In
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="bg-slate-50/80 p-8 flex flex-col items-center gap-2 text-center">
+        <CardFooter className="bg-slate-50/80 p-6 flex flex-col items-center gap-2 text-center">
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-            Protected by DNTRNG Cloud Identity
+            © 2026 DNTRNG
           </p>
         </CardFooter>
       </Card>
