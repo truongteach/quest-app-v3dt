@@ -15,7 +15,11 @@ import {
   Target, 
   Flame,
   Lock,
-  ShieldCheck
+  ShieldCheck,
+  Clock,
+  ListChecks,
+  BarChart3,
+  ArrowRight
 } from "lucide-react";
 import { QuizMode } from '@/types/quiz';
 import { cn } from "@/lib/utils";
@@ -104,33 +108,37 @@ export function QuizStart({
   const currentModeInfo = modes.find(m => m.id === selectedMode);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <Card className="w-full max-w-2xl border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white">
-        <div className="h-3 bg-primary" />
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 selection:bg-primary selection:text-white">
+      <Card className="w-full max-w-2xl border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white relative">
+        {/* Subtle Background Pattern */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px]" />
         
-        <CardHeader className="text-center pt-12 pb-6">
-          <div className="mx-auto w-20 h-20 bg-primary/10 rounded-[1.5rem] flex items-center justify-center mb-6 rotate-3">
-            <Zap className="w-10 h-10 text-primary fill-current" />
+        {/* New Gradient Header Band */}
+        <div className="relative z-10 bg-gradient-to-r from-primary to-indigo-600 p-10 md:p-14 text-center">
+          <div className="mx-auto w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8 rotate-3 shadow-2xl ring-1 ring-white/20">
+            <Zap className="w-10 h-10 text-white fill-white/20" />
           </div>
-          <CardTitle className="text-4xl font-black tracking-tighter uppercase text-slate-900">{title}</CardTitle>
-          <CardDescription className="text-lg font-medium text-slate-500 mt-2">
-            {step === 'gate' && 'Security Protocol Required'}
-            {step === 'identity' && (description || 'Identity Registration')}
-            {step === 'mode' && 'Choose your mode'}
-          </CardDescription>
-        </CardHeader>
+          <CardTitle className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-white leading-none mb-4">
+            {title}
+          </CardTitle>
+          <p className="text-white/60 font-black uppercase tracking-[0.4em] text-[10px]">
+            {step === 'gate' ? 'Security Protocol Required' : 
+             step === 'identity' ? 'Mission Registration' : 
+             'Mode Selection'}
+          </p>
+        </div>
 
-        <CardContent className="px-10 pb-12">
+        <CardContent className="px-10 md:px-16 pt-12 pb-16 relative z-10">
           {step === 'gate' && (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-              <div className="p-8 bg-slate-900 rounded-[2.5rem] text-white relative overflow-hidden">
+              <div className="p-8 bg-slate-900 rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl">
                 <ShieldCheck className="absolute top-0 right-0 w-32 h-32 text-white/5 -mr-8 -mt-8" />
                 <div className="relative z-10 space-y-4">
                   <div className="flex items-center gap-3 mb-2">
                     <Lock className="w-5 h-5 text-primary" />
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Secure Entry Required</span>
                   </div>
-                  <p className="text-sm font-medium text-slate-400">This intelligence module is protected by a daily access key. Please provide the key shared by your supervisor.</p>
+                  <p className="text-sm font-medium text-slate-400">This module is protected by a daily access key. Provide the key from your supervisor to initialize.</p>
                   
                   <div className="pt-4">
                     <Input 
@@ -157,48 +165,60 @@ export function QuizStart({
           )}
 
           {step === 'identity' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-              <div className="flex items-center justify-center gap-6 py-6 border-y border-slate-50">
-                <div className="text-center">
-                  <p className="text-3xl font-black text-slate-900">{questionsCount}</p>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Steps</p>
+            <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
+              {/* Visual Stats Row */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 border border-blue-100/50 shadow-sm">
+                  <ListChecks className="w-5 h-5 text-primary" />
+                  <p className="text-xl font-black text-slate-900">{questionsCount}</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Steps</p>
                 </div>
-                <div className="w-px h-12 bg-slate-100" />
-                <div className="text-center">
-                  <p className="text-3xl font-black text-slate-900">{duration || '15m'}</p>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Target</p>
+                <div className="bg-indigo-50 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 border border-indigo-100/50 shadow-sm">
+                  <Clock className="w-5 h-5 text-indigo-600" />
+                  <p className="text-xl font-black text-slate-900">{duration || '15m'}</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Target</p>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 border border-slate-200/50 shadow-sm">
+                  <BarChart3 className="w-5 h-5 text-slate-600" />
+                  <p className="text-xl font-black text-slate-900">Standard</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Difficulty</p>
                 </div>
               </div>
 
-              <div className="space-y-4 p-8 bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 shadow-inner">
-                <Label htmlFor="guestName" className="font-black text-[10px] uppercase tracking-[0.3em] text-slate-400 ml-1">Identity Provider</Label>
-                <div className="relative">
-                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+              <div className="space-y-4">
+                <Label htmlFor="guestName" className="font-black text-[10px] uppercase tracking-[0.3em] text-slate-400 ml-1">Operator Callsign</Label>
+                <div className="relative group">
+                  <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-primary transition-colors" />
                   <Input 
                     id="guestName"
                     placeholder="Enter full name for registry..."
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
-                    className="h-16 pl-12 rounded-2xl bg-white border-none ring-1 ring-slate-100 focus:ring-primary/40 text-lg font-bold"
+                    className="h-18 pl-14 rounded-2xl bg-white border-2 border-slate-100 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-xl font-black text-slate-900"
                   />
                 </div>
               </div>
 
-              <Button 
-                onClick={() => guestName.trim() ? setStep('mode') : null}
-                disabled={!guestName.trim()}
-                className="w-full h-20 rounded-full text-xl font-black shadow-2xl transition-all hover:scale-[1.02] bg-slate-900 uppercase tracking-tighter"
-              >
-                Proceed to Mode Selection
-                <ChevronRight className="w-6 h-6 ml-2" />
-              </Button>
+              <div className="space-y-4">
+                <Button 
+                  onClick={() => guestName.trim() ? setStep('mode') : null}
+                  disabled={!guestName.trim()}
+                  className="w-full h-20 rounded-full text-2xl font-black shadow-2xl transition-all hover:scale-[1.02] bg-gradient-to-r from-primary to-indigo-600 text-white uppercase tracking-tighter group hover:shadow-primary/20"
+                >
+                  Begin Mission
+                  <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Your session is private. Results tracked in real-time.
+                </p>
+              </div>
             </div>
           )}
 
           {step === 'mode' && (
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="text-center">
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">How do you want to take this test?</p>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest italic">"How do you want to take this test?"</p>
               </div>
 
               <div className="bg-slate-100/50 p-2 rounded-full flex items-center justify-between border border-slate-100 shadow-inner">
@@ -225,34 +245,34 @@ export function QuizStart({
                 </p>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 space-y-6">
                 <Button 
                   onClick={() => onStart(selectedMode)}
                   className={cn(
-                    "w-full h-20 rounded-full font-black text-2xl shadow-2xl hover:scale-[1.02] transition-all uppercase tracking-tighter border-none",
+                    "w-full h-20 rounded-full font-black text-2xl shadow-2xl hover:scale-[1.02] transition-all uppercase tracking-tighter border-none text-white",
                     currentModeInfo?.btnClass
                   )}
                 >
-                  Start Assessment
+                  Initialize Protocol
                   <Play className="w-6 h-6 ml-3 fill-current" />
                 </Button>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <button 
-                  onClick={() => setStep('identity')}
-                  className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 hover:text-slate-500 transition-colors"
-                >
-                  Change Identity Registry
-                </button>
-                {isProtectionEnabled && (
+                
+                <div className="flex flex-col gap-4">
                   <button 
-                    onClick={() => { setStep('gate'); setPassword(''); }}
+                    onClick={() => setStep('identity')}
                     className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 hover:text-slate-500 transition-colors"
                   >
-                    Lock Assessment Session
+                    Modify Callsign Registry
                   </button>
-                )}
+                  {isProtectionEnabled && (
+                    <button 
+                      onClick={() => { setStep('gate'); setPassword(''); }}
+                      className="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 hover:text-slate-500 transition-colors"
+                    >
+                      Lock Assessment Session
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
