@@ -19,7 +19,7 @@ export async function GET() {
     
     // Set a timeout for the health check to avoid hanging
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort("timeout"), 5000);
 
     const res = await fetch(`${API_URL}?action=getSettings`, { 
       signal: controller.signal,

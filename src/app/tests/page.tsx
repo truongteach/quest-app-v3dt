@@ -39,7 +39,7 @@ export default function TestsLibrary() {
     
     // Registry Sync Protocol: 8s Safety Timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort("Timeout"), 8000);
 
     try {
       if (API_URL) {
@@ -65,11 +65,12 @@ export default function TestsLibrary() {
       setLastSync(new Date());
     } catch (err: any) {
       clearTimeout(timeoutId);
-      console.error("Registry Sync Violation:", err);
       
-      if (err.name === 'AbortError') {
+      // If the error is an AbortError, we handle it as a timeout
+      if (err.name === 'AbortError' || err === 'Timeout') {
         setError("The registry request timed out (8s limit exceeded). Ensure the bridge is responding.");
       } else {
+        console.error("Registry Sync Violation:", err);
         setError("The Registry Bridge is currently unresponsive or misconfigured.");
       }
     } finally {
