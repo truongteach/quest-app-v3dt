@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export type Language = 'en' | 'vi' | 'es';
 
@@ -10,473 +10,56 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-const translations: Record<Language, Record<string, string>> = {
-  en: {
-    // Theme
-    lightMode: "Light Mode",
-    darkMode: "Dark Mode",
-    system: "System",
-    // Navbar
-    library: "Test Library",
-    setupGuide: "Setup Guide",
-    startQuiz: "Start Quiz",
-    // Hero
-    heroBadge: "Free · No account needed · Start in seconds",
-    heroTitle: "Take a quiz. Know exactly where you stand.",
-    heroSubtitle: "Pick a test, answer the questions, and get a detailed breakdown of every mistake — instantly.",
-    browseTests: "Browse Tests",
-    tryDemo: "Try a Demo",
-    stat1: "40+ Questions per test",
-    stat2: "3 Question types",
-    stat3: "100% Free",
-    // Features
-    featureSectionTitle: "Not just a quiz. A learning tool.",
-    feature1Title: "Multiple Choice",
-    feature1Desc: "Pick the right answer. After submitting, you see exactly which answer was correct and why you were wrong.",
-    feature2Title: "Click-on-Image",
-    feature2Desc: "See a real screenshot and click the exact area that answers the question. Tests real visual recognition.",
-    feature3Title: "Drag-to-Order",
-    feature3Desc: "Drag steps into the correct sequence. Perfect for learning procedures where order matters.",
-    feature4Title: "Detailed Results Breakdown",
-    feature4Desc: "After every test, see your accuracy score, time taken, and a full list of every wrong answer — so you know exactly what to study next.",
-    // How it works
-    howItWorksTitle: "How It Works",
-    step1: "Pick a Test",
-    step1Desc: "Browse our library and choose a module that fits your learning goals.",
-    step2: "Answer the Questions",
-    step2Desc: "Engage with interactive modules designed to challenge your skills.",
-    step3: "See Your Results",
-    step3Desc: "Get instant feedback and analyze your performance history.",
-    // Final CTA
-    finalCtaTitle: "Ready to find your weak spots?",
-    finalCtaDesc: "Jump straight into a test. No signup, no waiting.",
-    // Footer
-    footerDesc: "Empowering students with smart assessments and real-time results.",
-    platform: "Platform",
-    resources: "Resources",
-    adminConsole: "Admin Console",
-    setupProtocol: "Setup Guide",
-    identityGuide: "Identity Guide",
-    cloudSync: "Cloud Sync",
-    // Admin & General
-    dashboard: "Dashboard",
-    testLibrary: "Library",
-    students: "Students",
-    results: "Results",
-    activity: "Logs",
-    logout: "Log out",
-    adminConsoleLabel: "Admin Console",
-    statusActive: "Status: Active",
-    lastSync: "Last Sync",
-    accessKey: "Access Key",
-    weeklySchedule: "Weekly Schedule",
-    totalTests: "Total Tests",
-    totalStudents: "Total Students",
-    testResults: "Test Results",
-    avgScore: "Avg. Score",
-    activityTrend: "Activity Trend",
-    recentResults: "Recent Results",
-    seeAllResults: "See All Results",
-    quickActions: "Quick Actions",
-    createTest: "Create Test",
-    manageTests: "Manage Tests",
-    gsCode: "GS Code",
-    syncData: "Sync Data",
-    seedData: "Seed Library",
-    searchTests: "Search tests...",
-    newTest: "New Test",
-    id: "ID",
-    title: "Title",
-    category: "Category",
-    actions: "Actions",
-    questions: "QUESTIONS",
-    edit: "Edit",
-    delete: "Delete",
-    studentList: "Student List",
-    addStudent: "Add Student",
-    studentInfo: "Student Info",
-    role: "Role",
-    testsDone: "Tests Done",
-    fullResultHistory: "Full Result History",
-    date: "Date",
-    student: "Student",
-    email: "Email",
-    score: "Score",
-    result: "Result",
-    passRate: "Pass Rate",
-    excellent: "EXCELLENT",
-    pass: "PASS",
-    fail: "FAIL",
-    saveChanges: "Save Changes",
-    addMultiple: "Add Multiple",
-    studentManagement: "Student Management",
-    questionList: "Question List",
-    manageQuestions: "Manage the questions for this test",
-    recentSubmissions: "Latest student submissions",
-    weeklyKeys: "Keys change automatically at midnight.",
-    noTests: "No Tests Found",
-    noStudents: "No students registered",
-    noResults: "No results yet",
-    waitingFirst: "Waiting for the first student submission...",
-    confirmDeleteTitle: "Are you sure?",
-    confirmDeleteDesc: "This will permanently remove this item and all its associated data. This action cannot be undone.",
-    cancel: "Cancel",
-    timestamp: "Timestamp",
-    event: "Event",
-    systemActivity: "System Activity Logs",
-    monitorAccess: "Monitor student login/logout events",
-    ipAddress: "IP Address",
-    device: "Device",
-    sessionArchive: "Test History",
-    identityRegistry: "My Profile",
-    identityKey: "Email",
-    accessProtocol: "Role",
-    terminateSession: "Sign Out",
-    registryOverview: "Registry Overview",
-    quickProtocol: "Quick Protocol",
-    activeModules: "Active Modules",
-    structuralIntegrity: "Structural integrity: 100% Optimal",
-    injectNewTest: "Inject New Test",
-    viewSetupGuide: "View Setup Guide",
-    noLogsDetected: "No tests yet",
-    exploreLibrary: "Explore Library",
-    historicalInteraction: "Your past test results and scores",
-    accountOverview: "Account Overview",
-    noTestsMessage: "You haven't taken any tests yet. Complete a test and your results will appear here.",
-    // Health Indicators
-    systemStatus: "System",
-    optimal: "Optimal",
-    degraded: "Degraded",
-    offline: "Offline",
-    // Library Redesign
-    chooseTest: "Choose a Test",
-    testSubtitle: "Pick any test below and start immediately — no account needed.",
-    searchPlaceholder: "Search by test name...",
-    all: "All",
-    beginner: "Beginner",
-    easy: "Easy",
-    medium: "Medium",
-    hard: "Hard"
-  },
-  vi: {
-    // Theme
-    lightMode: "Chế độ Sáng",
-    darkMode: "Chế độ Tối",
-    system: "Hệ thống",
-    // Navbar
-    library: "Thư viện bài thi",
-    setupGuide: "Hướng dẫn",
-    startQuiz: "Vào thi",
-    // Hero
-    heroBadge: "Miễn phí · Không cần tài khoản · Bắt đầu ngay",
-    heroTitle: "Làm bài kiểm tra. Biết ngay điểm mạnh, điểm yếu.",
-    heroSubtitle: "Chọn đề thi, trả lời câu hỏi, và nhận phân tích chi tiết từng lỗi sai — ngay lập tức.",
-    browseTests: "Xem đề thi",
-    tryDemo: "Thử bản mẫu",
-    stat1: "40+ câu hỏi mỗi bài",
-    stat2: "3 dạng câu hỏi",
-    stat3: "100% Miễn phí",
-    // Features
-    featureSectionTitle: "Không chỉ là kiểm tra. Đây là công cụ học tập.",
-    feature1Title: "Trắc nghiệm",
-    feature1Desc: "Chọn câu trả lời đúng. Sau khi nộp bài, bạn sẽ thấy chính xác câu nào đúng và tại sao bạn sai.",
-    feature2Title: "Vùng tương tác",
-    feature2Desc: "Xem ảnh chụp màn hình thực tế và nhấp vào vùng trả lời câu hỏi. Kiểm tra khả năng nhận diện thị giác.",
-    feature3Title: "Kéo thả thứ tự",
-    feature3Desc: "Kéo các bước vào đúng trình tự. Hoàn hảo để học các quy trình cần độ chính xác về thứ tự.",
-    feature4Title: "Phân tích kết quả chi tiết",
-    feature4Desc: "Sau mỗi bài thi, xem điểm số, thời gian làm bài và danh sách mọi câu sai — để bạn biết chính xác cần học thêm gì.",
-    // How it works
-    howItWorksTitle: "Cách thức hoạt động",
-    step1: "Chọn đề thi",
-    step1Desc: "Duyệt qua thư viện và chọn mô-đun phù hợp với mục tiêu học tập của bạn.",
-    step2: "Trả lời câu hỏi",
-    step2Desc: "Tương tác với các mô-đun được thiết kế để thử thách kỹ năng của bạn.",
-    step3: "Xem kết quả của bạn",
-    step3Desc: "Nhận phản hồi tức thì và phân tích lịch sử hiệu suất của bạn.",
-    // Final CTA
-    finalCtaTitle: "Sẵn sàng tìm ra điểm yếu của bạn?",
-    finalCtaDesc: "Vào thi ngay thôi. Không cần đăng ký, không cần chờ.",
-    // Footer
-    footerDesc: "Hỗ trợ học sinh với bài kiểm tra thông minh và kết quả tức thì.",
-    platform: "Nền tảng",
-    resources: "Tài nguyên",
-    adminConsole: "Quản trị",
-    setupProtocol: "Hướng dẫn cài đặt",
-    identityGuide: "Hướng dẫn định danh",
-    cloudSync: "Đồng bộ đám mây",
-    // Admin & General
-    dashboard: "Bảng điều khiển",
-    testLibrary: "Thư viện",
-    students: "Học sinh",
-    results: "Kết quả",
-    activity: "Nhật ký",
-    logout: "Đăng xuất",
-    adminConsoleLabel: "Quản trị",
-    statusActive: "Trạng thái: Hoạt động",
-    lastSync: "Đồng bộ cuối",
-    accessKey: "Mã truy cập",
-    weeklySchedule: "Lịch hàng tuần",
-    totalTests: "Tổng bài thi",
-    totalStudents: "Tổng học sinh",
-    testResults: "Kết quả thi",
-    avgScore: "Điểm trung bình",
-    activityTrend: "Xu hướng hoạt động",
-    recentResults: "Kết quả gần đây",
-    seeAllResults: "Xem tất cả",
-    quickActions: "Thao tác nhanh",
-    createTest: "Tạo bài thi",
-    manageTests: "Quản lý bài thi",
-    gsCode: "Mã GS",
-    syncData: "Đồng bộ dữ liệu",
-    seedData: "Nạp dữ liệu mẫu",
-    searchTests: "Tìm kiếm bài thi...",
-    newTest: "Bài thi mới",
-    id: "ID",
-    title: "Tiêu đề",
-    category: "Danh mục",
-    actions: "Hành động",
-    questions: "CÂU HỎI",
-    edit: "Sửa",
-    delete: "Xóa",
-    studentList: "Danh sách học sinh",
-    addStudent: "Thêm học sinh",
-    studentInfo: "Thông tin học sinh",
-    role: "Vai trò",
-    testsDone: "Bài đã làm",
-    fullResultHistory: "Lịch sử kết quả",
-    date: "Ngày",
-    student: "Học sinh",
-    email: "Email",
-    score: "Điểm số",
-    result: "Kết quả",
-    passRate: "Tỷ lệ đạt",
-    excellent: "XUẤT SẮC",
-    pass: "ĐẠT",
-    fail: "KHÔNG ĐẠT",
-    saveChanges: "Lưu thay đổi",
-    addMultiple: "Thêm nhiều học sinh",
-    studentManagement: "Quản lý học sinh",
-    questionList: "Danh sách câu hỏi",
-    manageQuestions: "Quản lý câu hỏi cho bài thi này",
-    recentSubmissions: "Các bài nộp mới nhất",
-    weeklyKeys: "Mã thay đổi tự động vào nửa đêm.",
-    noTests: "Không tìm thấy bài thi nào",
-    noStudents: "Chưa có học sinh đăng ký",
-    noResults: "Chưa có kết quả",
-    waitingFirst: "Đang chờ bài nộp đầu tiên từ học sinh...",
-    confirmDeleteTitle: "Bạn có chắc chắn không?",
-    confirmDeleteDesc: "Thao tác này sẽ xóa vĩnh viễn mục này và tất cả dữ liệu liên quan. Hành động này không thể hoàn tác.",
-    cancel: "Hủy",
-    timestamp: "Thời gian",
-    event: "Sự kiện",
-    systemActivity: "Nhật ký hệ thống",
-    monitorAccess: "Theo dõi đăng nhập/đăng xuất của học sinh",
-    ipAddress: "Địa chỉ IP",
-    device: "Thiết bị",
-    sessionArchive: "Lịch sử thi",
-    identityRegistry: "Hồ sơ của tôi",
-    identityKey: "Email",
-    accessProtocol: "Vai trò",
-    terminateSession: "Đăng xuất",
-    registryOverview: "Tổng quan đăng ký",
-    quickProtocol: "Giao thức nhanh",
-    activeModules: "Mô-đun hoạt động",
-    structuralIntegrity: "Toàn vẹn cấu trúc: 100% Tối ưu",
-    injectNewTest: "Thêm bài thi mới",
-    viewSetupGuide: "Xem hướng dẫn thiết lập",
-    noLogsDetected: "Chưa có bài thi nào",
-    exploreLibrary: "Khám phá thư viện",
-    historicalInteraction: "Kết quả và điểm số các bài thi trước đây của bạn",
-    accountOverview: "Tổng quan tài khoản",
-    noTestsMessage: "Bạn chưa làm bài kiểm tra nào. Hãy hoàn thành một bài kiểm tra và kết quả của bạn sẽ xuất hiện ở đây.",
-    // Health Indicators
-    systemStatus: "Hệ thống",
-    optimal: "Tốt",
-    degraded: "Suy giảm",
-    offline: "Ngoại tuyến",
-    // Library Redesign
-    chooseTest: "Chọn đề thi",
-    testSubtitle: "Chọn đề thi bên dưới và bắt đầu ngay — không cần tài khoản.",
-    searchPlaceholder: "Tìm theo tên đề thi...",
-    all: "Tất cả",
-    beginner: "Cơ bản",
-    easy: "Dễ",
-    medium: "Trung bình",
-    hard: "Khó"
-  },
-  es: {
-    // Theme
-    lightMode: "Modo Claro",
-    darkMode: "Modo Oscuro",
-    system: "Sistema",
-    // Navbar
-    library: "Biblioteca de pruebas",
-    setupGuide: "Guía de configuración",
-    startQuiz: "Empezar",
-    // Hero
-    heroBadge: "Gratis · Sin registro · Empieza ya",
-    heroTitle: "Haz un examen. Descubre en qué fallas.",
-    heroSubtitle: "Elige un examen, responde las preguntas y obtén un análisis detallado de cada error, al instante.",
-    browseTests: "Ver exámenes",
-    tryDemo: "Probar Demo",
-    stat1: "40+ preguntas por test",
-    stat2: "3 tipos de preguntas",
-    stat3: "100% Gratis",
-    // Features
-    featureSectionTitle: "No es solo un test. Es una herramienta de aprendizaje.",
-    feature1Title: "Opción Múltiple",
-    feature1Desc: "Elige la respuesta correcta. Tras enviar, verás exactamente cuál era la correcta y por qué te equivocaste.",
-    feature2Title: "Click-en-Imagen",
-    feature2Desc: "Mira una captura real y haz clic en el área exacta que responde. Evalúa el reconocimiento visual real.",
-    feature3Title: "Arrastrar para ordenar",
-    feature3Desc: "Arrastra los pasos al orden correcto. Perfecto para aprender procedimientos donde el orden importa.",
-    feature4Title: "Desglose de resultados",
-    feature4Desc: "Tras cada test, mira tu puntuación, tiempo y una lista completa de errores — para saber qué estudiar después.",
-    // How it works
-    howItWorksTitle: "Cómo Funciona",
-    step1: "Elige un examen",
-    step1Desc: "Explora nuestra biblioteca y elige un módulo que se ajuste a tus objetivos de aprendizaje.",
-    step2: "Responde las preguntas",
-    step2Desc: "Interactúa con módulos diseñados para desafiar tus habilidades.",
-    step3: "Mira tus resultados",
-    step3Desc: "Obtén comentarios instanténeos y analiza tu historial de rendimiento.",
-    // Final CTA
-    finalCtaTitle: "¿Listo para descubrir tus puntos débiles?",
-    finalCtaDesc: "Empieza directamente. Sin registro, sin esperas.",
-    // Footer
-    footerDesc: "Apoyando a los estudiantes con evaluaciones inteligentes y resultados en tiempo real.",
-    platform: "Plataforma",
-    resources: "Recursos",
-    adminConsole: "Panel de control",
-    setupProtocol: "Guía de configuración",
-    identityGuide: "Guía de identidad",
-    cloudSync: "Sincronización",
-    // Admin & General
-    dashboard: "Panel",
-    testLibrary: "Librería",
-    students: "Estudiantes",
-    results: "Resultados",
-    activity: "Registros",
-    logout: "Cerrar sesión",
-    adminConsoleLabel: "Panel de control",
-    statusActive: "Estado: Activo",
-    lastSync: "Última sincronización",
-    accessKey: "Clave de acceso",
-    weeklySchedule: "Horario semanal",
-    totalTests: "Total de pruebas",
-    totalStudents: "Total de estudiantes",
-    testResults: "Resultados de pruebas",
-    avgScore: "Puntuación media",
-    activityTrend: "Tendencia de actividad",
-    recentResults: "Resultados recientes",
-    seeAllResults: "Ver todos",
-    quickActions: "Acciones rápidas",
-    createTest: "Crear prueba",
-    manageTests: "Gestionar pruebas",
-    gsCode: "Código GS",
-    syncData: "Sincronizar datos",
-    seedData: "Cargar datos iniciales",
-    searchTests: "Buscar pruebas...",
-    newTest: "Nueva prueba",
-    id: "ID",
-    title: "Título",
-    category: "Categoría",
-    actions: "Actions",
-    questions: "PREGUNTAS",
-    edit: "Editar",
-    delete: "Eliminar",
-    studentList: "Lista de estudiantes",
-    addStudent: "Agregar estudiante",
-    studentInfo: "Información del estudiante",
-    role: "Rol",
-    testsDone: "Pruebas realizadas",
-    fullResultHistory: "Historial de resultados",
-    date: "Fecha",
-    student: "Estudiante",
-    email: "Email",
-    score: "Puntuación",
-    result: "Resultado",
-    passRate: "Tasa de aprobación",
-    excellent: "EXCELENTE",
-    pass: "APROBADO",
-    fail: "REPROBADO",
-    saveChanges: "Guardar cambios",
-    addMultiple: "Agregar varios",
-    studentManagement: "Gestión de Estudiantes",
-    questionList: "Lista de Preguntas",
-    manageQuestions: "Gestionar las preguntas de esta prueba",
-    recentSubmissions: "Últimas entregas de estudiantes",
-    weeklyKeys: "Las claves cambian automáticamente a medianoche.",
-    noTests: "No se encontraron pruebas",
-    noStudents: "No hay estudiantes registrados",
-    noResults: "Aún no hay resultados",
-    waitingFirst: "Esperando la primera entrega del estudiante...",
-    confirmDeleteTitle: "¿Estás seguro?",
-    confirmDeleteDesc: "Esto eliminará permanentemente este elemento y todos sus datos asociados. Esta acción no se puede deshacer.",
-    cancel: "Cancelar",
-    timestamp: "Fecha y hora",
-    event: "Evento",
-    systemActivity: "Registros de actividad",
-    monitorAccess: "Monitorear eventos de inicio y cierre de sesión",
-    ipAddress: "Dirección IP",
-    device: "Dispositivo",
-    sessionArchive: "Historial de pruebas",
-    identityRegistry: "Mi Perfil",
-    identityKey: "Email",
-    accessProtocol: "Rol",
-    terminateSession: "Cerrar sesión",
-    registryOverview: "Resumen del Registro",
-    quickProtocol: "Protocolo Rápido",
-    activeModules: "Módulos Activos",
-    structuralIntegrity: "Integridad estructural: 100% Óptima",
-    injectNewTest: "Inyectar Nueva Prueba",
-    viewSetupGuide: "Ver Guía de Configuración",
-    noLogsDetected: "No hay pruebas aún",
-    exploreLibrary: "Explorar Biblioteca",
-    historicalInteraction: "Tus resultados y puntuaciones de pruebas pasadas",
-    accountOverview: "Resumen de cuenta",
-    noTestsMessage: "Aún no has realizado ninguna prueba. Completa una prueba y tus resultados aparecerán aquí.",
-    // Health Indicators
-    systemStatus: "Sistema",
-    optimal: "Óptimo",
-    degraded: "Degradado",
-    offline: "Fuera de línea",
-    // Library Redesign
-    chooseTest: "Elige un examen",
-    testSubtitle: "Elige cualquier examen y empieza de inmediato — sin cuenta.",
-    searchPlaceholder: "Buscar por nombre...",
-    all: "Todos",
-    beginner: "Principiante",
-    easy: "Fácil",
-    medium: "Intermedio",
-    hard: "Difícil"
-  }
-};
-
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>('en');
+  const [dictionary, setDictionary] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    const saved = localStorage.getItem('dntrng_admin_lang') as Language;
-    if (saved && (saved === 'en' || saved === 'vi' || saved === 'es')) {
-      setLanguage(saved);
+  const loadDictionary = useCallback(async (lang: Language) => {
+    try {
+      let bundle;
+      switch (lang) {
+        case 'vi':
+          bundle = await import('@/locales/vi');
+          setDictionary(bundle.vi);
+          break;
+        case 'es':
+          bundle = await import('@/locales/es');
+          setDictionary(bundle.es);
+          break;
+        default:
+          bundle = await import('@/locales/en');
+          setDictionary(bundle.en);
+          break;
+      }
+    } catch (error) {
+      console.error(`Failed to load dictionary for ${lang}`, error);
+      // Fallback to English if load fails
+      const fallback = await import('@/locales/en');
+      setDictionary(fallback.en);
     }
   }, []);
 
-  const handleSetLanguage = (lang: Language) => {
-    setLanguage(lang);
+  useEffect(() => {
+    const saved = localStorage.getItem('dntrng_admin_lang') as Language;
+    const initialLang = (saved === 'en' || saved === 'vi' || saved === 'es') ? saved : 'en';
+    setLanguageState(initialLang);
+    loadDictionary(initialLang);
+  }, [loadDictionary]);
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
     localStorage.setItem('dntrng_admin_lang', lang);
+    loadDictionary(lang);
   };
 
   const t = (key: string) => {
-    return translations[language][key] || key;
+    return dictionary[key] || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
