@@ -10,7 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { X, ClipboardCheck } from "lucide-react";
@@ -67,7 +67,7 @@ export function SubmissionDialog({
               <span>Progress</span>
               <span className="text-primary">{answeredCount} / {totalCount} Answered</span>
             </div>
-            <Progress value={(answeredCount / totalCount) * 100} className="h-2 rounded-full" />
+            <Progress value={(answeredCount / (totalCount || 1)) * 100} className="h-2 rounded-full" />
           </div>
         </div>
 
