@@ -89,11 +89,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors;
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
 }
 
 .glass-card {
-  @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl;
+  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-2xl;
 }
 
 .aura-shadow {
@@ -101,5 +101,19 @@
 }
 
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-500 dark:from-white dark:to-slate-400;
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-500;
+}
+
+/* Text Size Protocol */
+[data-textsize="small"] .question-text { font-size: 16px !important; line-height: 1.5 !important; }
+[data-textsize="small"] .option-text { font-size: 13px !important; }
+
+[data-textsize="normal"] .question-text { font-size: 20px !important; line-height: 1.65 !important; }
+[data-textsize="normal"] .option-text { font-size: 15px !important; }
+
+[data-textsize="large"] .question-text { font-size: 24px !important; line-height: 1.4 !important; }
+[data-textsize="large"] .option-text { font-size: 17px !important; }
+
+.question-text, .option-text {
+  transition: font-size 0.15s ease;
 }

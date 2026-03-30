@@ -113,7 +113,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
           value === option ? 'bg-primary/5 border-primary shadow-sm' : 'hover:bg-muted border-transparent bg-muted/30'
         )}>
           <RadioGroupItem value={option} id={`q-${question.id}-${idx}`} />
-          <Label htmlFor={`q-${question.id}-${idx}`} className="flex-1 cursor-pointer font-normal text-base">{option}</Label>
+          <Label htmlFor={`q-${question.id}-${idx}`} className="option-text flex-1 cursor-pointer font-normal text-base">{option}</Label>
           {reviewMode && option === parseRegistryArray(question.correct_answer)[0] && <CheckCircle2 className="w-6 h-6 text-green-500" />}
         </div>
       ))}
@@ -143,7 +143,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
               onCheckedChange={() => toggle(option)}
               disabled={reviewMode}
             />
-            <Label htmlFor={`q-${question.id}-${idx}`} className="flex-1 cursor-pointer font-normal text-base">{option}</Label>
+            <Label htmlFor={`q-${question.id}-${idx}`} className="option-text flex-1 cursor-pointer font-normal text-base">{option}</Label>
             {reviewMode && correctArr.includes(option) && <CheckCircle2 className="w-6 h-6 text-green-500" />}
           </div>
         ))}
@@ -230,7 +230,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 font-black text-slate-400 text-sm shrink-0 border border-slate-100">
                   {idx + 1}
                 </div>
-                <div className="flex-1 font-medium text-slate-700 text-base">{item}</div>
+                <div className="option-text flex-1 font-medium text-slate-700 text-base">{item}</div>
                 {reviewMode ? (
                   <div className="flex items-center gap-4">
                     {!isCorrectPos && (
@@ -300,7 +300,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                     )}>
                       <div className="flex-1 min-w-0">
                         <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Prompt</span>
-                        <p className="font-medium text-slate-700 truncate text-base">{prompt}</p>
+                        <p className="option-text font-medium text-slate-700 truncate text-base">{prompt}</p>
                       </div>
 
                       <div 
@@ -319,7 +319,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                       >
                         {userVal ? (
                           <>
-                            <span className="font-black text-xs text-primary truncate pr-6">{userVal}</span>
+                            <span className="option-text font-black text-xs text-primary truncate pr-6">{userVal}</span>
                             {!reviewMode && (
                               <button 
                                 onClick={() => handleClear(prompt)}
@@ -337,7 +337,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                     {reviewMode && !isCorrect && (
                       <div className="px-6 flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                        <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">Correct Registry: {correctAnswer}</p>
+                        <p className="option-text text-[10px] font-black text-green-600 uppercase tracking-widest">Correct Registry: {correctAnswer}</p>
                       </div>
                     )}
                   </div>
@@ -361,7 +361,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                       }}
                       onDragEnd={() => setDraggingItem(null)}
                       className={cn(
-                        "px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 transition-all font-black text-sm text-slate-600",
+                        "option-text px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 transition-all font-black text-sm text-slate-600",
                         draggingItem === ans && "opacity-20 scale-95 grayscale"
                       )}
                     >
@@ -407,7 +407,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
               reviewMode ? (isCorrect ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100") : "bg-white border-slate-100 shadow-sm"
             )}>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <p className="font-medium text-base text-slate-700 flex-1">{s}</p>
+                <p className="option-text font-medium text-base text-slate-700 flex-1">{s}</p>
                 <div className="flex gap-3 shrink-0">
                   {['True', 'False'].map((opt) => (
                     <button
@@ -457,7 +457,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
             <tr>
               <th className="text-left px-6 py-4 font-black uppercase text-[10px] text-slate-400 tracking-[0.2em]">Parameter</th>
               {columns.map((col, i) => (
-                <th key={i} className="px-4 py-4 font-black uppercase text-[10px] text-slate-400 tracking-[0.2em] text-center">{col}</th>
+                <th key={i} className="option-text px-4 py-4 font-black uppercase text-[10px] text-slate-400 tracking-[0.2em] text-center">{col}</th>
               ))}
             </tr>
           </thead>
@@ -473,7 +473,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                   reviewMode ? (isCorrectRow ? "opacity-100" : "opacity-80") : ""
                 )}>
                   <td className={cn(
-                    "p-6 rounded-l-[2rem] border-y-2 border-l-2 font-medium text-base text-slate-700",
+                    "option-text p-6 rounded-l-[2rem] border-y-2 border-l-2 font-medium text-base text-slate-700",
                     reviewMode && !isCorrectRow ? "bg-red-50 border-red-100" : "bg-slate-50 border-slate-100"
                   )}>
                     {row}
@@ -536,7 +536,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
           )}
           {reviewMode && zones.map((z: HotspotZone) => (
             <div key={z.id} className={cn("absolute border-4 border-dashed rounded-full -translate-x-1/2 -translate-y-1/2 flex items-center justify-center", z.isCorrect ? "border-green-500 bg-green-500/10" : "border-slate-400 bg-slate-400/10")} style={{ left: `${z.x}%`, top: `${z.y}%`, width: `${z.radius * 2}%`, height: `${z.radius * 2}%` }}>
-              <span className={cn("text-[10px] font-black text-white px-2 py-0.5 rounded-full border shadow-md", z.isCorrect ? "bg-green-600 border-green-400" : "bg-slate-600 border-slate-400")}>{z.label}</span>
+              <span className={cn("option-text text-[10px] font-black text-white px-2 py-0.5 rounded-full border shadow-md", z.isCorrect ? "bg-green-600 border-green-400" : "bg-slate-600 border-slate-400")}>{z.label}</span>
             </div>
           ))}
         </div>
@@ -550,22 +550,22 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       case 'short_text':
         return (
           <div className="space-y-4">
-            <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder="Answer..." disabled={reviewMode} className="h-16 text-base font-normal border-2 rounded-2xl px-6" />
-            {reviewMode && <div className="p-4 bg-green-50 rounded-2xl border-2 border-green-100 font-bold text-green-900">Correct: {correctArr[0]}</div>}
+            <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder="Answer..." disabled={reviewMode} className="option-text h-16 text-base font-normal border-2 rounded-2xl px-6" />
+            {reviewMode && <div className="option-text p-4 bg-green-50 rounded-2xl border-2 border-green-100 font-bold text-green-900">Correct: {correctArr[0]}</div>}
           </div>
         );
       case 'dropdown':
         return (
           <div className="space-y-4">
             <Select onValueChange={onChange} value={value} disabled={reviewMode}>
-              <SelectTrigger className="h-16 text-base font-normal border-2 rounded-2xl px-6">
+              <SelectTrigger className="option-text h-16 text-base font-normal border-2 rounded-2xl px-6">
                 <SelectValue placeholder="Choose..." />
               </SelectTrigger>
               <SelectContent className="rounded-2xl">
-                {options.map((o, i) => <SelectItem key={i} value={o}>{o}</SelectItem>)}
+                {options.map((o, i) => <SelectItem key={i} value={o} className="option-text">{o}</SelectItem>)}
               </SelectContent>
             </Select>
-            {reviewMode && <div className="p-4 bg-green-50 rounded-2xl border-2 border-green-100 font-bold text-green-900">Correct: {correctArr[0]}</div>}
+            {reviewMode && <div className="option-text p-4 bg-green-50 rounded-2xl border-2 border-green-100 font-bold text-green-900">Correct: {correctArr[0]}</div>}
           </div>
         );
       case 'true_false':
@@ -574,7 +574,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
              {['True', 'False'].map((o) => (
                <div key={o} className={cn("flex items-center space-x-3 p-6 rounded-[2rem] border-2 transition-all", value === o ? 'bg-primary/5 border-primary shadow-lg' : 'bg-slate-50/50')}>
                 <RadioGroupItem value={o} id={`tf-${question.id}-${o}`} className="w-6 h-6" />
-                <Label htmlFor={`tf-${question.id}-${o}`} className="flex-1 cursor-pointer font-medium text-lg">{o}</Label>
+                <Label htmlFor={`tf-${question.id}-${o}`} className="option-text flex-1 cursor-pointer font-medium text-lg">{o}</Label>
                 {reviewMode && o === correctArr[0] && <CheckCircle2 className="w-8 h-8 text-green-600" />}
               </div>
              ))}
@@ -601,7 +601,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
   return (
     <div className="w-full">
       <div className="pl-6 border-l-4 border-primary mb-12">
-        <h2 className="text-lg md:text-xl font-semibold leading-[1.65] text-slate-900 w-full">
+        <h2 className="question-text text-lg md:text-xl font-semibold leading-[1.65] text-slate-900 w-full">
           {question.question_text}
           {question.required && <span className="text-destructive ml-2">*</span>}
         </h2>

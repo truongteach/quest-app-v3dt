@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -64,6 +63,14 @@ export function QuizResults({
 }: QuizResultsProps) {
   const [percentile, setPercentile] = useState<number | null>(null);
   const [comparativeLoading, setComparativeLoading] = useState(false);
+  const [textSize, setTextSize] = useState<'normal' | 'large' | 'small'>('normal');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('dntrng_text_size') as 'normal' | 'large' | 'small';
+    if (saved && ['normal', 'large', 'small'].includes(saved)) {
+      setTextSize(saved);
+    }
+  }, []);
 
   const percentage = Math.round((score / (totalQuestions || 1)) * 100);
   
@@ -385,7 +392,7 @@ export function QuizResults({
                   </AccordionTrigger>
                   <AccordionContent className="px-10 pb-10 pt-0">
                     <div className="h-px w-full bg-slate-100 mb-8" />
-                    <div className="max-w-4xl mx-auto rounded-[2rem] bg-slate-50 p-8 border border-slate-100 shadow-inner">
+                    <div className="max-w-4xl mx-auto rounded-[2rem] bg-slate-50 p-8 border border-slate-100 shadow-inner" data-textsize={textSize}>
                       <QuestionRenderer 
                         question={q} 
                         value={userResp} 

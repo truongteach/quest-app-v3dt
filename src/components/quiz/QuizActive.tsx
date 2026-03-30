@@ -65,6 +65,23 @@ export function QuizActive({
 }: QuizActiveProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [textSize, setTextSize] = useState<'normal' | 'large' | 'small'>('normal');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('dntrng_text_size') as 'normal' | 'large' | 'small';
+    if (saved && ['normal', 'large', 'small'].includes(saved)) {
+      setTextSize(saved);
+    }
+  }, []);
+
+  const toggleTextSize = () => {
+    const modes: ('normal' | 'large' | 'small')[] = ['normal', 'large', 'small'];
+    const currentIndex = modes.indexOf(textSize);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    const nextSize = modes[nextIndex];
+    setTextSize(nextSize);
+    localStorage.setItem('dntrng_text_size', nextSize);
+  };
   
   const currentQuestion = quiz.questions[quiz.currentQuestionIndex];
   const progress = quiz.questions.length > 0 ? ((quiz.currentQuestionIndex + 1) / quiz.questions.length) * 100 : 0;
@@ -110,9 +127,9 @@ export function QuizActive({
   const dashOffset = dashArray - (dashArray * (timeLeft / totalSessionTime));
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center transition-colors duration-300">
+    <div className="min-h-screen bg-white flex flex-col items-center transition-colors duration-300">
       {/* Precision Header */}
-      <header className="w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 shadow-sm">
+      <header className="w-full bg-white border-b border-slate-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto h-20 px-4 md:px-8 flex items-center justify-between">
           
           {/* Left Controls */}
@@ -121,7 +138,7 @@ export function QuizActive({
               variant="ghost" 
               onClick={onPrev}
               disabled={quiz.currentQuestionIndex === 0 || quiz.mode === 'race'}
-              className="rounded-xl h-12 px-2 md:px-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30"
+              className="rounded-xl h-12 px-2 md:px-4 text-slate-400 font-bold hover:bg-slate-50 disabled:opacity-30"
             >
               <ChevronLeft className="w-5 h-5 mr-1" />
               <span className="hidden sm:inline">Trước</span>
@@ -130,19 +147,19 @@ export function QuizActive({
             <Button 
               variant="secondary" 
               onClick={() => onResponseChange(null)}
-              className="bg-[#E8EEF5] dark:bg-slate-800 text-primary dark:text-primary-foreground font-bold h-12 rounded-xl px-4 gap-2 border-none hidden md:flex"
+              className="bg-[#E8EEF5] text-primary font-bold h-12 rounded-xl px-4 gap-2 border-none hidden md:flex"
             >
               <RotateCcw className="w-4 h-4" />
               Đặt lại
             </Button>
 
-            <div className="h-6 w-px bg-slate-100 dark:bg-slate-800 hidden md:block" />
+            <div className="h-6 w-px bg-slate-100 hidden md:block" />
 
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2">
               <span className="text-sm md:text-base font-black text-primary">
                 {quiz.currentQuestionIndex + 1}/{quiz.questions.length}
               </span>
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:inline">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
                 (ID: {currentQuestion?.id})
               </span>
             </div>
@@ -150,22 +167,22 @@ export function QuizActive({
 
           {/* Center/Right Utilities */}
           <div className="flex items-center gap-2 md:gap-8">
-            <div className="flex items-center gap-1 md:gap-4 text-slate-400 dark:text-slate-500">
-              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-slate-50 dark:hover:bg-slate-800"><Save className="w-5 h-5" /></Button>
+            <div className="flex items-center gap-1 md:gap-4 text-slate-400">
+              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-slate-50"><Save className="w-5 h-5" /></Button>
               <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-slate-50 dark:hover:bg-slate-800"><ListOrdered className="w-5 h-5" /></Button>
+                  <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-slate-50"><ListOrdered className="w-5 h-5" /></Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[320px] sm:w-[450px] p-0 flex flex-col dark:bg-slate-900 border-l border-slate-100 dark:border-slate-800">
-                  <SheetHeader className="p-8 border-b dark:border-slate-800 shrink-0">
+                <SheetContent side="right" className="w-[320px] sm:w-[450px] p-0 flex flex-col bg-white border-l border-slate-100">
+                  <SheetHeader className="p-8 border-b shrink-0">
                     <div className="flex items-center justify-between">
-                      <SheetTitle className="text-2xl font-black tracking-tighter uppercase text-slate-900 dark:text-white">Questions</SheetTitle>
+                      <SheetTitle className="text-2xl font-black tracking-tighter uppercase text-slate-900">Questions</SheetTitle>
                     </div>
                     
                     {/* Status Legend */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+                        <div className="w-2 h-2 rounded-full bg-slate-200" />
                         <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Unread</span>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -193,13 +210,13 @@ export function QuizActive({
                             className={cn(
                               "w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-all group mb-1",
                               active 
-                                ? "bg-primary/5 dark:bg-primary/10 ring-1 ring-primary/20" 
-                                : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                ? "bg-primary/5 ring-1 ring-primary/20" 
+                                : "hover:bg-slate-50"
                             )}
                           >
                             <span className={cn(
                               "text-xs font-black w-7 text-right shrink-0",
-                              active ? "text-primary" : "text-slate-300 dark:text-slate-600"
+                              active ? "text-primary" : "text-slate-300"
                             )}>
                               {idx + 1}
                             </span>
@@ -207,7 +224,7 @@ export function QuizActive({
                             <div className="flex-1 min-w-0">
                               <p className={cn(
                                 "text-[13px] font-medium truncate",
-                                active ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"
+                                active ? "text-slate-900" : "text-slate-500"
                               )}>
                                 {truncateText(q.question_text, 45)}
                               </p>
@@ -215,7 +232,7 @@ export function QuizActive({
 
                             <div className={cn(
                               "w-2.5 h-2.5 rounded-full shrink-0 transition-all",
-                              flagged ? "bg-orange-500" : (answered ? "bg-green-500" : "bg-slate-200 dark:bg-slate-700")
+                              flagged ? "bg-orange-500" : (answered ? "bg-green-500" : "bg-slate-200")
                             )} />
                           </button>
                         );
@@ -224,7 +241,21 @@ export function QuizActive({
                   </ScrollArea>
                 </SheetContent>
               </Sheet>
-              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hidden sm:flex hover:bg-slate-50 dark:hover:bg-slate-800"><Type className="w-5 h-5" /></Button>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleTextSize}
+                className="rounded-full h-10 w-10 hidden sm:flex hover:bg-slate-50 flex-col gap-0 items-center justify-center pt-1"
+              >
+                <Type className={cn(
+                  "transition-all",
+                  textSize === 'small' ? "w-4 h-4" : textSize === 'large' ? "w-6 h-6" : "w-5 h-5"
+                )} />
+                <span className="text-[7px] font-black uppercase tracking-tighter leading-none -mt-0.5">
+                  {textSize === 'small' ? 'A-' : textSize === 'large' ? 'A+' : 'A'}
+                </span>
+              </Button>
             </div>
 
             {/* Circular Timer */}
@@ -237,7 +268,7 @@ export function QuizActive({
                   stroke="currentColor"
                   strokeWidth="3"
                   fill="transparent"
-                  className="text-slate-100 dark:text-slate-800"
+                  className="text-slate-100"
                 />
                 <circle
                   cx="28"
@@ -253,13 +284,13 @@ export function QuizActive({
               </svg>
               <span className={cn(
                 "absolute text-[10px] font-black tracking-tighter",
-                timeLeft < 60 ? "text-destructive" : "text-slate-900 dark:text-white"
+                timeLeft < 60 ? "text-destructive" : "text-slate-900"
               )}>
                 {formatTime(timeLeft)}
               </span>
             </div>
 
-            <div className="h-6 w-px bg-slate-100 dark:bg-slate-800 hidden md:block" />
+            <div className="h-6 w-px bg-slate-100 hidden md:block" />
 
             <Button 
               variant="ghost" 
@@ -268,7 +299,7 @@ export function QuizActive({
                 "rounded-xl h-12 gap-2 font-bold border-none hidden lg:flex transition-all",
                 isFlagged 
                   ? "bg-orange-500 text-white hover:bg-orange-600" 
-                  : "text-slate-500 dark:text-slate-400 bg-[#F1F5F9] dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  : "text-slate-500 bg-[#F1F5F9] hover:bg-slate-200"
               )}
             >
               <Flag className={cn("w-4 h-4", isFlagged && "fill-current")} />
@@ -294,7 +325,7 @@ export function QuizActive({
           </div>
         </div>
         {/* Dynamic Progress Rail */}
-        <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 relative overflow-hidden">
+        <div className="w-full h-1.5 bg-slate-100 relative overflow-hidden">
           <div 
             className="absolute top-0 left-0 h-full bg-primary transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
@@ -305,26 +336,26 @@ export function QuizActive({
       {/* Main Assessment Workspace */}
       <main className="flex-1 w-full max-w-5xl py-12 md:py-24 px-6 md:px-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {quiz.mode === 'training' && (
-          <div className="mb-12 p-6 bg-blue-50/50 dark:bg-blue-900/10 border-2 border-blue-100 dark:border-blue-900/30 rounded-[2.5rem] flex items-center gap-6">
-            <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm"><RotateCcw className="w-6 h-6 text-primary" /></div>
+          <div className="mb-12 p-6 bg-blue-50/50 border-2 border-blue-100 rounded-[2.5rem] flex items-center gap-6">
+            <div className="bg-white p-3 rounded-2xl shadow-sm"><RotateCcw className="w-6 h-6 text-primary" /></div>
             <div>
-              <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Practice Registry Active</h4>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Real-time validation is enabled for this session.</p>
+              <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight">Practice Registry Active</h4>
+              <p className="text-sm font-medium text-slate-500">Real-time validation is enabled for this session.</p>
             </div>
           </div>
         )}
 
         {isWrongInRace && (
-          <div className="fixed inset-0 z-[100] bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-md flex items-center justify-center">
-            <div className="bg-white dark:bg-slate-900 p-12 rounded-[3.5rem] shadow-2xl border-4 border-destructive flex flex-col items-center gap-6 animate-in zoom-in-95">
+          <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center">
+            <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl border-4 border-destructive flex flex-col items-center gap-6 animate-in zoom-in-95">
               <RotateCcw className="w-20 h-20 text-destructive animate-spin-slow" />
-              <h3 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Protocol Terminated</h3>
-              <p className="text-xl font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Restarting Identity Streak...</p>
+              <h3 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">Protocol Terminated</h3>
+              <p className="text-xl font-bold text-slate-400 uppercase tracking-widest">Restarting Identity Streak...</p>
             </div>
           </div>
         )}
 
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto" data-textsize={textSize}>
           {currentQuestion && (
             <QuestionRenderer 
               question={currentQuestion} 
@@ -337,19 +368,19 @@ export function QuizActive({
       </main>
 
       <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <AlertDialogContent className="rounded-[3rem] border-none shadow-2xl p-10 dark:bg-slate-900">
+        <AlertDialogContent className="rounded-[3rem] border-none shadow-2xl p-10">
           <AlertDialogHeader>
-            <div className="mx-auto w-20 h-20 bg-orange-50 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center mb-6">
+            <div className="mx-auto w-20 h-20 bg-orange-50 rounded-2xl flex items-center justify-center mb-6">
               <AlertTriangle className="w-10 h-10 text-orange-500" />
             </div>
-            <AlertDialogTitle className="text-3xl font-black text-center uppercase tracking-tight text-slate-900 dark:text-white">Gap Analysis</AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-lg font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-              You have <span className="text-orange-600 dark:text-orange-400 font-black">{unansweredCount} unanswered</span> steps. Commit partial registry?
+            <AlertDialogTitle className="text-3xl font-black text-center uppercase tracking-tight text-slate-900">Gap Analysis</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-lg font-medium text-slate-500 leading-relaxed">
+              You have <span className="text-orange-600 font-black">{unansweredCount} unanswered</span> steps. Commit partial registry?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col sm:flex-row gap-4 mt-8">
-            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase tracking-widest text-xs flex-1 dark:border-slate-700 dark:text-slate-400">Review</AlertDialogCancel>
-            <AlertDialogAction onClick={onSubmit} className="h-14 rounded-full bg-slate-900 dark:bg-primary font-black uppercase tracking-widest text-xs flex-1 text-white border-none">Commit</AlertDialogAction>
+            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase tracking-widest text-xs flex-1">Review</AlertDialogCancel>
+            <AlertDialogAction onClick={onSubmit} className="h-14 rounded-full bg-slate-900 font-black uppercase tracking-widest text-xs flex-1 text-white border-none">Commit</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
