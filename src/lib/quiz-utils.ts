@@ -1,6 +1,18 @@
 import { Question, HotspotZone } from '@/types/quiz';
 
 /**
+ * Fisher-Yates shuffle algorithm for stable randomization.
+ */
+export const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+/**
  * Robustly parses a registry field that might be a JSON array or a comma-separated string.
  */
 export const parseRegistryArray = (input: any): string[] => {
@@ -17,13 +29,11 @@ export const parseRegistryArray = (input: any): string[] => {
     try {
       const parsed = JSON.parse(str);
       if (Array.isArray(parsed)) return parsed.map(item => String(item ?? "").trim());
-      // Handle edge case where single items might be wrapped in brackets but aren't arrays
     } catch (e) {
       // Fallback to standard comma splitting if JSON is malformed
     }
   }
   
-  // Legacy or manual entry fallback: split by comma, handling potential empty segments
   return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
 };
 
@@ -35,7 +45,6 @@ export const getRegistryValue = (obj: any, keys: string[]): any => {
   for (const k of keys) {
     if (obj[k] !== undefined && obj[k] !== null) return obj[k];
     
-    // Check normalized version (lowercase, no spaces)
     const normalizedK = k.toLowerCase().replace(/_/g, '').replace(/ /g, '');
     for (const actualKey in obj) {
       const normalizedActual = actualKey.toLowerCase().replace(/_/g, '').replace(/ /g, '');
