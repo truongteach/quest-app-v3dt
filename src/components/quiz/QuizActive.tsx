@@ -16,7 +16,8 @@ import {
   Save,
   Type,
   AlertTriangle,
-  X
+  X,
+  ClipboardCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -101,13 +102,10 @@ export function QuizActive({
   const answeredCount = quiz.questions.filter(q => isAnswered(q.id)).length;
   const totalCount = quiz.questions.length;
   const unansweredCount = totalCount - answeredCount;
+  const isComplete = answeredCount === totalCount;
 
   const handleCommitAttempt = () => {
-    if (unansweredCount > 0) {
-      setIsConfirmOpen(true);
-    } else {
-      onSubmit();
-    }
+    setIsConfirmOpen(true);
   };
 
   const formatTime = (seconds: number) => {
@@ -368,19 +366,57 @@ export function QuizActive({
       </main>
 
       <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <AlertDialogContent className="rounded-[3rem] border-none shadow-2xl p-10">
-          <AlertDialogHeader>
-            <div className="mx-auto w-20 h-20 bg-orange-50 rounded-2xl flex items-center justify-center mb-6">
-              <AlertTriangle className="w-10 h-10 text-orange-500" />
+        <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white max-w-md">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsConfirmOpen(false)}
+            className="absolute right-4 top-4 rounded-full text-slate-400 hover:text-slate-900 z-10"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+
+          <div className="p-10 pt-12 text-center space-y-6">
+            <div className="mx-auto w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-2">
+              <ClipboardCheck className="w-10 h-10 text-primary" />
             </div>
-            <AlertDialogTitle className="text-3xl font-black text-center uppercase tracking-tight text-slate-900">Gap Analysis</AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-lg font-medium text-slate-500 leading-relaxed">
-              You have <span className="text-orange-600 font-black">{unansweredCount} unanswered</span> steps. Commit partial registry?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col sm:flex-row gap-4 mt-8">
-            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase tracking-widest text-xs flex-1">Review</AlertDialogCancel>
-            <AlertDialogAction onClick={onSubmit} className="h-14 rounded-full bg-slate-900 font-black uppercase tracking-widest text-xs flex-1 text-white border-none">Commit</AlertDialogAction>
+            
+            <div className="space-y-2">
+              <AlertDialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900">
+                Submit Test?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-base font-medium text-slate-500 leading-relaxed px-4">
+                {isComplete 
+                  ? `You've answered all ${totalCount} questions. Ready to submit?`
+                  : `You have ${unansweredCount} unanswered questions out of ${totalCount}. You can go back and review, or submit now.`
+                }
+              </AlertDialogDescription>
+            </div>
+
+            <div className="space-y-3 px-4">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span>Progress</span>
+                <span className="text-primary">{answeredCount} / {totalCount} Answered</span>
+              </div>
+              <Progress value={(answeredCount / totalCount) * 100} className="h-2 rounded-full" />
+            </div>
+          </div>
+
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 p-8 pt-0 mt-0">
+            <AlertDialogCancel asChild>
+              <Button className="h-14 rounded-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-xs flex-1 shadow-xl shadow-primary/20 border-none order-2 sm:order-1">
+                Review Answers
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button 
+                variant="ghost" 
+                onClick={onSubmit} 
+                className="h-14 rounded-full font-black uppercase tracking-widest text-xs flex-1 text-slate-400 hover:text-slate-900 hover:bg-slate-50 order-1 sm:order-2"
+              >
+                Submit Now
+              </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
