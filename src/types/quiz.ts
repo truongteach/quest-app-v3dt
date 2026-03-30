@@ -1,6 +1,8 @@
 export type QuestionType = 
   | 'single_choice'
+  | 'one_answer'
   | 'multiple_choice'
+  | 'many_answers'
   | 'short_text'
   | 'rating'
   | 'dropdown'

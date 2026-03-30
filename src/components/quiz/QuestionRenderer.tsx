@@ -40,9 +40,17 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
 
   const renderModule = () => {
     const props = { question, value, onChange, reviewMode };
-    switch (question.question_type) {
-      case 'single_choice': return <SingleChoiceModule {...props} />;
-      case 'multiple_choice': return <MultipleChoiceModule {...props} />;
+    const qType = question.question_type;
+
+    // Handle mapping logic for "one answer" vs "many answers"
+    if (qType === 'single_choice' || qType === 'one_answer') {
+      return <SingleChoiceModule {...props} />;
+    }
+    if (qType === 'multiple_choice' || qType === 'many_answers') {
+      return <MultipleChoiceModule {...props} />;
+    }
+
+    switch (qType) {
       case 'rating': return <RatingModule {...props} />;
       case 'ordering': return <OrderingModule {...props} />;
       case 'matching': return <MatchingModule {...props} />;

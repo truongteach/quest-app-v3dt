@@ -34,14 +34,28 @@ export const SingleChoiceModule: React.FC<Props> = ({ question, value, onChange,
         const isSelected = value === option;
         
         return (
-          <div key={idx} className={cn(
-            "flex items-center space-x-3 px-[18px] py-[14px] rounded-[12px] border transition-all cursor-pointer",
-            isSelected 
-              ? "bg-[#EFF6FF] border-[#2563EB] shadow-sm" 
-              : "bg-white border-[#E5E7EB] hover:bg-[#EFF6FF] hover:border-[#2563EB]"
-          )}>
-            <RadioGroupItem value={option} id={`q-${question.id}-${idx}`} />
-            <Label htmlFor={`q-${question.id}-${idx}`} className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700">{option}</Label>
+          <div 
+            key={idx} 
+            onClick={() => !reviewMode && onChange(option)}
+            className={cn(
+              "flex items-center space-x-3 px-[18px] py-[14px] rounded-[12px] border transition-all cursor-pointer",
+              isSelected 
+                ? "bg-[#EFF6FF] border-[#2563EB] shadow-sm" 
+                : "bg-white border-[#E5E7EB] hover:bg-[#EFF6FF] hover:border-[#2563EB]"
+            )}
+          >
+            <RadioGroupItem 
+              value={option} 
+              id={`q-${question.id}-${idx}`} 
+              className="pointer-events-none"
+            />
+            <Label 
+              htmlFor={`q-${question.id}-${idx}`} 
+              className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700"
+              onClick={(e) => e.preventDefault()} // Prevent double trigger
+            >
+              {option}
+            </Label>
             {reviewMode && option === correctAnswer && <CheckCircle2 className="w-6 h-6 text-green-500" />}
           </div>
         );

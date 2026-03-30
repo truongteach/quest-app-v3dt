@@ -21,7 +21,7 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
     return reviewMode ? rawOptions : shuffleArray(rawOptions);
   }, [question.id, question.options, reviewMode]);
 
-  const selected = (value as string[]) || [];
+  const selected = Array.isArray(value) ? value : [];
   const correctArr = useMemo(() => parseRegistryArray(question.correct_answer), [question.correct_answer]);
 
   const toggle = (opt: string) => {
@@ -36,19 +36,30 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
         const isSelected = selected.includes(option);
         
         return (
-          <div key={idx} className={cn(
-            "flex items-center space-x-3 px-[18px] py-[14px] rounded-[12px] border transition-all cursor-pointer",
-            isSelected 
-              ? "bg-[#EFF6FF] border-[#2563EB] shadow-sm" 
-              : "bg-white border-[#E5E7EB] hover:bg-[#EFF6FF] hover:border-[#2563EB]"
-          )}>
+          <div 
+            key={idx} 
+            onClick={() => toggle(option)}
+            className={cn(
+              "flex items-center space-x-3 px-[18px] py-[14px] rounded-[12px] border transition-all cursor-pointer",
+              isSelected 
+                ? "bg-[#EFF6FF] border-[#2563EB] shadow-sm" 
+                : "bg-white border-[#E5E7EB] hover:bg-[#EFF6FF] hover:border-[#2563EB]"
+            )}
+          >
             <Checkbox 
               id={`q-${question.id}-${idx}`} 
               checked={isSelected} 
-              onCheckedChange={() => toggle(option)}
+              onCheckedChange={() => {}} // Controlled by div onClick
               disabled={reviewMode}
+              className="pointer-events-none"
             />
-            <Label htmlFor={`q-${question.id}-${idx}`} className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700">{option}</Label>
+            <Label 
+              htmlFor={`q-${question.id}-${idx}`} 
+              className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700"
+              onClick={(e) => e.preventDefault()} // Prevent double trigger
+            >
+              {option}
+            </Label>
             {reviewMode && correctArr.includes(option) && <CheckCircle2 className="w-6 h-6 text-green-500" />}
           </div>
         );
