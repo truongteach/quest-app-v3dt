@@ -15,6 +15,11 @@ interface Props {
   reviewMode?: boolean;
 }
 
+/**
+ * Multiple Choice Interaction Module
+ * 
+ * Renders checkboxes for many-to-many response mapping.
+ */
 export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const options = useMemo(() => {
     const rawOptions = parseRegistryArray(question.options);
@@ -49,18 +54,18 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
             <Checkbox 
               id={`q-${question.id}-${idx}`} 
               checked={isSelected} 
-              onCheckedChange={() => {}} // Controlled by div onClick
+              onCheckedChange={() => {}} // Controlled by parent div click event
               disabled={reviewMode}
               className="pointer-events-none"
             />
             <Label 
               htmlFor={`q-${question.id}-${idx}`} 
               className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700"
-              onClick={(e) => e.preventDefault()} // Prevent double trigger
+              onClick={(e) => e.preventDefault()} // Prevent bubbling from label clicks
             >
               {option}
             </Label>
-            {reviewMode && correctArr.includes(option) && <CheckCircle2 className="w-6 h-6 text-green-500" />}
+            {reviewMode && correctArr.includes(option) && <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />}
           </div>
         );
       })}

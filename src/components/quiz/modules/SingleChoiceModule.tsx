@@ -15,6 +15,11 @@ interface Props {
   reviewMode?: boolean;
 }
 
+/**
+ * Single Choice Interaction Module
+ * 
+ * Renders radio buttons for one-to-one response mapping.
+ */
 export const SingleChoiceModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const options = useMemo(() => {
     const rawOptions = parseRegistryArray(question.options);
@@ -52,11 +57,11 @@ export const SingleChoiceModule: React.FC<Props> = ({ question, value, onChange,
             <Label 
               htmlFor={`q-${question.id}-${idx}`} 
               className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700"
-              onClick={(e) => e.preventDefault()} // Prevent double trigger
+              onClick={(e) => e.preventDefault()} // Prevent bubbling from label clicks
             >
               {option}
             </Label>
-            {reviewMode && option === correctAnswer && <CheckCircle2 className="w-6 h-6 text-green-500" />}
+            {reviewMode && option === correctAnswer && <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />}
           </div>
         );
       })}
