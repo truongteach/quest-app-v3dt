@@ -212,6 +212,20 @@ export default function AdminSettingsPage() {
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('themePrimaryColor')}</Label>
                   <div className="flex items-center gap-3">
+                    {/* Native Color Picker Swatch */}
+                    <div className="relative w-12 h-12 shrink-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 ring-1 ring-slate-100 shadow-sm transition-all hover:scale-105 active:scale-95 group">
+                      <input 
+                        type="color"
+                        value={isValidHex(formData.theme_primary_color) ? formData.theme_primary_color : '#2563EB'}
+                        onChange={(e) => setFormData({ ...formData, theme_primary_color: e.target.value.toUpperCase() })}
+                        className="absolute -inset-2 w-[calc(100%+16px)] h-[calc(100%+16px)] cursor-pointer bg-transparent border-none appearance-none"
+                      />
+                      <div 
+                        className="w-full h-full pointer-events-none"
+                        style={{ backgroundColor: isValidHex(formData.theme_primary_color) ? formData.theme_primary_color : '#2563EB' }}
+                      />
+                    </div>
+                    {/* Hex Value Input */}
                     <div className="relative flex-1">
                       <Palette className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                       <Input 
@@ -221,10 +235,6 @@ export default function AdminSettingsPage() {
                         className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-mono text-xs uppercase"
                       />
                     </div>
-                    <div 
-                      className="w-12 h-12 rounded-xl shadow-inner border border-slate-200 dark:border-slate-700 transition-colors"
-                      style={{ backgroundColor: isValidHex(formData.theme_primary_color) ? formData.theme_primary_color : '#2563EB' }}
-                    />
                   </div>
                 </div>
 
