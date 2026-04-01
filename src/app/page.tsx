@@ -30,7 +30,8 @@ export default function LandingPage() {
   const { settings } = useSettings();
   const [systemStatus, setSystemStatus] = useState<SystemStatus>('Optimal');
 
-  const brandName = settings.platform_name || "DNTRNG";
+  // Protocol: Explicit string casting to prevent type errors from numeric sheet entries
+  const brandName = String(settings.platform_name || "DNTRNG");
 
   useEffect(() => {
     const checkHealth = async () => {

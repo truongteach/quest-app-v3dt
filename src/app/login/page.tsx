@@ -32,7 +32,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
 
-  const brandName = settings.platform_name || "DNTRNG";
+  // Protocol: Explicit string casting to prevent type errors from numeric sheet entries
+  const brandName = String(settings.platform_name || "DNTRNG");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +81,7 @@ export default function LoginPage() {
               <Zap className="w-10 h-10 text-primary fill-current" />
             )}
           </div>
-          <CardTitle className="text-3xl font-black tracking-tight uppercase">Sign In</CardTitle>
+          <CardTitle className="text-3xl font-black tracking-tight uppercase">{brandName} Sign In</CardTitle>
           <CardDescription className="text-base font-medium">Welcome back. Enter your details to continue.</CardDescription>
         </CardHeader>
         <CardContent className="px-10 pb-6">
