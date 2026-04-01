@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -8,11 +7,11 @@ import { OverviewTab } from '@/components/admin/OverviewTab';
 import { AdminDialogs } from '@/components/admin/AdminDialogs';
 import { useRouter } from 'next/navigation';
 import { DEMO_QUESTIONS, AVAILABLE_TESTS } from '@/app/lib/demo-data';
+import { useSettings } from '@/context/settings-context';
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
-  const [settings, setSettings] = useState<Record<string, string>>({});
   const [data, setData] = useState<{ tests: any[], users: any[], responses: any[] }>({
     tests: [],
     users: [],
@@ -20,6 +19,7 @@ export default function AdminDashboard() {
   });
   const { toast } = useToast();
   const router = useRouter();
+  const { settings, refreshSettings } = useSettings();
 
   const [dialogs, setDialogs] = useState({
     test: false,
@@ -32,18 +32,16 @@ export default function AdminDashboard() {
     if (!API_URL) return;
     setLoading(true);
     try {
-      const [testsRes, usersRes, responsesRes, settingsRes] = await Promise.all([
+      const [testsRes, usersRes, responsesRes] = await Promise.all([
         fetch(`${API_URL}?action=getTests`),
         fetch(`${API_URL}?action=getUsers`),
-        fetch(`${API_URL}?action=getResponses`),
-        fetch(`${API_URL}?action=getSettings`)
+        fetch(`${API_URL}?action=getResponses`)
       ]);
 
-      const [testsData, usersData, responsesData, settingsData] = await Promise.all([
+      const [testsData, usersData, responsesData] = await Promise.all([
         testsRes.json(),
         usersRes.json(),
-        responsesRes.json(),
-        settingsRes.json()
+        responsesRes.json()
       ]);
 
       setData({
@@ -51,8 +49,9 @@ export default function AdminDashboard() {
         users: Array.isArray(usersData) ? usersData : [],
         responses: Array.isArray(responsesData) ? responsesData : []
       });
-      setSettings(settingsData || {});
       setLastSync(new Date());
+      // Also ensure settings context is fresh
+      refreshSettings();
     } catch (err) {
       toast({ variant: "destructive", title: "Sync Error", description: "Could not fetch data." });
     } finally {
@@ -86,7 +85,7 @@ export default function AdminDashboard() {
     const ok = await handlePost('saveSetting', { key, value });
     if (ok) {
       toast({ title: "Success", description: "System settings updated." });
-      fetchData();
+      // We don't call fetchData here because the context will handle it via refreshSettings if called from AccessKeyPanel
     }
   };
 
@@ -94,7 +93,6 @@ export default function AdminDashboard() {
     toast({ title: "Seeding Started", description: "Initializing demo library across all nodes..." });
     
     try {
-      // Step 1: Create all test entries in the Tests tab
       for (const test of AVAILABLE_TESTS) {
         await handlePost('saveTest', { data: {
           id: test.id,
@@ -107,8 +105,6 @@ export default function AdminDashboard() {
         }});
       }
 
-      // Step 2: Provision questions for every test
-      // Each test receives the full suite of demo questions for testing purposes
       for (const test of AVAILABLE_TESTS) {
         await handlePost('saveQuestions', { 
           testId: test.id, 
@@ -117,8 +113,6 @@ export default function AdminDashboard() {
       }
 
       toast({ title: "Sync Complete", description: "All assessment modules are now live." });
-      
-      // Refresh local data to reflect changes
       setTimeout(fetchData, 2000);
     } catch (error) {
       toast({ variant: "destructive", title: "Seed Error", description: "Could not complete the library sync." });

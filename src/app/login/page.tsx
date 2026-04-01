@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Zap, LogIn, Loader2, ArrowLeft, Mail, Lock, UserPlus } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { useSettings } from '@/context/settings-context';
 import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import {
@@ -21,12 +22,15 @@ import {
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { settings } = useSettings();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
+
+  const brandName = settings.platform_name || "DNTRNG";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +42,7 @@ export default function LoginPage() {
     if (success) {
       toast({
         title: "Access Granted",
-        description: "Authenticated with DNTRNG identity provider.",
+        description: `Authenticated with ${brandName} identity provider.`,
       });
       router.push('/profile');
     } else {
@@ -77,7 +81,7 @@ export default function LoginPage() {
                 <Input 
                   id="email"
                   type="email"
-                  placeholder="name@dntrng.com"
+                  placeholder="name@example.com"
                   className="h-14 pl-11 rounded-2xl bg-slate-50 border-none ring-1 ring-slate-100 focus:ring-primary/40 font-bold"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -128,7 +132,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="bg-slate-50/80 p-6 flex flex-col items-center gap-2 text-center">
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-            © 2026 DNTRNG
+            © {new Date().getFullYear()} {brandName.toUpperCase()}
           </p>
         </CardFooter>
       </Card>

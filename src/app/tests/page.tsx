@@ -11,6 +11,7 @@ import { AILoader } from '@/components/ui/ai-loader';
 import { Sparkles, AlertCircle, RefreshCcw, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/context/language-context';
+import { useSettings } from '@/context/settings-context';
 import { cn } from '@/lib/utils';
 
 /**
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils';
  */
 export default function TestsLibrary() {
   const { t } = useLanguage();
+  const { settings } = useSettings();
   const [search, setSearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
@@ -28,6 +30,8 @@ export default function TestsLibrary() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<Date | null>(null);
+
+  const brandName = settings.platform_name || "DNTRNG";
 
   useEffect(() => {
     fetchTests();
@@ -178,7 +182,9 @@ export default function TestsLibrary() {
             <div className="bg-slate-900 dark:bg-primary p-1.5 rounded-lg">
               <Sparkles className="text-primary dark:text-white w-4 h-4 fill-current" />
             </div>
-            <span className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">DNTRNG</span>
+            <span className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">
+              {brandName}
+            </span>
           </div>
           <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 dark:text-slate-700">
             GLOBAL ASSESSMENT REGISTRY • ENCRYPTED SESSION

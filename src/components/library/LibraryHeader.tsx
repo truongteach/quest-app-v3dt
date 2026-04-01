@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/context/language-context';
+import { useSettings } from '@/context/settings-context';
 
 interface LibraryHeaderProps {
   search: string;
@@ -28,6 +29,9 @@ export function LibraryHeader({
   lastSync
 }: LibraryHeaderProps) {
   const { t } = useLanguage();
+  const { settings } = useSettings();
+
+  const brandName = settings.platform_name || "DNTRNG";
 
   return (
     <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 sticky top-0 z-40">
@@ -44,7 +48,7 @@ export function LibraryHeader({
               <div className="flex items-center gap-4 mt-2">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  DNTRNG™ Registry Active
+                  {brandName} Registry Active
                 </p>
                 {lastSync && (
                   <div className="flex items-center gap-1.5 px-3 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">

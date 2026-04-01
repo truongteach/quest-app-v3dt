@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLanguage, Language } from '@/context/language-context';
+import { useSettings } from '@/context/settings-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +47,9 @@ interface AdminSidebarProps {
 export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
   const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
+  const { settings } = useSettings();
+
+  const brandName = settings.platform_name || "DNTRNG";
 
   const menuItems = [
     { id: 'overview', label: t('dashboard'), icon: BarChart3, href: '/admin' },
@@ -63,7 +67,9 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
             <Zap className="text-white w-5 h-5 fill-current" />
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">DNTRNG</h1>
+            <h1 className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none truncate max-w-[120px]">
+              {brandName}
+            </h1>
             <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1.5">{t('adminConsole')}</p>
           </div>
         </div>

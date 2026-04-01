@@ -19,13 +19,17 @@ import {
 import { UserNav } from '@/components/UserNav';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/language-context';
+import { useSettings } from '@/context/settings-context';
 import { ModeToggle } from '@/components/ModeToggle';
 
 type SystemStatus = 'Optimal' | 'Degraded' | 'Offline';
 
 export default function LandingPage() {
   const { t, language, setLanguage } = useLanguage();
+  const { settings } = useSettings();
   const [systemStatus, setSystemStatus] = useState<SystemStatus>('Optimal');
+
+  const brandName = settings.platform_name || "DNTRNG";
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -48,7 +52,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center space-x-2">
             <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase flex items-center">
-              DNTRNG<span className="w-2 h-2 rounded-full bg-[#2563EB] ml-1" />
+              {brandName}<span className="w-2 h-2 rounded-full bg-[#2563EB] ml-1" />
             </h1>
           </Link>
           
@@ -219,7 +223,7 @@ export default function LandingPage() {
             <div className="space-y-6 max-w-sm">
               <Link href="/" className="flex items-center space-x-2">
                 <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase flex items-center">
-                  DNTRNG<span className="w-2 h-2 rounded-full bg-[#2563EB] ml-1" />
+                  {brandName}<span className="w-2 h-2 rounded-full bg-[#2563EB] ml-1" />
                 </h1>
               </Link>
               <p className="text-slate-400 font-medium text-sm leading-relaxed">
@@ -248,7 +252,7 @@ export default function LandingPage() {
           
           <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 gap-8">
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">
-              © {new Date().getFullYear()} DNTRNG PLATFORM • PRECISION ASSESSMENT
+              © {new Date().getFullYear()} {brandName.toUpperCase()} • PRECISION ASSESSMENT
             </p>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-100">

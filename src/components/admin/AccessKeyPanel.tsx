@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -8,8 +7,7 @@ import {
   Copy, 
   Settings2, 
   Save,
-  Clock,
-  RefreshCcw
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +32,7 @@ import { generateDailyPassword } from '@/lib/security-utils';
 import { addDays, format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
+import { useSettings } from '@/context/settings-context';
 
 interface AccessKeyPanelProps {
   settings: Record<string, string>;
@@ -41,11 +40,13 @@ interface AccessKeyPanelProps {
   onSaveSetting: (key: string, value: string) => void;
 }
 
-export function AccessKeyPanel({ settings, lastSync, onSaveSetting }: AccessKeyPanelProps) {
+export function AccessKeyPanel({ settings: initialSettings, lastSync, onSaveSetting }: AccessKeyPanelProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [isSaltDialogOpen, setIsSaltDialogOpen] = useState(false);
-  const [newSalt, setNewSalt] = useState(settings.daily_key_salt || "");
+  const { refreshSettings } = useSettings();
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [newSalt, setNewSalt] = useState(initialSettings.daily_key_salt || "");
+  const [platformName, setPlatformName] = useState(initialSettings.platform_name || "DNTRNG");
   const [mounted, setMounted] = useState(false);
   const [localProtectionEnabled, setLocalProtectionEnabled] = useState(true);
 
@@ -54,12 +55,14 @@ export function AccessKeyPanel({ settings, lastSync, onSaveSetting }: AccessKeyP
   }, []);
 
   useEffect(() => {
-    if (settings.access_key_protection_enabled !== undefined) {
-      setLocalProtectionEnabled(String(settings.access_key_protection_enabled) !== "false");
+    if (initialSettings.access_key_protection_enabled !== undefined) {
+      setLocalProtectionEnabled(String(initialSettings.access_key_protection_enabled) !== "false");
     }
-  }, [settings.access_key_protection_enabled]);
+    if (initialSettings.daily_key_salt) setNewSalt(initialSettings.daily_key_salt);
+    if (initialSettings.platform_name) setPlatformName(initialSettings.platform_name);
+  }, [initialSettings]);
 
-  const protocolSalt = settings.daily_key_salt || "";
+  const protocolSalt = initialSettings.daily_key_salt || "";
   const currentDailyKey = generateDailyPassword(undefined, protocolSalt);
 
   const protocolSchedule = useMemo(() => {
@@ -76,6 +79,17 @@ export function AccessKeyPanel({ settings, lastSync, onSaveSetting }: AccessKeyP
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copied!", description: `${label} committed to clipboard.` });
+  };
+
+  const handleSaveAll = async () => {
+    // Save salt
+    onSaveSetting('daily_key_salt', newSalt);
+    // Save platform name
+    onSaveSetting('platform_name', platformName);
+    
+    setIsSettingsDialogOpen(false);
+    // Trigger global refresh so header/sidebar update immediately
+    setTimeout(refreshSettings, 1000);
   };
 
   return (
@@ -114,7 +128,7 @@ export function AccessKeyPanel({ settings, lastSync, onSaveSetting }: AccessKeyP
       </div>
       
       <div className="sm:ml-4 sm:pl-4 sm:border-l border-slate-100 flex items-center gap-2">
-        <Dialog open={isSaltDialogOpen} onOpenChange={setIsSaltDialogOpen}>
+        <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-slate-50 text-slate-400 hover:text-primary">
               <Settings2 className="w-4 h-4" />
@@ -122,20 +136,36 @@ export function AccessKeyPanel({ settings, lastSync, onSaveSetting }: AccessKeyP
           </DialogTrigger>
           <DialogContent className="rounded-[2.5rem] p-10 border-none shadow-2xl">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black uppercase tracking-tight">Protocol Secret</DialogTitle>
-              <DialogDescription>This salt is used to generate dynamic daily keys.</DialogDescription>
+              <DialogTitle className="text-2xl font-black uppercase tracking-tight">System Preferences</DialogTitle>
+              <DialogDescription>Configure global platform settings and branding.</DialogDescription>
             </DialogHeader>
-            <div className="py-6">
-              <Input 
-                value={newSalt} 
-                onChange={(e) => setNewSalt(e.target.value)} 
-                placeholder="e.g. MY-PROTOCOL-SALT" 
-                className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold"
-              />
+            <div className="py-6 space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Platform Name</Label>
+                <div className="relative">
+                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                  <Input 
+                    value={platformName} 
+                    onChange={(e) => setPlatformName(e.target.value)} 
+                    placeholder="e.g. My Academy" 
+                    className="h-12 pl-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Protocol Secret (Salt)</Label>
+                <Input 
+                  value={newSalt} 
+                  onChange={(e) => setNewSalt(e.target.value)} 
+                  placeholder="e.g. MY-PROTOCOL-SALT" 
+                  className="h-12 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold"
+                />
+              </div>
             </div>
             <DialogFooter>
-              <Button onClick={() => { onSaveSetting('daily_key_salt', newSalt); setIsSaltDialogOpen(false); }} className="w-full h-14 rounded-full bg-primary font-black uppercase text-xs tracking-widest shadow-xl">
-                <Save className="w-4 h-4 mr-2" /> Apply Secret
+              <Button onClick={handleSaveAll} className="w-full h-14 rounded-full bg-primary font-black uppercase text-xs tracking-widest shadow-xl">
+                <Save className="w-4 h-4 mr-2" /> Apply Changes
               </Button>
             </DialogFooter>
           </DialogContent>

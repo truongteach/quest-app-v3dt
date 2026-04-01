@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/auth-context';
+import { useSettings } from '@/context/settings-context';
 import { useRouter } from 'next/navigation';
 import { 
   History, 
@@ -30,11 +31,14 @@ import { useLanguage } from '@/context/language-context';
 
 export default function ProfilePage() {
   const { user, logout, loading: authLoading } = useAuth();
+  const { settings } = useSettings();
   const { t } = useLanguage();
   const router = useRouter();
   const [responses, setResponses] = useState<any[]>([]);
   const [testsCount, setTestsCount] = useState(0);
   const [loadingStats, setLoadingStats] = useState(false);
+
+  const brandName = settings.platform_name || "DNTRNG";
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -109,8 +113,8 @@ export default function ProfilePage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">{t('identityRegistry')}</h1>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">{t('accountOverview')}</p>
+              <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">{brandName}</h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mt-1">{t('accountOverview')}</p>
             </div>
           </div>
           <UserNav />
