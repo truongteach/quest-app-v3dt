@@ -20,7 +20,8 @@ import {
   Target,
   ImageIcon,
   Megaphone,
-  Fingerprint
+  Fingerprint,
+  Clock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,8 @@ export default function AdminSettingsPage() {
     default_pass_threshold: '70',
     enable_benchmarking: 'true',
     maintenance_mode: 'false',
-    allowed_email_domains: ''
+    allowed_email_domains: '',
+    session_timeout_hours: '24'
   });
 
   useEffect(() => {
@@ -62,7 +64,8 @@ export default function AdminSettingsPage() {
         default_pass_threshold: settings.default_pass_threshold || '70',
         enable_benchmarking: String(settings.enable_benchmarking ?? 'true'),
         maintenance_mode: String(settings.maintenance_mode ?? 'false'),
-        allowed_email_domains: settings.allowed_email_domains || ''
+        allowed_email_domains: settings.allowed_email_domains || '',
+        session_timeout_hours: settings.session_timeout_hours || '24'
       });
     }
   }, [settings, settingsLoading]);
@@ -77,7 +80,8 @@ export default function AdminSettingsPage() {
     default_pass_threshold: settings.default_pass_threshold || '70',
     enable_benchmarking: String(settings.enable_benchmarking ?? 'true'),
     maintenance_mode: String(settings.maintenance_mode ?? 'false'),
-    allowed_email_domains: settings.allowed_email_domains || ''
+    allowed_email_domains: settings.allowed_email_domains || '',
+    session_timeout_hours: settings.session_timeout_hours || '24'
   };
 
   const hasChanges = JSON.stringify(formData) !== JSON.stringify(currentSnapshot);
@@ -242,16 +246,31 @@ export default function AdminSettingsPage() {
                 <p className="text-[9px] font-medium text-slate-400 mt-2 px-1">Rotating daily keys are generated using this value as a base.</p>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('allowedEmailDomains')}</Label>
-                <div className="relative">
-                  <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                  <Input 
-                    value={formData.allowed_email_domains}
-                    onChange={(e) => setFormData({ ...formData, allowed_email_domains: e.target.value })}
-                    placeholder={t('allowedDomainsPlaceholder')}
-                    className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold text-xs"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('allowedEmailDomains')}</Label>
+                  <div className="relative">
+                    <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                    <Input 
+                      value={formData.allowed_email_domains}
+                      onChange={(e) => setFormData({ ...formData, allowed_email_domains: e.target.value })}
+                      placeholder={t('allowedDomainsPlaceholder')}
+                      className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('sessionTimeout')}</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                    <Input 
+                      type="number"
+                      value={formData.session_timeout_hours}
+                      onChange={(e) => setFormData({ ...formData, session_timeout_hours: e.target.value })}
+                      className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold text-sm"
+                    />
+                  </div>
                 </div>
               </div>
 

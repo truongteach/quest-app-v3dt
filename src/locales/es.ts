@@ -117,7 +117,7 @@ export const es = {
   terminateSession: "Cerrar sesión",
   registryOverview: "Resumen del Registro",
   quickProtocol: "Protocolo Rápido",
-  activeModules: "Módulos Activos",
+  activeModules: "Mónulos Activos",
   structuralIntegrity: "Integridad estructural: 100% Óptima",
   injectNewTest: "Inyectar Nueva Prueba",
   viewSetupGuide: "Ver Guía de Configuración",
@@ -146,5 +146,6 @@ export const es = {
   registryBroadcast: "Aviso del Sistema",
   allowedEmailDomains: "Dominios permitidos",
   allowedDomainsPlaceholder: "ej: gmail.com, empresa.com (Vacío para todos)",
-  domainRestricted: "Dominio restringido: Tu dominio de correo no está permitido en esta plataforma."
+  domainRestricted: "Dominio restringido: Tu dominio de correo no está permitido en esta plataforma.",
+  sessionTimeout: "Tiempo de expiración de sesión (Horas)"
 };
