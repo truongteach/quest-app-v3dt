@@ -143,5 +143,8 @@ export const es = {
   // Settings Page
   logoUrl: "URL del Logo (Imagen externa)",
   announcementBanner: "Banner de Anuncios (Inicio)",
-  registryBroadcast: "Aviso del Sistema"
+  registryBroadcast: "Aviso del Sistema",
+  allowedEmailDomains: "Dominios permitidos",
+  allowedDomainsPlaceholder: "ej: gmail.com, empresa.com (Vacío para todos)",
+  domainRestricted: "Dominio restringido: Tu dominio de correo no está permitido en esta plataforma."
 };

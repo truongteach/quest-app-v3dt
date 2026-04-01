@@ -10,6 +10,7 @@ import { Zap, LogIn, Loader2, ArrowLeft, Mail, Lock, UserPlus } from "lucide-rea
 import { useAuth } from "@/context/auth-context";
 import { useSettings } from '@/context/settings-context';
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from '@/context/language-context';
 import Link from 'next/link';
 import {
   Dialog,
@@ -23,6 +24,7 @@ import {
 export default function LoginPage() {
   const { login } = useAuth();
   const { settings } = useSettings();
+  const { t } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -37,19 +39,24 @@ export default function LoginPage() {
     if (!email || !password) return;
     
     setLoading(true);
-    const success = await login(email, password);
+    const result = await login(email, password);
     
-    if (success) {
+    if (result.success) {
       toast({
         title: "Access Granted",
         description: `Authenticated with ${brandName} identity provider.`,
       });
       router.push('/profile');
     } else {
+      let errorDesc = "Invalid credentials. Access denied.";
+      if (result.message === "domain_restricted") {
+        errorDesc = t('domainRestricted');
+      }
+      
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description: "Invalid credentials. Access denied.",
+        description: errorDesc,
       });
     }
     setLoading(false);
@@ -77,7 +84,7 @@ export default function LoginPage() {
           <CardDescription className="text-base font-medium">Welcome back. Enter your details to continue.</CardDescription>
         </CardHeader>
         <CardContent className="px-10 pb-6">
-          <form handleLogin={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email</Label>
               <div className="relative">

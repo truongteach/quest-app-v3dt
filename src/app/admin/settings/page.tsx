@@ -19,7 +19,8 @@ import {
   Bell,
   Target,
   ImageIcon,
-  Megaphone
+  Megaphone,
+  Fingerprint
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,8 @@ export default function AdminSettingsPage() {
     access_key_protection_enabled: 'true',
     default_pass_threshold: '70',
     enable_benchmarking: 'true',
-    maintenance_mode: 'false'
+    maintenance_mode: 'false',
+    allowed_email_domains: ''
   });
 
   useEffect(() => {
@@ -59,12 +61,13 @@ export default function AdminSettingsPage() {
         access_key_protection_enabled: String(settings.access_key_protection_enabled ?? 'true'),
         default_pass_threshold: settings.default_pass_threshold || '70',
         enable_benchmarking: String(settings.enable_benchmarking ?? 'true'),
-        maintenance_mode: String(settings.maintenance_mode ?? 'false')
+        maintenance_mode: String(settings.maintenance_mode ?? 'false'),
+        allowed_email_domains: settings.allowed_email_domains || ''
       });
     }
   }, [settings, settingsLoading]);
 
-  const hasChanges = JSON.stringify(formData) !== JSON.stringify({
+  const currentSnapshot = {
     platform_name: settings.platform_name || 'DNTRNG',
     logo_url: settings.logo_url || '',
     support_email: settings.support_email || '',
@@ -73,8 +76,11 @@ export default function AdminSettingsPage() {
     access_key_protection_enabled: String(settings.access_key_protection_enabled ?? 'true'),
     default_pass_threshold: settings.default_pass_threshold || '70',
     enable_benchmarking: String(settings.enable_benchmarking ?? 'true'),
-    maintenance_mode: String(settings.maintenance_mode ?? 'false')
-  });
+    maintenance_mode: String(settings.maintenance_mode ?? 'false'),
+    allowed_email_domains: settings.allowed_email_domains || ''
+  };
+
+  const hasChanges = JSON.stringify(formData) !== JSON.stringify(currentSnapshot);
 
   const handlePost = async (action: string, payload: any) => {
     if (!API_URL) return false;
@@ -234,6 +240,19 @@ export default function AdminSettingsPage() {
                   />
                 </div>
                 <p className="text-[9px] font-medium text-slate-400 mt-2 px-1">Rotating daily keys are generated using this value as a base.</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('allowedEmailDomains')}</Label>
+                <div className="relative">
+                  <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                  <Input 
+                    value={formData.allowed_email_domains}
+                    onChange={(e) => setFormData({ ...formData, allowed_email_domains: e.target.value })}
+                    placeholder={t('allowedDomainsPlaceholder')}
+                    className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold text-xs"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">

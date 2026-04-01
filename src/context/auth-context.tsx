@@ -1,8 +1,8 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { API_URL } from '@/lib/api-config';
+import { useSettings } from '@/context/settings-context';
 
 interface User {
   email: string;
@@ -14,7 +14,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password?: string) => Promise<boolean>;
+  login: (email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
 }
 
@@ -23,6 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { settings } = useSettings();
 
   useEffect(() => {
     const savedUser = localStorage.getItem('questflow_user');
@@ -83,9 +84,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (email: string, password?: string): Promise<boolean> => {
-    if (!API_URL) return false;
+  const login = async (email: string, password?: string): Promise<{ success: boolean; message?: string }> => {
+    if (!API_URL) return { success: false, message: "API Offline" };
     
+    // Domain Authorization Registry Protocol
+    const allowedDomainsStr = settings.allowed_email_domains || "";
+    if (allowedDomainsStr.trim()) {
+      const allowedDomains = allowedDomainsStr.split(',').map(d => d.trim().toLowerCase()).filter(Boolean);
+      if (allowedDomains.length > 0) {
+        const userDomain = email.split('@')[1]?.toLowerCase();
+        if (!userDomain || !allowedDomains.includes(userDomain)) {
+          return { success: false, message: "domain_restricted" };
+        }
+      }
+    }
+
     try {
       const url = new URL(API_URL);
       url.searchParams.append('action', 'login');
@@ -108,12 +121,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Log Login Activity with IP and Device
         logActivity(newUser.email, newUser.displayName || 'User', 'Login');
         
-        return true;
+        return { success: true };
       }
-      return false;
+      return { success: false, message: "invalid_credentials" };
     } catch (error) {
       console.error("Login failed:", error);
-      return false;
+      return { success: false, message: "sync_error" };
     }
   };
 

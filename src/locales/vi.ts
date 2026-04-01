@@ -158,5 +158,8 @@ export const vi = {
   passThreshold: "Ngưỡng đạt (%)",
   enableBenchmarking: "Bật so sánh xếp hạng",
   maintenanceMode: "Chế độ bảo trì",
-  saveAllSettings: "Lưu tất cả thay đổi"
+  saveAllSettings: "Lưu tất cả thay đổi",
+  allowedEmailDomains: "Tên miền email cho phép",
+  allowedDomainsPlaceholder: "ví dụ: gmail.com, company.com (Để trống để cho phép tất cả)",
+  domainRestricted: "Tên miền bị hạn chế: Email của bạn không được phép truy cập hệ thống."
 };

@@ -158,5 +158,8 @@ export const en = {
   passThreshold: "Pass Threshold (%)",
   enableBenchmarking: "Enable Benchmarking",
   maintenanceMode: "Maintenance Mode",
-  saveAllSettings: "Apply Global Changes"
+  saveAllSettings: "Apply Global Changes",
+  allowedEmailDomains: "Allowed Email Domains",
+  allowedDomainsPlaceholder: "e.g. gmail.com, company.com (Leave blank for all)",
+  domainRestricted: "Domain Restricted: Your email domain is not permitted on this platform."
 };
