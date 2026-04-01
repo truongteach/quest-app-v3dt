@@ -22,7 +22,9 @@ import {
   Megaphone,
   Fingerprint,
   Clock,
-  UserCheck
+  UserCheck,
+  Palette,
+  AlignLeft
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +46,8 @@ export default function AdminSettingsPage() {
     logo_url: '',
     support_email: '',
     announcement_banner: '',
+    custom_footer_text: '',
+    theme_primary_color: '#2563EB',
     daily_key_salt: '',
     access_key_protection_enabled: 'true',
     default_pass_threshold: '70',
@@ -58,10 +62,12 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (!settingsLoading && settings) {
       setFormData({
-        platform_name: settings.platform_name || 'DNTRNG',
+        platform_name: String(settings.platform_name || 'DNTRNG'),
         logo_url: settings.logo_url || '',
         support_email: settings.support_email || '',
         announcement_banner: settings.announcement_banner || '',
+        custom_footer_text: settings.custom_footer_text || '',
+        theme_primary_color: settings.theme_primary_color || '#2563EB',
         daily_key_salt: settings.daily_key_salt || '',
         access_key_protection_enabled: String(settings.access_key_protection_enabled ?? 'true'),
         default_pass_threshold: settings.default_pass_threshold || '70',
@@ -77,10 +83,12 @@ export default function AdminSettingsPage() {
 
   // Derived snapshot from the actual server state (from context)
   const currentSnapshot: Record<string, string> = {
-    platform_name: settings.platform_name || 'DNTRNG',
+    platform_name: String(settings.platform_name || 'DNTRNG'),
     logo_url: settings.logo_url || '',
     support_email: settings.support_email || '',
     announcement_banner: settings.announcement_banner || '',
+    custom_footer_text: settings.custom_footer_text || '',
+    theme_primary_color: settings.theme_primary_color || '#2563EB',
     daily_key_salt: settings.daily_key_salt || '',
     access_key_protection_enabled: String(settings.access_key_protection_enabled ?? 'true'),
     default_pass_threshold: settings.default_pass_threshold || '70',
@@ -147,6 +155,8 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
+
   if (settingsLoading) {
     return (
       <div className="py-40">
@@ -195,6 +205,40 @@ export default function AdminSettingsPage() {
                     onChange={(e) => setFormData({ ...formData, platform_name: e.target.value })}
                     className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-black text-sm"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('themePrimaryColor')}</Label>
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-1">
+                      <Palette className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      <Input 
+                        value={formData.theme_primary_color}
+                        onChange={(e) => setFormData({ ...formData, theme_primary_color: e.target.value })}
+                        placeholder="#2563EB"
+                        className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-mono text-xs uppercase"
+                      />
+                    </div>
+                    <div 
+                      className="w-12 h-12 rounded-xl shadow-inner border border-slate-200 dark:border-slate-700 transition-colors"
+                      style={{ backgroundColor: isValidHex(formData.theme_primary_color) ? formData.theme_primary_color : '#2563EB' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('customFooterText')}</Label>
+                  <div className="relative">
+                    <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                    <Input 
+                      value={formData.custom_footer_text}
+                      onChange={(e) => setFormData({ ...formData, custom_footer_text: e.target.value })}
+                      placeholder="© 2025 Your Legal Text"
+                      className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold text-xs"
+                    />
+                  </div>
                 </div>
               </div>
 

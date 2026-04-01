@@ -273,9 +273,15 @@ export default function LandingPage() {
           </div>
           
           <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 gap-8">
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">
-              © {new Date().getFullYear()} {brandName.toUpperCase()} • PRECISION ASSESSMENT
-            </p>
+            {settings.custom_footer_text ? (
+              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">
+                {settings.custom_footer_text}
+              </p>
+            ) : (
+              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">
+                © {new Date().getFullYear()} {brandName.toUpperCase()} • PRECISION ASSESSMENT
+              </p>
+            )}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-100">
                 <div className={cn(

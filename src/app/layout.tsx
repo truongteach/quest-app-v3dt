@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 import { LanguageProvider } from '@/context/language-context';
 import { SettingsProvider } from '@/context/settings-context';
+import { ThemeColorManager } from '@/components/ThemeColorManager';
 
 export const metadata: Metadata = {
   title: 'Assessment Platform - Intelligence Simplified',
@@ -24,6 +25,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased min-h-screen bg-background text-foreground">
         <SettingsProvider>
+          <ThemeColorManager />
           <LanguageProvider>
             <AuthProvider>
               {children}

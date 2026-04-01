@@ -169,5 +169,7 @@ export const en = {
   loginRequiredDesc: "Guest participation is disabled. Please sign in with your student account to initialize this module.",
   goToLogin: "Access Login Registry",
   globalTimerLimit: "Global Timer Limit (Minutes)",
-  globalTimerLimitDesc: "Fallback duration for tests without a specific time limit"
+  globalTimerLimitDesc: "Fallback duration for tests without a specific time limit",
+  customFooterText: "Custom Footer Text",
+  themePrimaryColor: "Theme Primary Color"
 };

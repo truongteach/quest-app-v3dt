@@ -186,9 +186,15 @@ export default function TestsLibrary() {
               {brandName}
             </span>
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 dark:text-slate-700">
-            GLOBAL ASSESSMENT REGISTRY • ENCRYPTED SESSION
-          </p>
+          {settings.custom_footer_text ? (
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 dark:text-slate-700">
+              {settings.custom_footer_text}
+            </p>
+          ) : (
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 dark:text-slate-700">
+              GLOBAL ASSESSMENT REGISTRY • ENCRYPTED SESSION
+            </p>
+          )}
         </div>
       </footer>
     </div>
