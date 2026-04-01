@@ -113,7 +113,10 @@ export default function ProfilePage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">{brandName}</h1>
+              <div className="flex items-center gap-2">
+                {settings.logo_url && <img src={settings.logo_url} alt={brandName} className="h-6 w-auto object-contain" />}
+                <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">{brandName}</h1>
+              </div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mt-1">{t('accountOverview')}</p>
             </div>
           </div>
@@ -129,7 +132,11 @@ export default function ProfilePage() {
             <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800">
               <div className="h-32 bg-primary relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-                <Zap className="absolute -bottom-8 -right-8 w-32 h-32 text-white/5 fill-current" />
+                {settings.logo_url ? (
+                  <img src={settings.logo_url} alt={brandName} className="absolute -bottom-4 -right-4 w-24 h-24 opacity-10 object-contain rotate-12" />
+                ) : (
+                  <Zap className="absolute -bottom-8 -right-8 w-32 h-32 text-white/5 fill-current" />
+                )}
               </div>
               <div className="px-8 pb-10 -mt-16 relative z-10 text-center">
                 <Avatar className="h-32 w-32 border-8 border-white dark:border-slate-900 shadow-2xl mx-auto mb-6">

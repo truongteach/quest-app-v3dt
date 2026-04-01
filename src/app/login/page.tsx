@@ -66,14 +66,18 @@ export default function LoginPage() {
 
       <Card className="w-full max-w-md border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
         <CardHeader className="text-center pt-12">
-          <div className="mx-auto w-20 h-20 bg-primary/10 rounded-[1.5rem] flex items-center justify-center mb-6">
-            <Zap className="w-10 h-10 text-primary fill-current" />
+          <div className="mx-auto w-20 h-20 bg-primary/10 rounded-[1.5rem] flex items-center justify-center mb-6 overflow-hidden">
+            {settings.logo_url ? (
+              <img src={settings.logo_url} alt={brandName} className="w-12 h-12 object-contain" />
+            ) : (
+              <Zap className="w-10 h-10 text-primary fill-current" />
+            )}
           </div>
           <CardTitle className="text-3xl font-black tracking-tight uppercase">Sign In</CardTitle>
           <CardDescription className="text-base font-medium">Welcome back. Enter your details to continue.</CardDescription>
         </CardHeader>
         <CardContent className="px-10 pb-6">
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form handleLogin={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="font-black text-[10px] uppercase tracking-widest text-slate-400 ml-1">Email</Label>
               <div className="relative">

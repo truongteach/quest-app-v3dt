@@ -147,6 +147,7 @@ export const en = {
   siteSettings: "Site Settings",
   branding: "Branding",
   platformName: "Platform Name",
+  logoUrl: "Logo URL (External Image Link)",
   supportEmail: "Support Email",
   securitySettings: "Security Settings",
   protocolSalt: "Protocol Salt",

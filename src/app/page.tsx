@@ -51,9 +51,13 @@ export default function LandingPage() {
       <header className="py-4 px-6 md:px-12 border-b border-slate-200 bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase flex items-center">
-              {brandName}<span className="w-2 h-2 rounded-full bg-[#2563EB] ml-1" />
-            </h1>
+            {settings.logo_url ? (
+              <img src={settings.logo_url} alt={brandName} className="h-8 w-auto object-contain mr-1" />
+            ) : (
+              <h1 className="text-2xl font-black tracking-tighter text-slate-900 uppercase flex items-center">
+                {brandName}<span className="w-2 h-2 rounded-full bg-[#2563EB] ml-1" />
+              </h1>
+            )}
           </Link>
           
           <nav className="hidden md:flex items-center gap-8 text-xs font-black uppercase tracking-widest text-slate-500">

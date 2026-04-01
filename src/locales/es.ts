@@ -139,5 +139,7 @@ export const es = {
   beginner: "Principiante",
   easy: "Fácil",
   medium: "Intermedio",
-  hard: "Difícil"
+  hard: "Difícil",
+  // Settings Page
+  logoUrl: "URL del Logo (Imagen externa)"
 };

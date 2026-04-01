@@ -147,6 +147,7 @@ export const vi = {
   siteSettings: "Cài đặt trang",
   branding: "Thương hiệu",
   platformName: "Tên nền tảng",
+  logoUrl: "Đường dẫn Logo (Ảnh bên ngoài)",
   supportEmail: "Email hỗ trợ",
   securitySettings: "Cài đặt bảo mật",
   protocolSalt: "Mã muối bảo mật",

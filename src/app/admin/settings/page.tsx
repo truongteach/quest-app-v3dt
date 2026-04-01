@@ -17,7 +17,8 @@ import {
   Zap,
   LayoutGrid,
   Bell,
-  Target
+  Target,
+  ImageIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export default function AdminSettingsPage() {
   // Controlled form state
   const [formData, setFormData] = useState<Record<string, string>>({
     platform_name: '',
+    logo_url: '',
     support_email: '',
     daily_key_salt: '',
     access_key_protection_enabled: 'true',
@@ -48,6 +50,7 @@ export default function AdminSettingsPage() {
     if (!settingsLoading && settings) {
       setFormData({
         platform_name: settings.platform_name || 'DNTRNG',
+        logo_url: settings.logo_url || '',
         support_email: settings.support_email || '',
         daily_key_salt: settings.daily_key_salt || '',
         access_key_protection_enabled: String(settings.access_key_protection_enabled ?? 'true'),
@@ -60,6 +63,7 @@ export default function AdminSettingsPage() {
 
   const hasChanges = JSON.stringify(formData) !== JSON.stringify({
     platform_name: settings.platform_name || 'DNTRNG',
+    logo_url: settings.logo_url || '',
     support_email: settings.support_email || '',
     daily_key_salt: settings.daily_key_salt || '',
     access_key_protection_enabled: String(settings.access_key_protection_enabled ?? 'true'),
@@ -158,6 +162,25 @@ export default function AdminSettingsPage() {
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('logoUrl')}</Label>
+                <div className="relative">
+                  <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                  <Input 
+                    value={formData.logo_url}
+                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                    placeholder="https://... (Leave blank for default icon)"
+                    className="h-12 pl-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-bold text-sm"
+                  />
+                </div>
+                {formData.logo_url && (
+                  <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700">
+                    <img src={formData.logo_url} alt="Logo Preview" className="h-12 w-auto object-contain" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t('supportEmail')}</Label>
                 <div className="relative">
