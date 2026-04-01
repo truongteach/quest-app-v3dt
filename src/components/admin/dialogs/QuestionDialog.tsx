@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
@@ -24,7 +25,6 @@ import {
   Code2,
   Target,
   Grid,
-  ImageIcon as LucideImageIcon,
   ChevronRight
 } from "lucide-react";
 import { QuestionType } from '@/types/quiz';
@@ -111,7 +111,15 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
       <DialogContent className="sm:max-w-[85vw] h-[90vh] rounded-[3rem] overflow-hidden p-0 border-none shadow-2xl bg-white flex flex-row">
         <div className="w-[280px] bg-slate-50 border-r p-4 overflow-y-auto">
           {QUESTION_TYPES.map((type) => (
-            <button key={type.value} onClick={() => setSelectedType(type.value as QuestionType)} className={cn("w-full flex items-center gap-4 p-4 rounded-2xl transition-all mb-1", selectedType === type.value ? "bg-primary text-white shadow-xl" : "hover:bg-white text-slate-500")}>
+            <button 
+              key={type.value} 
+              type="button"
+              onClick={() => setSelectedType(type.value as QuestionType)} 
+              className={cn(
+                "w-full flex items-center gap-4 p-4 rounded-2xl transition-all mb-1", 
+                selectedType === type.value ? "bg-primary text-white shadow-xl" : "hover:bg-white text-slate-500"
+              )}
+            >
               <type.icon className="w-5 h-5" />
               <span className="text-xs font-black uppercase">{type.label}</span>
             </button>
