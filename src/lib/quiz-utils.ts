@@ -95,8 +95,14 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
   } 
   
   if (questionType === 'matching') {
-    const userPairs = Object.entries(response as Record<string, string>).map(([k, v]) => `${k}|${v}`).sort();
-    const sortedCorrect = [...correctArr].sort();
+    // Protocol: User response is Record<Prompt, Answer>. 
+    // Convert to sorted "Prompt|Answer" strings for exact registry comparison.
+    const userPairs = Object.entries(response as Record<string, string>)
+      .map(([k, v]) => `${k.trim()}|${v.trim()}`)
+      .sort();
+    
+    const sortedCorrect = [...correctArr].map(c => c.trim()).sort();
+    
     if (sortedCorrect.length !== userPairs.length) return false;
     return JSON.stringify(userPairs) === JSON.stringify(sortedCorrect);
   }

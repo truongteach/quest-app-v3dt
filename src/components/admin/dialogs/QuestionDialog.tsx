@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -77,7 +76,7 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
       setCorrectAnswers(parseRegistryArray(getRegistryValue(editingItem, ['correct_answer'])));
       const rows = parseRegistryArray(getRegistryValue(editingItem, ['order_group']));
       setMatrixRows(rows);
-      setMatchingPairs(rows.map(p => { const [l, r] = p.split('|'); return { left: l || "", right: r || "" }; }));
+      setMatchingPairs(rows.map(p => { const [l, r] = p.split('|'); return { left: (l || "").trim(), right: (r || "").trim() }; }));
       setImageUrl(getRegistryValue(editingItem, ['image_url']) || '');
       setMetadata(getRegistryValue(editingItem, ['metadata']) || '');
     }
@@ -91,7 +90,11 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
     let finalCorrect = correctAnswers;
     let finalOrder = matrixRows;
 
-    if (selectedType === 'matching') finalOrder = matchingPairs.map(p => `${p.left}|${p.right}`);
+    if (selectedType === 'matching') {
+      const pairs = matchingPairs.map(p => `${p.left.trim()}|${p.right.trim()}`);
+      finalOrder = pairs;
+      finalCorrect = pairs; // Fix: Ensure matching pairs are written to correct_answer registry
+    }
     
     onSave({
       ...data,
