@@ -13,7 +13,8 @@ import {
   Clock,
   ListChecks,
   FileEdit,
-  RefreshCcw
+  RefreshCcw,
+  BarChart3
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,11 +56,12 @@ interface TestsTabProps {
   onEdit: (test: any) => void;
   onDelete: (id: string) => void;
   onManageQuestions: (id: string) => void;
+  onViewAnalytics: (test: any) => void;
   onAdd: () => void;
   onRefresh: () => void;
 }
 
-export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, onAdd, onRefresh }: TestsTabProps) {
+export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, onViewAnalytics, onAdd, onRefresh }: TestsTabProps) {
   const { t } = useLanguage();
   const [viewMode, setViewMode] = React.useState<'list' | 'card'>('list');
   const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
@@ -198,7 +200,10 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
                       </TableCell>
                       <TableCell className="px-8 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <Button variant="ghost" size="sm" onClick={() => onManageQuestions(t_item.id)} className="rounded-full text-primary font-black text-xs hover:bg-primary/5">
+                          <Button variant="ghost" size="sm" onClick={() => onViewAnalytics(t_item)} className="rounded-full text-primary font-black text-xs hover:bg-primary/5">
+                            <BarChart3 className="w-4 h-4 mr-1.5" /> Analytics
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => onManageQuestions(t_item.id)} className="rounded-full text-slate-600 dark:text-slate-400 font-black text-xs hover:bg-slate-100 dark:hover:bg-slate-800">
                             <FileEdit className="w-4 h-4 mr-1.5" /> {t('questions')}
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => onEdit(t_item)} className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800">
@@ -271,6 +276,9 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="rounded-2xl p-2 w-48 shadow-2xl border-none dark:bg-slate-900 dark:border dark:border-slate-800" align="end">
+                        <DropdownMenuItem onClick={() => onViewAnalytics(t_item)} className="rounded-xl font-bold p-3 cursor-pointer">
+                          <BarChart3 className="w-4 h-4 mr-2" /> Analytics
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onEdit(t_item)} className="rounded-xl font-bold p-3 cursor-pointer">
                           <Edit className="w-4 h-4 mr-2" /> {t('edit')}
                         </DropdownMenuItem>

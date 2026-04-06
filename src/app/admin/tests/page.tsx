@@ -5,11 +5,15 @@ import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/lib/api-config';
 import { TestsTab } from '@/components/admin/TestsTab';
 import { AdminDialogs } from '@/components/admin/AdminDialogs';
+import { QuestionAnalyticsDialog } from '@/components/admin/analytics/QuestionAnalyticsDialog';
 import { useRouter } from 'next/navigation';
 
 export default function AdminTestsPage() {
   const [loading, setLoading] = useState(false);
   const [tests, setTests] = useState<any[]>([]);
+  const [responses, setResponses] = useState<any[]>([]);
+  const [analyticsTest, setAnalyticsTest] = useState<any>(null);
+  const [analyticsQuestions, setAnalyticsQuestions] = useState<any[]>([]);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [dialogs, setDialogs] = useState({ test: false, user: false, question: false, bulk: false });
   const { toast } = useToast();
@@ -19,9 +23,18 @@ export default function AdminTestsPage() {
     if (!API_URL) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}?action=getTests`);
-      const data = await res.json();
-      setTests(Array.isArray(data) ? data : []);
+      const [testsRes, responsesRes] = await Promise.all([
+        fetch(`${API_URL}?action=getTests`),
+        fetch(`${API_URL}?action=getResponses`)
+      ]);
+      
+      const [testsData, responsesData] = await Promise.all([
+        testsRes.json(),
+        responsesRes.json()
+      ]);
+
+      setTests(Array.isArray(testsData) ? testsData : []);
+      setResponses(Array.isArray(responsesData) ? responsesData : []);
     } catch (err) {
       toast({ variant: "destructive", title: "Error", description: "Could not fetch tests." });
     } finally {
@@ -51,6 +64,20 @@ export default function AdminTestsPage() {
     }
   };
 
+  const openAnalytics = async (test: any) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}?action=getQuestions&id=${test.id}`);
+      const questions = await res.json();
+      setAnalyticsQuestions(Array.isArray(questions) ? questions : []);
+      setAnalyticsTest(test);
+    } catch (err) {
+      toast({ variant: "destructive", title: "Sync Error", description: "Could not fetch question registry." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <TestsTab 
@@ -59,6 +86,7 @@ export default function AdminTestsPage() {
         onEdit={(item) => { setEditingItem(item); setDialogs({ ...dialogs, test: true }); }}
         onDelete={(id) => handlePost('deleteTest', { id })}
         onManageQuestions={(id) => router.push(`/admin/tests/${id}`)}
+        onViewAnalytics={openAnalytics}
         onAdd={() => router.push('/admin/tests/new')}
         onRefresh={fetchTests}
       />
@@ -80,6 +108,14 @@ export default function AdminTestsPage() {
         onSaveUser={() => {}}
         onSaveQuestion={() => {}}
         onSaveBulk={() => {}}
+      />
+
+      <QuestionAnalyticsDialog 
+        open={!!analyticsTest}
+        onOpenChange={(open) => !open && setAnalyticsTest(null)}
+        test={analyticsTest}
+        questions={analyticsQuestions}
+        responses={responses}
       />
     </div>
   );

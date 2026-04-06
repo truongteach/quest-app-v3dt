@@ -10,6 +10,15 @@ export interface ResponseStats {
   testPerformanceData: { name: string; avg: number; submissions: number }[];
 }
 
+export interface QuestionStat {
+  id: string;
+  text: string;
+  attempts: number;
+  correct: number;
+  incorrect: number;
+  successRate: number;
+}
+
 /**
  * Calculates global and per-test metrics from raw response data.
  * @param responses - The list of submission records.
@@ -72,4 +81,46 @@ export function calculateResponseStats(responses: any[], tests: any[], threshold
     gradeData,
     testPerformanceData
   };
+}
+
+/**
+ * Calculates per-question metrics for a specific test.
+ */
+export function calculateQuestionStats(testId: string, questions: any[], allResponses: any[]): QuestionStat[] {
+  const testResponses = allResponses.filter(r => String(r['Test ID']) === String(testId));
+  
+  return questions.map(q => {
+    let attempts = 0;
+    let correct = 0;
+
+    testResponses.forEach(r => {
+      try {
+        const raw = typeof r['Raw Responses'] === 'string' 
+          ? JSON.parse(r['Raw Responses']) 
+          : (r['Raw Responses'] || []);
+        
+        const qResponse = raw.find((item: any) => String(item.questionId) === String(q.id));
+        
+        if (qResponse) {
+          attempts++;
+          if (qResponse.isCorrect) {
+            correct++;
+          }
+        }
+      } catch (e) {
+        // Skip malformed response data
+      }
+    });
+
+    const successRate = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
+
+    return {
+      id: q.id,
+      text: q.question_text || 'Unknown Question',
+      attempts,
+      correct,
+      incorrect: attempts - correct,
+      successRate
+    };
+  }).sort((a, b) => a.successRate - b.successRate); // Hardest first by default
 }
