@@ -156,7 +156,7 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
                     <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-center text-slate-400">Items</TableHead>
                     <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-slate-400">{t('category')}</TableHead>
                     <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-center text-slate-400">Status</TableHead>
-                    <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-right text-slate-400">{t('actions')}</TableHead>
+                    <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-right text-slate-400 min-w-[320px]">{t('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -199,7 +199,7 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
                         </Badge>
                       </TableCell>
                       <TableCell className="px-8 text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap">
                           <Button variant="ghost" size="sm" onClick={() => onViewAnalytics(t_item)} className="rounded-full text-primary font-black text-xs hover:bg-primary/5">
                             <BarChart3 className="w-4 h-4 mr-1.5" /> Analytics
                           </Button>
@@ -268,7 +268,7 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
                       {t_item.category || "General"}
                     </Badge>
                   </div>
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-4 right-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button size="icon" variant="secondary" className="rounded-full h-10 w-10 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md">
