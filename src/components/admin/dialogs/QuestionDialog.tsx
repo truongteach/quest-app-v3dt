@@ -26,7 +26,9 @@ import {
   Grid,
   Eye,
   EyeOff,
-  Sparkles
+  Sparkles,
+  X,
+  AlertCircle
 } from "lucide-react";
 import { QuestionType, Question } from '@/types/quiz';
 import { cn } from "@/lib/utils";
@@ -84,6 +86,10 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
   const [mapperOpen, setMapperOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   
+  // Image Preview Logic
+  const [debouncedUrl, setDebouncedUrl] = useState('');
+  const [isValidImage, setIsValidImage] = useState<boolean | null>(null);
+
   // Dirty Tracking Protocol
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
   const [showDiscardWarning, setShowDiscardWarning] = useState(false);
@@ -108,6 +114,8 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
       setMatrixRows(rows);
       setMatchingPairs(pairs);
       setImageUrl(img);
+      setDebouncedUrl(img);
+      setIsValidImage(null);
       setMetadata(meta);
 
       // Capture initial state for unsaved changes detection
@@ -127,6 +135,15 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
       setShowPreview(false);
     }
   }, [open, editingItem]);
+
+  // Debounced URL Protocol
+  useEffect(() => {
+    setIsValidImage(null);
+    const timer = setTimeout(() => {
+      setDebouncedUrl(imageUrl);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [imageUrl]);
 
   const currentSnapshot = JSON.stringify({
     type: selectedType,
@@ -262,11 +279,51 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
                   />
                 </div>
 
-                <div className="p-8 bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 space-y-4">
+                <div className="p-8 bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 space-y-6">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-slate-400 ml-1">Visual Asset (URL)</Label>
                     <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." className="rounded-xl h-12 bg-white ring-1 ring-slate-200 border-none" />
                   </div>
+
+                  {imageUrl && (
+                    <div className="space-y-3">
+                      {isValidImage === false && (
+                        <div className="flex items-center gap-2 text-rose-500 bg-rose-50 p-3 rounded-xl border border-rose-100 animate-in fade-in slide-in-from-top-1 duration-300">
+                          <AlertCircle className="w-3 h-3" />
+                          <p className="text-[10px] font-bold uppercase tracking-tight">Image could not be loaded — check the URL</p>
+                        </div>
+                      )}
+                      
+                      <div className="relative inline-block group">
+                        <div className={cn(
+                          "overflow-hidden rounded-2xl border-2 shadow-sm transition-all duration-500 bg-white",
+                          isValidImage === true ? "border-slate-200 opacity-100 scale-100" : "border-transparent opacity-0 h-0 scale-95"
+                        )}>
+                          <img 
+                            src={debouncedUrl} 
+                            onLoad={() => setIsValidImage(true)}
+                            onError={() => setIsValidImage(false)}
+                            alt="Asset Preview"
+                            className="max-h-[120px] w-auto object-contain"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors pointer-events-none" />
+                        </div>
+                        
+                        {isValidImage === true && (
+                          <Button 
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => setImageUrl('')}
+                            className="absolute -top-2 -right-2 h-7 w-7 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {selectedType === 'hotspot' && (
                     <Button type="button" onClick={() => setMapperOpen(true)} className="w-full h-12 bg-slate-900 text-white font-black uppercase text-[10px] rounded-xl hover:scale-[1.01] transition-transform">
                       <Target className="w-4 h-4 mr-2" /> Open Zone Registry Mapper
