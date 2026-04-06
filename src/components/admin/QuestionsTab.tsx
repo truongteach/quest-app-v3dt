@@ -1,16 +1,21 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Plus, 
   HelpCircle, 
   FileText, 
   Edit, 
-  Trash2 
+  Trash2,
+  Search,
+  Filter,
+  XCircle,
+  Database
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
   Select, 
   SelectContent, 
@@ -26,7 +31,8 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Question } from '@/types/quiz';
+import { Question, QuestionType } from '@/types/quiz';
+import { cn } from "@/lib/utils";
 
 interface QuestionsTabProps {
   questions: Question[];
@@ -39,6 +45,21 @@ interface QuestionsTabProps {
   onBulkEdit: () => void;
 }
 
+const QUESTION_TYPES = [
+  { value: 'all', label: 'All Types' },
+  { value: 'single_choice', label: 'Single Choice' },
+  { value: 'multiple_choice', label: 'Multiple Choice' },
+  { value: 'true_false', label: 'True/False' },
+  { value: 'multiple_true_false', label: 'Multiple T/F' },
+  { value: 'matrix_choice', label: 'Matrix Choice' },
+  { value: 'short_text', label: 'Short Text' },
+  { value: 'dropdown', label: 'Dropdown' },
+  { value: 'ordering', label: 'Ordering' },
+  { value: 'matching', label: 'Matching' },
+  { value: 'hotspot', label: 'Hotspot' },
+  { value: 'rating', label: 'Rating' },
+];
+
 export function QuestionsTab({ 
   questions, 
   tests, 
@@ -49,77 +70,141 @@ export function QuestionsTab({
   onAdd, 
   onBulkEdit 
 }: QuestionsTabProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+
+  const filteredQuestions = useMemo(() => {
+    return questions.filter(q => {
+      const matchesSearch = (q.question_text || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = typeFilter === "all" || q.question_type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+  }, [questions, searchTerm, typeFilter]);
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setTypeFilter("all");
+  };
+
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-      <Card className="border-none shadow-sm bg-white">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50/50">
+      <Card className="border-none shadow-sm bg-white overflow-hidden rounded-[2.5rem]">
+        <CardHeader className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 bg-slate-50/50 p-10">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-2xl text-primary">
-              <HelpCircle className="w-6 h-6" />
+            <div className="p-4 bg-primary text-white rounded-2xl shadow-xl shadow-primary/20 rotate-3">
+              <Database className="w-6 h-6" />
             </div>
             <div>
-              <CardTitle className="font-black text-2xl text-slate-900">Question List</CardTitle>
-              <CardDescription>Manage the questions for this test</CardDescription>
+              <CardTitle className="font-black text-3xl text-slate-900 uppercase tracking-tight">Question Registry</CardTitle>
+              <CardDescription className="font-medium text-slate-500">Manage intelligence nodes for this module</CardDescription>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
              <Select value={selectedTestId} onValueChange={setSelectedTestId}>
-              <SelectTrigger className="w-[220px] rounded-full font-bold border-2">
+              <SelectTrigger className="w-[240px] h-12 rounded-xl font-bold border-none ring-1 ring-slate-200 bg-white">
                 <SelectValue placeholder="Select test" />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl">
+              <SelectContent className="rounded-2xl border-none shadow-2xl">
                 {tests.map(t => (
                   <SelectItem key={t.id} value={t.id} className="font-bold">{t.title || t.id}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={onBulkEdit} className="rounded-full font-bold border-2">
+            <Button variant="outline" onClick={onBulkEdit} className="rounded-xl h-12 font-bold border-none ring-1 ring-slate-200 bg-white hover:bg-slate-50">
               <FileText className="w-4 h-4 mr-2" /> JSON Editor
             </Button>
-            <Button onClick={onAdd} className="rounded-full font-bold shadow-lg">
+            <Button onClick={onAdd} className="rounded-xl h-12 px-6 font-black shadow-xl shadow-primary/20 bg-primary hover:scale-[1.02] transition-transform">
               <Plus className="w-4 h-4 mr-2" /> Add Question
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+
+        <CardContent className="p-0">
+          {/* Filter Bar */}
+          <div className="px-10 py-6 border-b border-slate-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input 
+                  placeholder="Search questions..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-11 h-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 focus:ring-primary/40 font-medium"
+                />
+              </div>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-full md:w-[200px] h-11 rounded-xl bg-slate-50 border-none ring-1 ring-slate-100 font-bold text-xs uppercase tracking-widest text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-3.5 h-3.5" />
+                    <SelectValue placeholder="Type" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-none shadow-2xl">
+                  {QUESTION_TYPES.map(type => (
+                    <SelectItem key={type.value} value={type.value} className="font-bold text-xs uppercase tracking-widest">{type.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {(searchTerm || typeFilter !== "all") && (
+                <Button variant="ghost" onClick={clearFilters} className="h-11 rounded-xl px-4 font-bold text-xs uppercase tracking-widest text-slate-400 hover:text-primary">
+                  <XCircle className="w-4 h-4 mr-2" /> Clear
+                </Button>
+              )}
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 whitespace-nowrap">
+              Showing <span className="text-primary">{filteredQuestions.length}</span> of <span className="text-slate-900">{questions.length}</span> Nodes
+            </div>
+          </div>
+
           <Table>
             <TableHeader>
-              <TableRow className="bg-slate-50/50">
-                <TableHead>No.</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Question Text</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+              <TableRow className="bg-slate-50/30 hover:bg-slate-50/30 border-none">
+                <TableHead className="px-10 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">Step</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">Classification</TableHead>
+                <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400">Question Content</TableHead>
+                <TableHead className="px-10 text-right font-black uppercase text-[10px] tracking-widest text-slate-400">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {questions.map((q, i) => (
-                <TableRow key={i} className="group">
-                  <TableCell className="text-xs font-mono text-slate-400">{i + 1}</TableCell>
+              {filteredQuestions.map((q, i) => (
+                <TableRow key={q.id} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-none">
+                  <TableCell className="px-10 py-6">
+                    <span className="text-xs font-black text-slate-300">#{(i + 1).toString().padStart(2, '0')}</span>
+                  </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="capitalize font-bold">
+                    <Badge variant="secondary" className="capitalize font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full bg-primary/5 text-primary border-none">
                       {q.question_type?.replace('_', ' ') || 'Choice'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="max-w-md truncate font-bold text-slate-700">{q.question_text}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" onClick={() => onEdit(q)} className="rounded-full">
+                  <TableCell className="max-w-md">
+                    <p className="font-bold text-slate-700 truncate text-sm" title={q.question_text}>
+                      {q.question_text}
+                    </p>
+                    <p className="text-[9px] font-mono text-slate-300 mt-1 uppercase tracking-tighter">ID: {q.id}</p>
+                  </TableCell>
+                  <TableCell className="px-10 text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                      <Button variant="ghost" size="icon" onClick={() => onEdit(q)} className="h-9 w-9 rounded-xl hover:bg-primary/5 hover:text-primary">
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(q.id)} className="rounded-full text-destructive hover:bg-destructive/10">
+                      <Button variant="ghost" size="icon" onClick={() => onDelete(q.id)} className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/5">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
               ))}
-              {questions.length === 0 && (
+              
+              {filteredQuestions.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-20 text-muted-foreground bg-slate-50/20">
-                    <div className="flex flex-col items-center gap-2">
-                      <HelpCircle className="w-10 h-10 opacity-20" />
-                      <p className="font-bold">No questions found.</p>
-                      <Button variant="link" onClick={onAdd}>Create your first question</Button>
+                  <TableCell colSpan={4} className="text-center py-32 bg-slate-50/20">
+                    <div className="flex flex-col items-center gap-4 opacity-30">
+                      <Search className="w-12 h-12" />
+                      <div className="space-y-1">
+                        <p className="font-black uppercase tracking-[0.3em] text-xs">No Intelligence Matches</p>
+                        <p className="text-[10px] font-bold">Try adjusting your search query or type filter</p>
+                      </div>
+                      <Button variant="link" onClick={clearFilters} className="font-black text-primary uppercase tracking-widest text-[9px]">Reset Registry View</Button>
                     </div>
                   </TableCell>
                 </TableRow>
