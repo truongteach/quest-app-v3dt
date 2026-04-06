@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -8,28 +8,62 @@ interface PerformanceGaugeProps {
   percentage: number;
   score: number;
   totalQuestions: number;
+  isPass?: boolean;
 }
 
-export function PerformanceGauge({ percentage, score, totalQuestions }: PerformanceGaugeProps) {
+export function PerformanceGauge({ percentage, score, totalQuestions, isPass: isPassProp }: PerformanceGaugeProps) {
+  const [displayValue, setDisplayValue] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const duration = 1500; // 1.5 seconds reveal protocol
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      
+      // Ease out cubic: f(t) = 1 - (1 - t)^3
+      // Provides a fast start and smooth deceleration
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      
+      const currentVal = Math.floor(easedProgress * percentage);
+      setDisplayValue(currentVal);
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setDisplayValue(percentage);
+        setIsFinished(true);
+      }
+    };
+
+    window.requestAnimationFrame(step);
+  }, [percentage]);
+
   const isMastery = percentage >= 80;
-  const isPass = percentage >= 50;
+  const passed = isPassProp !== undefined ? isPassProp : percentage >= 50;
   
   const ringColor = isMastery 
     ? "stroke-emerald-500" 
-    : isPass 
+    : passed 
       ? "stroke-amber-500" 
       : "stroke-rose-500";
 
+  // Prompt alignment: Green for pass, Red for fail
+  const textColor = passed ? "text-emerald-600" : "text-rose-600";
+
   const radius = 80;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percentage / 100) * circumference;
+  // Synchronize offset with the displayValue counter
+  const offset = circumference - (displayValue / 100) * circumference;
 
   return (
     <Card className="lg:col-span-5 border-none shadow-2xl rounded-[3rem] bg-white border-slate-100 overflow-hidden flex flex-col items-center justify-center p-12 relative group transition-all duration-500">
       <div className="relative w-72 h-72 flex items-center justify-center">
         <div className={cn(
           "absolute inset-0 rounded-full blur-[40px] opacity-10 transition-all duration-1000",
-          isMastery ? "bg-emerald-500" : isPass ? "bg-amber-500" : "bg-rose-500"
+          isMastery ? "bg-emerald-500" : passed ? "bg-amber-500" : "bg-rose-500"
         )} />
         
         <svg className="w-full h-full -rotate-90">
@@ -52,11 +86,19 @@ export function PerformanceGauge({ percentage, score, totalQuestions }: Performa
             strokeDashoffset={offset}
             strokeLinecap="round"
             fill="transparent"
-            className={cn("transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(0,0,0,0.05)]", ringColor)}
+            className={cn("transition-all duration-150 ease-out drop-shadow-[0_0_8px_rgba(0,0,0,0.05)]", ringColor)}
           />
         </svg>
-        <div className="absolute flex flex-col items-center text-center">
-          <span className="text-8xl font-black text-slate-900 tracking-tighter tabular-nums">{percentage}%</span>
+        <div className={cn(
+          "absolute flex flex-col items-center text-center transition-transform duration-500 ease-out",
+          isFinished ? "scale-110" : "scale-100"
+        )}>
+          <span className={cn(
+            "text-8xl font-black tracking-tighter tabular-nums transition-colors duration-700",
+            isFinished ? textColor : "text-slate-900"
+          )}>
+            {displayValue}%
+          </span>
           <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">Alignment</span>
         </div>
       </div>

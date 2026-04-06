@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -74,9 +73,7 @@ export function QuizResults({
   const globalThreshold = Number(settings.default_pass_threshold || '70');
   const testThreshold = Number(testMetadata?.passing_threshold || globalThreshold);
   
-  const isMastery = percentage >= 80;
   const isPass = percentage >= testThreshold;
-  
   const verdict = getVerdictData(percentage);
 
   const durationMs = (endTime && startTime) ? endTime - startTime : 0;
@@ -160,6 +157,7 @@ export function QuizResults({
             percentage={percentage} 
             score={score} 
             totalQuestions={totalQuestions} 
+            isPass={isPass}
           />
 
           {/* Diagnostics & Metrics */}
@@ -180,7 +178,7 @@ export function QuizResults({
                 </p>
               </div>
 
-              {/* Benchmarking Module: Conditional Enforcement */}
+              {/* Benchmarking Module */}
               {isBenchmarkingEnabled && (
                 <BenchmarkingSection testId={testId} percentage={percentage} enabled={true} />
               )}
@@ -224,7 +222,7 @@ export function QuizResults({
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
               <StatMetric icon={History} label="Attempts" value="01" />
-              <StatMetric icon={Target} label="Precision" value={isMastery ? "High" : isPass ? "Med" : "Low"} />
+              <StatMetric icon={Target} label="Precision" value={percentage >= 80 ? "High" : isPass ? "Med" : "Low"} />
               <StatMetric icon={Clock} label="Session" value={formatDuration(durationMs)} />
               <StatMetric icon={Activity} label="Telemetry" value="Live" />
             </div>
