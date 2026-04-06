@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -40,8 +39,10 @@ import {
   ArrowUpDown,
   Trash2,
   Download,
-  RefreshCcw
+  RefreshCcw,
+  Eye
 } from "lucide-react";
+import Link from 'next/link';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 import {
@@ -164,7 +165,12 @@ export function ResponsesTab({ responses, tests, loading, onRefresh, onDelete }:
               {paginatedData.map((r, i) => (
                 <TableRow key={i} className="group">
                   <TableCell className="px-10 py-6 text-[11px] font-bold text-slate-400">{new Date(r.Timestamp).toLocaleDateString()}</TableCell>
-                  <TableCell className="font-black uppercase">{r['User Name']}</TableCell>
+                  <TableCell>
+                    <Link href={`/admin/users/detail?email=${encodeURIComponent(r['User Email'])}`} className="font-black uppercase hover:text-primary transition-colors flex items-center gap-2">
+                      {r['User Name']}
+                      <Eye className="w-3 h-3 text-slate-300 group-hover:text-primary" />
+                    </Link>
+                  </TableCell>
                   <TableCell className="font-bold text-slate-500">{r['Test ID']}</TableCell>
                   <TableCell className="font-black">{r.Score}/{r.Total}</TableCell>
                   <TableCell className="px-10 text-right">
