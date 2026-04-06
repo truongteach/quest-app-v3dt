@@ -32,7 +32,13 @@ function doGet(e) {
     if (action === 'getTests') {
       const sheet = ss.getSheetByName('Tests');
       if (!sheet) return createResponse([]);
-      return createResponse(getRowsAsObjects(sheet));
+      const tests = getRowsAsObjects(sheet);
+      // Protocol: Enrich test objects with real-time question counts from their respective tabs
+      return createResponse(tests.map(t => {
+        const qSheet = ss.getSheetByName(t.id);
+        t.questions_count = qSheet ? Math.max(0, qSheet.getLastRow() - 1) : 0;
+        return t;
+      }));
     }
 
     if (action === 'getUsers') {
@@ -290,4 +296,4 @@ function createResponse(data, code = 200) {
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
-`;
+\`;

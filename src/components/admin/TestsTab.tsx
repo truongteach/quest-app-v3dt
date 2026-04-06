@@ -301,12 +301,12 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                     <div className="flex items-center gap-1.5">
                       <ListChecks className="w-4 h-4 text-primary opacity-40" />
-                      <span>{t_item.duration || '15m'} Limit</span>
+                      <span>{t_item.questions_count !== undefined ? `${t_item.questions_count} Steps` : 'Live Sync'}</span>
                     </div>
                     <div className="h-4 w-px bg-slate-100 dark:bg-slate-800" />
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-4 h-4 text-primary opacity-40" />
-                      <span>Live Sync</span>
+                      <span>{t_item.duration || '15m'}</span>
                     </div>
                   </div>
                 </CardContent>
