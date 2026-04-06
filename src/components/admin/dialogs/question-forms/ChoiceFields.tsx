@@ -26,6 +26,43 @@ export function ChoiceFields({ type, options, setOptions, correct, setCorrect }:
     }
   };
 
+  const handlePaste = (index: number, e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData('text');
+    if (!text) return;
+
+    // Split Protocol: Support newlines or commas
+    let items: string[] = [];
+    if (text.includes('\n')) {
+      items = text.split('\n');
+    } else if (text.includes(',')) {
+      items = text.split(',');
+    }
+
+    if (items.length <= 1) return; // Standard single-line behavior
+
+    e.preventDefault();
+
+    // Registry Sanitization: Trim, filter, and strip prefixes (1. , A. , etc.)
+    const cleanItems = items
+      .map(item => {
+        let cleaned = item.trim();
+        // Regex: remove starting patterns like "1. ", "1) ", "A. ", "a) "
+        cleaned = cleaned.replace(/^([0-9a-z][.\)]\s*)/i, '');
+        return cleaned.trim();
+      })
+      .filter(item => item.length > 0);
+
+    if (cleanItems.length === 0) return;
+
+    const newOptions = [...options];
+    // Sequential Overwrite: Fill from current index downward
+    for (let i = 0; i < cleanItems.length; i++) {
+      newOptions[index + i] = cleanItems[i];
+    }
+
+    setOptions(newOptions);
+  };
+
   return (
     <div className="space-y-4 p-8 bg-slate-50 rounded-[2rem] border">
       <div className="flex items-center justify-between mb-2">
@@ -44,7 +81,12 @@ export function ChoiceFields({ type, options, setOptions, correct, setCorrect }:
                 )}
               </div>
             )}
-            <Input value={opt} onChange={(e) => { const n = [...options]; n[i] = e.target.value; setOptions(n); }} className="rounded-xl h-12 bg-white flex-1" />
+            <Input 
+              value={opt} 
+              onPaste={(e) => handlePaste(i, e)}
+              onChange={(e) => { const n = [...options]; n[i] = e.target.value; setOptions(n); }} 
+              className="rounded-xl h-12 bg-white flex-1" 
+            />
             <Button type="button" variant="ghost" size="icon" onClick={() => setOptions(options.filter((_, idx) => idx !== i))} className="opacity-0 group-hover:opacity-100"><Trash2 className="w-4 h-4 text-slate-300" /></Button>
           </div>
         ))}
