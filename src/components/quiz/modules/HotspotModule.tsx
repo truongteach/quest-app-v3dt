@@ -116,27 +116,23 @@ export const HotspotModule: React.FC<Props> = ({ question, value, onChange, revi
               
               let borderColor = "border-slate-300/30";
               let bgColor = "bg-transparent";
-              let showStatus = false;
 
               if (isHit && isCorrect) {
                 borderColor = "border-emerald-500";
                 bgColor = "bg-emerald-500/20";
-                showStatus = true;
               } else if (isHit && !isCorrect) {
                 borderColor = "border-rose-500";
                 bgColor = "bg-rose-500/20";
-                showStatus = true;
               } else if (!isHit && isCorrect) {
                 borderColor = "border-rose-500/50";
                 bgColor = "bg-rose-500/10";
-                showStatus = true;
               }
 
               return (
                 <div 
                   key={z.id} 
                   className={cn(
-                    "absolute border-4 transition-all duration-700 flex items-center justify-center rounded-lg",
+                    "absolute border-2 transition-all duration-700 flex items-center justify-center rounded-sm",
                     borderColor,
                     bgColor
                   )} 
@@ -149,7 +145,7 @@ export const HotspotModule: React.FC<Props> = ({ question, value, onChange, revi
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span className={cn(
-                      "option-text text-[9px] font-black text-white px-2 py-0.5 rounded-full border shadow-xl backdrop-blur-md",
+                      "option-text text-[9px] font-black text-white px-2 py-0.5 rounded-sm border shadow-xl backdrop-blur-md",
                       isCorrect ? "bg-emerald-600 border-emerald-400" : "bg-slate-600 border-slate-400"
                     )}>
                       {z.label}

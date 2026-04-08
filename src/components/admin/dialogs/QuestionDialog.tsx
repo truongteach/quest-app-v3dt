@@ -173,7 +173,12 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
     let finalCorrect = correctAnswers;
     let finalOrder = matrixRows;
 
-    if (selectedType === 'matching') {
+    // Type Specific Save Logic
+    if (selectedType === 'ordering') {
+      // For ordering, the correct answer IS the list the admin entered
+      finalCorrect = optionsList;
+      finalOrder = optionsList;
+    } else if (selectedType === 'matching') {
       const pairs = matchingPairs.map(p => `${p.left.trim()}|${p.right.trim()}`);
       finalOrder = pairs;
       finalCorrect = pairs;
@@ -204,8 +209,16 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
     metadata: metadata,
     required: isRequired,
     options: JSON.stringify(optionsList),
-    correct_answer: JSON.stringify(selectedType === 'matching' ? matchingPairs.map(p => `${p.left}|${p.right}`) : correctAnswers),
-    order_group: JSON.stringify(selectedType === 'matching' ? matchingPairs.map(p => `${p.left}|${p.right}`) : matrixRows)
+    correct_answer: JSON.stringify(
+      selectedType === 'ordering' ? optionsList : 
+      selectedType === 'matching' ? matchingPairs.map(p => `${p.left}|${p.right}`) : 
+      correctAnswers
+    ),
+    order_group: JSON.stringify(
+      selectedType === 'ordering' ? optionsList :
+      selectedType === 'matching' ? matchingPairs.map(p => `${p.left}|${p.right}`) : 
+      matrixRows
+    )
   };
 
   return (

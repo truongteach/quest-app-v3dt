@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Question } from '@/types/quiz';
 import { Button } from "@/components/ui/button";
 import { GripVertical, Info, RotateCcw, Check, X } from "lucide-react";
@@ -18,9 +18,10 @@ export const OrderingModule: React.FC<Props> = ({ question, value, onChange, rev
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
   const initialShuffledOrder = useMemo(() => {
-    return shuffleArray(parseRegistryArray(question.order_group));
-  }, [question.id, question.order_group]);
+    return shuffleArray(parseRegistryArray(question.options || question.order_group));
+  }, [question.id, question.options, question.order_group]);
 
+  // Protocol: Maintain local state for current order to ensure smooth dragging
   const currentOrder = (value as string[]) || initialShuffledOrder;
   const correctOrder = useMemo(() => parseRegistryArray(question.correct_answer), [question.correct_answer]);
 
@@ -36,7 +37,14 @@ export const OrderingModule: React.FC<Props> = ({ question, value, onChange, rev
     onChange(newOrder);
   };
 
-  if (!reviewMode && currentOrder.length === 0 && parseRegistryArray(question.order_group).length > 0) {
+  // Sync protocol: If options change from parent (preview), reset the order
+  useEffect(() => {
+    if (!value && initialShuffledOrder.length > 0) {
+      onChange(initialShuffledOrder);
+    }
+  }, [initialShuffledOrder, value, onChange]);
+
+  if (currentOrder.length === 0 && parseRegistryArray(question.options || question.order_group).length > 0) {
     return <div className="h-40 flex items-center justify-center text-slate-300 font-bold animate-pulse">Initializing Sequence...</div>;
   }
 
