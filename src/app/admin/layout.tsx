@@ -19,7 +19,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Redirection Protocol: Force unauthenticated users to the identity registry
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      const fullPath = window.location.pathname + window.location.search;
+      router.push(`/login?returnTo=${encodeURIComponent(fullPath)}`);
     }
   }, [user, authLoading, router]);
 

@@ -42,7 +42,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      const fullPath = window.location.pathname + window.location.search;
+      router.push(`/login?returnTo=${encodeURIComponent(fullPath)}`);
     }
   }, [user, authLoading, router]);
 

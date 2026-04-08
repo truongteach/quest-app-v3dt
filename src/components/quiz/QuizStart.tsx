@@ -28,6 +28,7 @@ import { generateDailyPassword } from '@/lib/security-utils';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 interface QuizStartProps {
   title: string;
@@ -59,6 +60,9 @@ export function QuizStart({
   onStart
 }: QuizStartProps) {
   const { t } = useLanguage();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   const [step, setStep] = useState<Step>(() => {
     if (isProtectionEnabled) return 'gate';
     if (!user && !guestAccessAllowed) return 'login_required';
@@ -121,6 +125,9 @@ export function QuizStart({
   ];
 
   const currentModeInfo = modes.find(m => m.id === selectedMode);
+  
+  // ReturnTo Protocol: Capture current state for post-login resync
+  const fullPath = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 selection:bg-primary selection:text-white">
@@ -190,7 +197,7 @@ export function QuizStart({
                 </p>
               </div>
               
-              <Link href="/login" className="block w-full">
+              <Link href={`/login?returnTo=${encodeURIComponent(fullPath)}`} className="block w-full">
                 <Button className="w-full h-20 rounded-full text-xl font-black shadow-2xl transition-all hover:scale-[1.02] bg-slate-900 text-white uppercase tracking-tighter">
                   {t('goToLogin')}
                   <LogIn className="w-6 h-6 ml-3" />

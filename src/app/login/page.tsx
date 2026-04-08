@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,11 +21,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-export default function LoginPage() {
+function LoginContent() {
   const { login } = useAuth();
   const { settings } = useSettings();
   const { t } = useLanguage();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -47,7 +48,14 @@ export default function LoginPage() {
         title: "Access Granted",
         description: `Authenticated with ${brandName} identity provider.`,
       });
-      router.push('/profile');
+      
+      // ReturnTo Logic: Redirect to previous location if valid, otherwise go to profile
+      const returnTo = searchParams.get('returnTo');
+      if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+        router.push(returnTo);
+      } else {
+        router.push('/profile');
+      }
     } else {
       let errorDesc = "Invalid credentials. Access denied.";
       if (result.message === "domain_restricted") {
@@ -171,5 +179,17 @@ export default function LoginPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
