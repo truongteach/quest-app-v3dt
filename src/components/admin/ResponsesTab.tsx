@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo } from 'react';
@@ -185,9 +186,26 @@ export function ResponsesTab({ responses, tests, loading, onRefresh, onDelete }:
       </Card>
 
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent className="rounded-[3rem] p-10">
-          <AlertDialogHeader><AlertDialogTitle>Purge Log?</AlertDialogTitle></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Abort</AlertDialogCancel><AlertDialogAction onClick={() => { if(deleteConfirm) onDelete(deleteConfirm.timestamp, deleteConfirm.email); setDeleteConfirm(null); }}>Purge</AlertDialogAction></AlertDialogFooter>
+        <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl dark:bg-slate-900">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+              {t('confirmDeleteTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+              {t('confirmDeleteDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
+            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase text-xs tracking-widest flex-1 dark:border-slate-700 dark:text-slate-400">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => { if(deleteConfirm) onDelete(deleteConfirm.timestamp, deleteConfirm.email); setDeleteConfirm(null); }}
+              className="h-14 rounded-full bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-xs tracking-widest flex-1 shadow-xl shadow-destructive/20 border-none"
+            >
+              {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

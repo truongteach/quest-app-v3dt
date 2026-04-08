@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo } from 'react';
@@ -31,8 +32,19 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Question, QuestionType } from '@/types/quiz';
 import { cn } from "@/lib/utils";
+import { useLanguage } from '@/context/language-context';
 
 interface QuestionsTabProps {
   questions: Question[];
@@ -70,8 +82,10 @@ export function QuestionsTab({
   onAdd, 
   onBulkEdit 
 }: QuestionsTabProps) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const filteredQuestions = useMemo(() => {
     return questions.filter(q => {
@@ -84,6 +98,13 @@ export function QuestionsTab({
   const clearFilters = () => {
     setSearchTerm("");
     setTypeFilter("all");
+  };
+
+  const handleDelete = () => {
+    if (deleteConfirmId) {
+      onDelete(deleteConfirmId);
+      setDeleteConfirmId(null);
+    }
   };
 
   return (
@@ -187,7 +208,7 @@ export function QuestionsTab({
                       <Button variant="ghost" size="icon" onClick={() => onEdit(q)} className="h-9 w-9 rounded-xl hover:bg-primary/5 hover:text-primary">
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(q.id)} className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/5">
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteConfirmId(q.id)} className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/5">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -213,6 +234,30 @@ export function QuestionsTab({
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl dark:bg-slate-900">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+              {t('confirmDeleteTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+              {t('confirmDeleteDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
+            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase text-xs tracking-widest flex-1 dark:border-slate-700 dark:text-slate-400">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="h-14 rounded-full bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-xs tracking-widest flex-1 shadow-xl shadow-destructive/20 border-none"
+            >
+              {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
