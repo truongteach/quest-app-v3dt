@@ -30,9 +30,10 @@ export interface Question {
 export interface HotspotZone {
   id: string;
   label: string;
-  x: number; // percentage 0-100
-  y: number; // percentage 0-100
-  radius: number; // percentage
+  x: number; // percentage 0-100 (left)
+  y: number; // percentage 0-100 (top)
+  width: number; // percentage
+  height: number; // percentage
   isCorrect?: boolean;
 }
 

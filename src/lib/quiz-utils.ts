@@ -58,7 +58,8 @@ export const getRegistryValue = (obj: any, keys: string[]): any => {
  * Calculates whether a user's response is correct for a given question.
  */
 export const calculateScoreForQuestion = (q: Question, response: any): boolean => {
-  if (q.correct_answer === undefined || q.correct_answer === null || response === undefined || response === null) return false;
+  if (q.correct_answer === undefined && q.question_type !== 'hotspot') return false;
+  if (response === undefined || response === null) return false;
   
   const questionType = q.question_type;
   const correctArr = parseRegistryArray(q.correct_answer);
@@ -82,21 +83,30 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
   if (questionType === 'hotspot') {
     try {
       const zones: HotspotZone[] = JSON.parse(q.metadata || "[]");
-      const correctZones = zones.some(z => z.isCorrect) 
-        ? zones.filter(z => z.isCorrect)
-        : zones;
-
-      const hit = correctZones.find((z: HotspotZone) => {
-        const dist = Math.sqrt(Math.pow(response.x - z.x, 2) + Math.pow(response.y - z.y, 2));
-        return dist <= z.radius;
+      // Migration Protocol: radius -> rect
+      const normalizedZones = zones.map(z => {
+        if ('radius' in z && !('width' in z)) {
+          const r = (z as any).radius;
+          return {
+            ...z,
+            x: z.x - r,
+            y: z.y - r,
+            width: r * 2,
+            height: r * 2
+          } as HotspotZone;
+        }
+        return z as HotspotZone;
       });
-      return !!hit;
+
+      const hit = normalizedZones.find((z: HotspotZone) => {
+        return response.x >= z.x && response.x <= z.x + z.width &&
+               response.y >= z.y && response.y <= z.y + z.height;
+      });
+      return !!hit && !!hit.isCorrect;
     } catch (e) { return false; }
   } 
   
   if (questionType === 'matching') {
-    // Protocol: User response is Record<Prompt, Answer>. 
-    // Convert to sorted "Prompt|Answer" strings for exact registry comparison.
     const userPairs = Object.entries(response as Record<string, string>)
       .map(([k, v]) => `${k.trim()}|${v.trim()}`)
       .sort();
