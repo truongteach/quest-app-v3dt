@@ -84,13 +84,19 @@ export default function TestsLibrary() {
 
   const filteredTests = useMemo(() => {
     return tests.filter(t_item => {
+      // Protocol: Explicit string casting to prevent type errors from numeric sheet entries
+      const title = String(t_item.title || "");
+      const category = String(t_item.category || "");
+      const description = String(t_item.description || "");
+      const difficulty = String(t_item.difficulty || "");
+
       const matchesSearch = 
-        (t_item.title?.toLowerCase() || "").includes(search.toLowerCase()) || 
-        (t_item.category?.toLowerCase() || "").includes(search.toLowerCase()) ||
-        (t_item.description?.toLowerCase() || "").includes(search.toLowerCase());
+        title.toLowerCase().includes(search.toLowerCase()) || 
+        category.toLowerCase().includes(search.toLowerCase()) ||
+        description.toLowerCase().includes(search.toLowerCase());
       
       const matchesDifficulty = difficultyFilter === "all" || 
-        (t_item.difficulty?.toLowerCase() || "") === difficultyFilter.toLowerCase();
+        difficulty.toLowerCase() === difficultyFilter.toLowerCase();
       
       return matchesSearch && matchesDifficulty;
     });
