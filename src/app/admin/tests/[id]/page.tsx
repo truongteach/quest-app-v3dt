@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -54,7 +55,7 @@ export default function AdminTestDetailPage() {
         mode: 'no-cors',
         body: JSON.stringify({ action, ...payload })
       });
-      toast({ title: "Success", description: "Question set updated." });
+      toast({ title: "Success", description: "Registry updated." });
       setTimeout(fetchData, 1500);
     } catch (err) {
       toast({ variant: "destructive", title: "Error" });
@@ -102,8 +103,8 @@ export default function AdminTestDetailPage() {
         onSaveQuestion={(qData, isRequired) => {
           const newId = (qData.id as string)?.trim() || `q_${Date.now().toString().slice(-6)}`;
           const prepared = { ...qData, id: newId, required: isRequired ? "TRUE" : "FALSE" };
-          const updated = editingItem ? questions.map(q => q.id === editingItem.id ? prepared : q) : [...questions, prepared];
-          handlePost('saveQuestions', { testId, questions: updated });
+          // Granular Persistence Protocol: Use saveQuestion for single add/edit
+          handlePost('saveQuestion', { testId, question: prepared });
         }}
         onSaveBulk={(json) => {
           try {

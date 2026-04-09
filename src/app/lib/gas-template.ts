@@ -1,10 +1,10 @@
 
 export const GAS_CODE = `/**
- * QUESTFLOW BACKEND v18.3 - CERTIFICATION PROTOCOL
+ * QUESTFLOW BACKEND v18.4 - GRANULAR PERSISTENCE PROTOCOL
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions, getActivity, getSettings
- * - POST: submitResponse, saveTest, deleteTest, saveUser, deleteUser, saveQuestions, saveUsers, logActivity, saveSetting, deleteResponse
+ * - POST: submitResponse, saveTest, deleteTest, saveUser, deleteUser, saveQuestion, saveQuestions, saveUsers, logActivity, saveSetting, deleteResponse
  */
 
 function doGet(e) {
@@ -207,6 +207,15 @@ function doPost(e) {
     if (action === 'deleteUser') {
       const sheet = ss.getSheetByName('Users');
       if (sheet) deleteRow(sheet, 'email', payload.email);
+      return createResponse({ status: 'success' });
+    }
+
+    if (action === 'saveQuestion') {
+      const sheet = ss.getSheetByName(payload.testId) || ss.insertSheet(payload.testId);
+      const q = payload.question;
+      const headers = ['id', 'question_text', 'question_type', 'options', 'correct_answer', 'order_group', 'image_url', 'metadata', 'required'];
+      if (sheet.getLastRow() === 0) sheet.appendRow(headers);
+      upsertRow(sheet, 'id', q.id, q);
       return createResponse({ status: 'success' });
     }
 
