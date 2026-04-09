@@ -1,6 +1,6 @@
 
 export const GAS_CODE = `/**
- * QUESTFLOW BACKEND v18.4 - GRANULAR PERSISTENCE PROTOCOL
+ * QUESTFLOW BACKEND v18.5 - GRANULAR PERSISTENCE PROTOCOL
  * 
  * ACTIONS SUPPORTED:
  * - GET: login, getTests, getUsers, getResponses, getQuestions, getActivity, getSettings
@@ -212,10 +212,12 @@ function doPost(e) {
 
     if (action === 'saveQuestion') {
       const sheet = ss.getSheetByName(payload.testId) || ss.insertSheet(payload.testId);
-      const q = payload.question;
-      const headers = ['id', 'question_text', 'question_type', 'options', 'correct_answer', 'order_group', 'image_url', 'metadata', 'required'];
-      if (sheet.getLastRow() === 0) sheet.appendRow(headers);
-      upsertRow(sheet, 'id', q.id, q);
+      
+      if (sheet.getLastRow() === 0) {
+        sheet.appendRow(['id', 'question_text', 'question_type', 'options', 'correct_answer', 'order_group', 'image_url', 'metadata', 'required']);
+      }
+
+      upsertRow(sheet, 'id', payload.question.id, payload.question);
       return createResponse({ status: 'success' });
     }
 

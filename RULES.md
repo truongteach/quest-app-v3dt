@@ -1,11 +1,11 @@
 
-# DNTRNG™ - Technical Standard & Protocols (v18.4)
+# DNTRNG™ - Technical Standard & Protocols (v18.5)
 
 ## 1. Stack Overview
 *   **Framework**: Next.js 15 (App Router) with React 19 for high-performance rendering.
 *   **Desktop Node**: Electron with `electron-builder` for cross-platform distribution.
 *   **Language**: TypeScript (Strict Mode) for type safety across assessment modules.
-*   **Registry (Database)**: Google Sheets™ via the **Registry Bridge Protocol v18.4** (Google Apps Script).
+*   **Registry (Database)**: Google Sheets™ via the **Registry Bridge Protocol v18.5** (Google Apps Script).
 *   **Styling**: Tailwind CSS with Shadcn UI for a premium, professional interface.
 *   **AI Engine**: Genkit with Google AI (Gemini 2.5 Flash) for intelligent assessment parsing.
 *   **State Management**: React Context (`auth-context`, `language-context`) for global identity and region settings.
@@ -39,7 +39,7 @@
 *   **Centralization**: All data mutations MUST flow through the `API_URL` defined in `src/lib/api-config.ts`.
 *   **Queries**: Never write raw fetch calls inside components. Use the established `handlePost` pattern in page handlers.
 *   **Integrity**: When editing a registry item (e.g., student password), always preserve existing values if fields are left blank.
-*   **Transparency**: Admin visibility of credentials is required per **Protocol v18.4**.
+*   **Transparency**: Admin visibility of credentials is required per **Protocol v18.5**.
 
 ## 6. API Rules
 *   **Stability**: Use `mode: 'no-cors'` for POST actions to the Google Apps Script bridge to avoid handshake blocks.
