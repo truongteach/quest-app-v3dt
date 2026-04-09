@@ -89,7 +89,9 @@ export function QuestionsTab({
 
   const filteredQuestions = useMemo(() => {
     return questions.filter(q => {
-      const matchesSearch = (q.question_text || "").toLowerCase().includes(searchTerm.toLowerCase());
+      // Protocol: Explicit string casting to prevent crashes on numeric sheet data
+      const qText = String(q.question_text || "");
+      const matchesSearch = qText.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === "all" || q.question_type === typeFilter;
       return matchesSearch && matchesType;
     });
@@ -194,17 +196,17 @@ export function QuestionsTab({
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="capitalize font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full bg-primary/5 text-primary border-none">
-                      {q.question_type?.replace('_', ' ') || 'Choice'}
+                      {String(q.question_type || '').replace('_', ' ') || 'Choice'}
                     </Badge>
                   </TableCell>
                   <TableCell className="max-w-md">
-                    <p className="font-bold text-slate-700 truncate text-sm" title={q.question_text}>
+                    <p className="font-bold text-slate-700 truncate text-sm" title={String(q.question_text)}>
                       {q.question_text}
                     </p>
                     <p className="text-[9px] font-mono text-slate-300 mt-1 uppercase tracking-tighter">ID: {q.id}</p>
                   </TableCell>
                   <TableCell className="px-10 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className="flex justify-end gap-2 transition-all">
                       <Button variant="ghost" size="icon" onClick={() => onEdit(q)} className="h-9 w-9 rounded-xl hover:bg-primary/5 hover:text-primary">
                         <Edit className="w-4 h-4" />
                       </Button>

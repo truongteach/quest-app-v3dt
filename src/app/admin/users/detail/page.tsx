@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
@@ -70,10 +71,10 @@ function UserDetailContent() {
       const uData = await uRes.json();
       const rData = await rRes.json();
       
-      const foundUser = uData.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
+      const foundUser = uData.find((u: any) => String(u.email || "").toLowerCase() === email.toLowerCase());
       // Protocol: Sort by timestamp descending (most recent first)
       const userResponses = rData
-        .filter((r: any) => r['User Email']?.toLowerCase() === email.toLowerCase())
+        .filter((r: any) => String(r['User Email'] || "").toLowerCase() === email.toLowerCase())
         .sort((a: any, b: any) => new Date(b.Timestamp).getTime() - new Date(a.Timestamp).getTime());
       
       setUser(foundUser);
