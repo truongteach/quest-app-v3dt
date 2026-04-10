@@ -58,7 +58,15 @@
 *   **Sync**: If the `API_URL` changes, update `src/lib/api-config.ts` and the `SetupGuide` simultaneously.
 *   **Build**: After UI changes, verify the Electron build works locally (`npm run electron:dev`) to ensure no desktop-specific crashes.
 
-## 9. General Rules
+## 9. GAS Code Management
+*   Live GAS code always lives at `src/lib/gas/latest.ts`.
+*   Before ANY change to GAS code:
+    1. Copy `latest.ts` to `src/lib/gas/versions/vX.ts` (increment version number).
+    2. Add entry to `CHANGELOG.md` describing what changed.
+    3. Make changes to `latest.ts` only.
+*   Never edit or delete version files — read-only backups.
+
+## 10. General Rules
 *   **No New Packages**: Ask before adding dependencies to keep the Electron bundle size optimal.
 *   **Self-Documentation**: Use clear naming (e.g., `isProtectionEnabled`) instead of excessive comments.
 *   **Zero Breakage**: Never modify the core authentication logic without a full registry audit.

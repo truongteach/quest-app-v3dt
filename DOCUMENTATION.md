@@ -93,6 +93,7 @@ QuestFlow (internally referenced as DNTRNG™) is a high-performance, interactiv
 *   `src/components/ui`: Atomic Shadcn components.
 *   `src/context`: Global providers for identity, localization, and system settings.
 *   `src/lib`: Core logic for security hashing, score calculation, and API communication.
+*   `src/lib/gas`: Google Apps Script source code and versioning registry.
 *   `src/locales`: Translation bundles (en, vi, es).
 *   `src/types`: TypeScript definitions for the assessment schema.
 
@@ -102,7 +103,7 @@ QuestFlow (internally referenced as DNTRNG™) is a high-performance, interactiv
 2.  **Install Dependencies**: `npm install`
 3.  **Database Provisioning**:
     *   Create a Google Sheet with tabs: `Tests`, `Users`, `Responses`, `Activity`, `Settings`.
-    *   Copy the code from `src/app/lib/gas-template.ts` into the sheet's Apps Script editor.
+    *   Copy the code from `src/lib/gas/latest.ts` into the sheet's Apps Script editor.
     *   Deploy as a Web App (Access: Anyone).
 4.  **Configure API**: Update `src/lib/api-config.ts` with your deployed script URL.
 5.  **Run Locally**: `npm run dev` (Port 9002).

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -24,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { GAS_CODE } from '@/app/lib/gas-template';
+import { GAS_CODE } from '@/lib/gas/latest';
 import { SETUP_GUIDE_CONTENT } from '@/app/lib/setup-guide-content';
 
 type Language = 'en' | 'vi';

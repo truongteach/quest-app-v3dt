@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo } from 'react';
@@ -18,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AdminTab } from '@/components/admin/AdminSidebar';
 import { useRouter } from 'next/navigation';
-import { GAS_CODE } from '@/app/lib/gas-template';
+import { GAS_CODE } from '@/lib/gas/latest';
 import { useLanguage } from '@/context/language-context';
 import { AccessKeyPanel } from './AccessKeyPanel';
 import { DashboardCharts } from './DashboardCharts';
