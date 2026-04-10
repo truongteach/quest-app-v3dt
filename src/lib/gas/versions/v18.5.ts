@@ -314,4 +314,4 @@ function createResponse(data, code = 200) {
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
-\`;
+`;
