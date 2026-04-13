@@ -53,7 +53,10 @@ export const SingleChoiceModule: React.FC<Props> = ({ question, value, onChange,
             <RadioGroupItem 
               value={option} 
               id={inputId} 
-              className="pointer-events-none"
+              className={cn(
+                "pointer-events-none border-[#E5E7EB] data-[state=checked]:border-[#2563EB]",
+                isSelected && "border-[#2563EB]"
+              )}
             />
             <Label 
               htmlFor={inputId} 

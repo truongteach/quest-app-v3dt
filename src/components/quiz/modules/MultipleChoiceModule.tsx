@@ -60,7 +60,10 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
               checked={isSelected} 
               onCheckedChange={() => toggle(option)}
               disabled={reviewMode}
-              className="transition-transform group-active:scale-95"
+              className={cn(
+                "transition-transform group-active:scale-95 border-[#E5E7EB] data-[state=checked]:border-[#2563EB]",
+                isSelected && "border-[#2563EB]"
+              )}
               onClick={(e) => e.stopPropagation()} // Prevent bubble conflicts
             />
             <Label 

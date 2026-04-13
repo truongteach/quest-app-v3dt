@@ -30,12 +30,19 @@ export const TrueFalseModule: React.FC<Props> = ({ question, value, onChange, re
          
          return (
            <div key={o} className={cn(
-             "flex items-center space-x-3 px-[18px] py-[14px] rounded-[12px] border transition-all cursor-pointer",
+             "flex items-center space-x-3 px-[18px] py-[14px] rounded-[12px] border transition-all cursor-pointer group",
              isSelected 
                ? "bg-[#EFF6FF] border-[#2563EB] shadow-sm" 
                : "bg-white border-[#E5E7EB] hover:bg-[#EFF6FF] hover:border-[#2563EB]"
            )}>
-            <RadioGroupItem value={o} id={`tf-${question.id}-${o}`} />
+            <RadioGroupItem 
+              value={o} 
+              id={`tf-${question.id}-${o}`} 
+              className={cn(
+                "pointer-events-none border-[#E5E7EB] data-[state=checked]:border-[#2563EB]",
+                isSelected && "border-[#2563EB]"
+              )}
+            />
             <Label htmlFor={`tf-${question.id}-${o}`} className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700">{o}</Label>
             {reviewMode && o === correctArr[0] && <CheckCircle2 className="w-6 h-6 text-green-600" />}
           </div>
