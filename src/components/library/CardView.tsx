@@ -47,10 +47,8 @@ export function CardView({ tests }: CardViewProps) {
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90"
                 />
               ) : (
-                <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center p-8", getGradient(test.category))}>
-                  <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-2xl">
-                    <Badge className="bg-white/90 text-slate-900 font-black uppercase text-[10px] tracking-widest">{test.category || "GENERAL"}</Badge>
-                  </div>
+                <div className={cn("w-full h-full flex items-center justify-center relative", getDifficultyColor(test.difficulty))}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent opacity-60" />
                 </div>
               )}
               <div className="absolute top-6 left-6">
