@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
  * 
  * This component manages the retrieval and presentation of assessment modules.
  * Includes high-availability error handling and a 8s synchronization timeout.
+ * Persists view preference to localStorage.
  */
 export default function TestsLibrary() {
   const { t } = useLanguage();
@@ -33,11 +34,21 @@ export default function TestsLibrary() {
   const [error, setError] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
-  const brandName = settings.platform_name || "DNTRNG";
+  const brandName = String(settings.platform_name || "DNTRNG");
 
+  // Load persistence preference
   useEffect(() => {
+    const saved = localStorage.getItem('dntrng_test_view') as 'card' | 'list';
+    if (saved && (saved === 'card' || saved === 'list')) {
+      setViewMode(saved);
+    }
     fetchTests();
   }, []);
+
+  const handleViewChange = (mode: 'card' | 'list') => {
+    setViewMode(mode);
+    localStorage.setItem('dntrng_test_view', mode);
+  };
 
   const fetchTests = async () => {
     setLoading(true);
@@ -72,7 +83,6 @@ export default function TestsLibrary() {
     } catch (err: any) {
       clearTimeout(timeoutId);
       
-      // If the error is an AbortError, we handle it as a timeout
       if (err.name === 'AbortError' || err === 'Timeout') {
         setError("The registry request timed out (8s limit exceeded). Ensure the bridge is responding.");
       } else {
@@ -95,7 +105,6 @@ export default function TestsLibrary() {
 
   const filteredTests = useMemo(() => {
     return tests.filter(t_item => {
-      // Protocol: Explicit string casting to prevent type errors from numeric sheet entries
       const title = String(t_item.title || "");
       const category = String(t_item.category || "");
       const description = String(t_item.description || "");
@@ -124,7 +133,7 @@ export default function TestsLibrary() {
         search={search}
         setSearch={setSearch}
         viewMode={viewMode}
-        setViewMode={setViewMode}
+        setViewMode={handleViewChange}
         loading={loading}
         onRefresh={fetchTests}
         lastSync={lastSync}
@@ -164,7 +173,6 @@ export default function TestsLibrary() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 px-4">
-                  {/* Difficulty Filters */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Filter className="w-4 h-4 text-primary" />
@@ -188,7 +196,6 @@ export default function TestsLibrary() {
                     </div>
                   </div>
 
-                  {/* Category Filters */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
                       <LayoutGrid className="w-4 h-4 text-primary" />
@@ -217,9 +224,13 @@ export default function TestsLibrary() {
             
             {filteredTests.length > 0 ? (
               viewMode === 'card' ? (
-                <CardView tests={filteredTests} />
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4 px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                  <CardView tests={filteredTests} />
+                </div>
               ) : (
-                <ListView tests={filteredTests} />
+                <div className="flex flex-col gap-[10px] px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <ListView tests={filteredTests} />
+                </div>
               )
             ) : (
               <EmptyState onClear={() => { setSearch(""); setDifficultyFilter("all"); setCategoryFilter("all"); }} />

@@ -1,71 +1,97 @@
+
 "use client";
 
 import React from 'react';
 import Link from 'next/link';
-import { Play, Clock, ListChecks } from "lucide-react";
+import { Clock, ListChecks, FileText, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 interface ListViewProps {
   tests: any[];
 }
 
 export function ListView({ tests }: ListViewProps) {
+  const getCategoryGradient = (category: string) => {
+    const cat = String(category || "").toUpperCase();
+    if (cat.includes("LV1")) return "from-[#059669] to-[#34d399]";
+    if (cat.includes("LV2")) return "from-[#1d4ed8] to-[#60a5fa]";
+    if (cat.includes("LV3")) return "from-[#7c3aed] to-[#c084fc]";
+    return "from-[#1a2340] to-[#3B5BDB]";
+  };
+
+  const getDifficultyClasses = (diff: string) => {
+    const d = String(diff || "").toLowerCase();
+    if (d === 'beginner' || d === 'easy') return 'bg-emerald-500 text-emerald-500 border-emerald-500/20';
+    if (d === 'medium') return 'bg-amber-500 text-amber-500 border-amber-500/20';
+    if (d === 'hard') return 'bg-red-500 text-red-500 border-red-500/20';
+    return 'bg-slate-400 text-slate-400 border-slate-400/20';
+  };
+
+  const getDifficultyPill = (diff: string) => {
+    const d = String(diff || "").toLowerCase();
+    if (d === 'beginner' || d === 'easy') return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400';
+    if (d === 'medium') return 'bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400';
+    if (d === 'hard') return 'bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400';
+    return 'bg-slate-50 text-slate-600 dark:bg-slate-900 dark:text-slate-400';
+  };
+
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[3rem] shadow-xl border border-slate-50 dark:border-slate-800 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-none">
-            <TableHead className="font-black uppercase text-[10px] tracking-widest px-10 py-6 text-slate-400 dark:text-slate-500">Assessment Module</TableHead>
-            <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 dark:text-slate-500">Classification</TableHead>
-            <TableHead className="font-black uppercase text-[10px] tracking-widest text-slate-400 dark:text-slate-500">Efficiency</TableHead>
-            <TableHead className="font-black uppercase text-[10px] tracking-widest text-right px-10 min-w-[200px] text-slate-400 dark:text-slate-500">Access</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tests.map((test, i) => (
-            <TableRow key={i} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-none">
-              <TableCell className="px-10 py-6">
-                <div className="flex flex-col">
-                  <span className="font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors text-lg">{test.title}</span>
-                  <span className="text-xs font-medium text-slate-400 dark:text-slate-500 line-clamp-1 max-w-md">{test.description}</span>
+    <>
+      {tests.map((test, i) => (
+        <Link key={i} href={`/quiz?id=${test.id}`} className="group block">
+          <div className="relative bg-white dark:bg-slate-900 rounded-[12px] border-[0.5px] border-slate-200 dark:border-slate-800 overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all flex h-auto min-h-[100px]">
+            {/* Left Accent Strip */}
+            <div className={cn("w-[5px] shrink-0", getDifficultyClasses(test.difficulty).split(' ')[0])} />
+            
+            {/* Thumbnail (80px) */}
+            <div className={cn("w-[80px] shrink-0 flex items-center justify-center bg-gradient-to-br relative", getCategoryGradient(test.category))}>
+              <div className="w-7 h-7 rounded-md bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <FileText className="w-4 h-4 text-white" />
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="flex-1 p-[12px_14px] flex flex-col justify-between">
+              <div className="flex items-center justify-between gap-4 mb-1">
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full border-slate-200 text-slate-400">
+                    {test.category || "General"}
+                  </Badge>
                 </div>
-              </TableCell>
-              <TableCell>
-                <Badge className="bg-slate-900 dark:bg-slate-800 text-white font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full border border-transparent dark:border-slate-700">
-                  {test.category || "General"}
+                <Badge className={cn("border-none font-black text-[9px] uppercase tracking-widest px-2.5 py-0.5 rounded-full", getDifficultyPill(test.difficulty))}>
+                  {test.difficulty || 'Easy'}
                 </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-primary/60" /> {test.duration || '15m'}</span>
-                  <span className="flex items-center gap-1"><ListChecks className="w-3 h-3 text-primary/60" /> {test.questions_count || '--'} items</span>
+              </div>
+
+              <h3 className="text-[13px] font-medium text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors">
+                {test.title}
+              </h3>
+
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 dark:text-slate-600">
+                  <span className="flex items-center gap-1.5">
+                    <ListChecks className="w-3.5 h-3.5 opacity-60" />
+                    {test.questions_count ?? "0"} Items
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 opacity-60" />
+                    {test.duration || '15m'}
+                  </span>
                 </div>
-              </TableCell>
-              <TableCell className="text-right px-10">
-                <div className="flex justify-end items-center">
-                  <Link href={`/quiz?id=${test.id}`}>
-                    <Button 
-                      className="rounded-full h-11 px-6 bg-primary text-white font-black text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0 shadow-lg shadow-primary/20"
-                    >
-                      Start Assessment
-                      <Play className="w-3 h-3 ml-2 fill-current" />
-                    </Button>
-                  </Link>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+
+                <Button 
+                  variant="outline" 
+                  className="h-7 px-3 rounded-[6px] border-slate-200 dark:border-slate-700 bg-transparent text-slate-500 font-bold text-[10px] uppercase tracking-tight hover:bg-primary hover:text-white hover:border-primary transition-all group/btn"
+                >
+                  Start <ChevronRight className="w-3 h-3 ml-1 transition-transform group-hover/btn:translate-x-0.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Link>
+      ))}
+    </>
   );
 }
