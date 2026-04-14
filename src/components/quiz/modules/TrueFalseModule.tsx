@@ -15,6 +15,11 @@ interface Props {
   reviewMode?: boolean;
 }
 
+/**
+ * True/False Interaction Module
+ * 
+ * Reuses the circular radio card protocol for boolean verification.
+ */
 export const TrueFalseModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const correctArr = useMemo(() => parseRegistryArray(question.correct_answer), [question.correct_answer]);
 
@@ -27,24 +32,30 @@ export const TrueFalseModule: React.FC<Props> = ({ question, value, onChange, re
     >
        {['True', 'False'].map((o) => {
          const isSelected = value === o;
+         const inputId = `tf-${question.id}-${o}`;
          
          return (
            <div key={o} className={cn(
-             "flex items-center space-x-3 px-[18px] py-[14px] rounded-[12px] border transition-all cursor-pointer group",
+             "flex items-center space-x-4 px-[18px] py-[16px] rounded-[16px] border-2 transition-all cursor-pointer group",
              isSelected 
                ? "bg-[#EFF6FF] border-[#2563EB] shadow-sm" 
-               : "bg-white border-[#E5E7EB] hover:bg-[#EFF6FF] hover:border-[#2563EB]"
+               : "bg-white border-slate-100 hover:bg-[#EFF6FF] hover:border-[#2563EB]"
            )}>
             <RadioGroupItem 
               value={o} 
-              id={`tf-${question.id}-${o}`} 
+              id={inputId} 
               className={cn(
-                "pointer-events-none border-[#E5E7EB] data-[state=checked]:border-[#2563EB]",
-                isSelected && "border-[#2563EB]"
+                "h-5 w-5 border-2 pointer-events-none transition-transform group-active:scale-95",
+                isSelected ? "bg-[#2563EB] border-[#2563EB] text-white" : "border-slate-300"
               )}
             />
-            <Label htmlFor={`tf-${question.id}-${o}`} className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700">{o}</Label>
-            {reviewMode && o === correctArr[0] && <CheckCircle2 className="w-6 h-6 text-green-600" />}
+            <Label 
+              htmlFor={inputId} 
+              className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700 select-none leading-tight"
+            >
+              {o}
+            </Label>
+            {reviewMode && o === correctArr[0] && <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />}
           </div>
          );
        })}

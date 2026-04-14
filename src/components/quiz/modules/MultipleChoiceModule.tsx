@@ -19,7 +19,7 @@ interface Props {
  * Multiple Choice Interaction Module
  * 
  * Renders high-fidelity checkbox cards for multi-select responses.
- * Uses square (rounded-sm) checkbox icons per Protocol v18.5.
+ * Uses square (rounded-md) checkbox icons to distinguish from single-select radios.
  */
 export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const options = useMemo(() => {
@@ -27,7 +27,6 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
     return reviewMode ? rawOptions : shuffleArray(rawOptions);
   }, [question.id, question.options, reviewMode]);
 
-  // Protocol: Robust parsing of current selection state
   const selected = useMemo(() => parseRegistryArray(value), [value]);
   const correctArr = useMemo(() => parseRegistryArray(question.correct_answer), [question.correct_answer]);
 
@@ -50,10 +49,10 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
             key={idx} 
             onClick={() => toggle(option)}
             className={cn(
-              "flex items-center space-x-3 px-[18px] py-[14px] rounded-[12px] border transition-all cursor-pointer group",
+              "flex items-center space-x-4 px-[18px] py-[16px] rounded-[16px] border-2 transition-all cursor-pointer group",
               isSelected 
                 ? "bg-[#EFF6FF] border-[#2563EB] shadow-sm" 
-                : "bg-white border-[#E5E7EB] hover:bg-[#EFF6FF] hover:border-[#2563EB]"
+                : "bg-white border-slate-100 hover:bg-[#EFF6FF] hover:border-[#2563EB]"
             )}
           >
             <Checkbox 
@@ -62,20 +61,20 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
               onCheckedChange={() => toggle(option)}
               disabled={reviewMode}
               className={cn(
-                "transition-transform group-active:scale-95 border-[#E5E7EB] data-[state=checked]:border-[#2563EB] data-[state=checked]:bg-[#2563EB]",
-                isSelected && "border-[#2563EB]"
+                "h-5 w-5 rounded-md border-2 transition-transform group-active:scale-95",
+                isSelected ? "bg-[#2563EB] border-[#2563EB]" : "border-slate-300"
               )}
               onClick={(e) => e.stopPropagation()} 
             />
             <Label 
               htmlFor={inputId} 
-              className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700 select-none"
+              className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700 select-none leading-tight"
               onClick={(e) => e.preventDefault()}
             >
               {option}
             </Label>
             {reviewMode && correctArr.includes(option) && (
-              <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0 animate-in zoom-in-50 duration-300" />
+              <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />
             )}
           </div>
         );
