@@ -19,6 +19,7 @@ interface Props {
  * Multiple Choice Interaction Module
  * 
  * Renders high-fidelity checkbox cards for multi-select responses.
+ * Uses square (rounded-sm) checkbox icons per Protocol v18.5.
  */
 export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const options = useMemo(() => {
@@ -61,15 +62,15 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
               onCheckedChange={() => toggle(option)}
               disabled={reviewMode}
               className={cn(
-                "transition-transform group-active:scale-95 border-[#E5E7EB] data-[state=checked]:border-[#2563EB]",
+                "transition-transform group-active:scale-95 border-[#E5E7EB] data-[state=checked]:border-[#2563EB] data-[state=checked]:bg-[#2563EB]",
                 isSelected && "border-[#2563EB]"
               )}
-              onClick={(e) => e.stopPropagation()} // Prevent bubble conflicts
+              onClick={(e) => e.stopPropagation()} 
             />
             <Label 
               htmlFor={inputId} 
               className="option-text flex-1 cursor-pointer font-normal text-base text-slate-700 select-none"
-              onClick={(e) => e.preventDefault()} // Standardize card-only interaction
+              onClick={(e) => e.preventDefault()}
             >
               {option}
             </Label>

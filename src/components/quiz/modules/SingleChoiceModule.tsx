@@ -19,6 +19,7 @@ interface Props {
  * Single Choice Interaction Module
  * 
  * Renders high-fidelity radio cards for one-to-one response mapping.
+ * Uses circular (rounded-full) radio icons per Protocol v18.5.
  */
 export const SingleChoiceModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const options = useMemo(() => {
@@ -54,7 +55,7 @@ export const SingleChoiceModule: React.FC<Props> = ({ question, value, onChange,
               value={option} 
               id={inputId} 
               className={cn(
-                "pointer-events-none border-[#E5E7EB] data-[state=checked]:border-[#2563EB]",
+                "pointer-events-none border-[#E5E7EB] data-[state=checked]:border-[#2563EB] data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white",
                 isSelected && "border-[#2563EB]"
               )}
             />
