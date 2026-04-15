@@ -55,7 +55,7 @@ export const SingleChoiceModule: React.FC<Props> = ({ question, value, onChange,
               value={option} 
               id={inputId} 
               className={cn(
-                "h-5 w-5 border-2 pointer-events-none transition-transform group-active:scale-95",
+                "h-5 w-5 border-2 rounded-full pointer-events-none transition-transform group-active:scale-95",
                 isSelected ? "bg-[#2563EB] border-[#2563EB] text-white" : "border-slate-300"
               )}
             />

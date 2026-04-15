@@ -62,7 +62,7 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
               disabled={reviewMode}
               className={cn(
                 "h-5 w-5 rounded-md border-2 transition-transform group-active:scale-95",
-                isSelected ? "bg-[#2563EB] border-[#2563EB]" : "border-slate-300"
+                isSelected ? "bg-[#2563EB] border-[#2563EB] text-white" : "border-slate-300"
               )}
               onClick={(e) => e.stopPropagation()} 
             />
