@@ -1,0 +1,10 @@
+
+User-agent: *
+Allow: /
+Allow: /tests
+Allow: /setup-guide
+Disallow: /admin
+Disallow: /quiz
+Disallow: /profile
+
+Sitemap: https://quest-dntrng.vercel.app/sitemap.xml

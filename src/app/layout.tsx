@@ -1,4 +1,5 @@
-import type {Metadata} from 'next';
+
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
@@ -7,8 +8,46 @@ import { SettingsProvider } from '@/context/settings-context';
 import { ThemeColorManager } from '@/components/ThemeColorManager';
 
 export const metadata: Metadata = {
-  title: 'Assessment Platform - Intelligence Simplified',
-  description: 'A premium interactive assessment and data platform powered by Google Sheets.',
+  metadataBase: new URL('https://quest-dntrng.vercel.app'),
+  title: {
+    default: 'DNTRNG — Precision Assessment Platform',
+    template: '%s | DNTRNG'
+  },
+  description: 'A premium interactive assessment and data platform powered by Google Sheets. Take quizzes and discover insights instantly.',
+  keywords: ['assessment', 'quiz', 'google sheets', 'education', 'testing'],
+  authors: [{ name: 'DNTRNG Team' }],
+  creator: 'DNTRNG',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://quest-dntrng.vercel.app',
+    siteName: 'DNTRNG',
+    title: 'DNTRNG — Precision Assessment Platform',
+    description: 'Transform Google Sheets into interactive assessments.',
+    images: [{
+      url: '/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'DNTRNG Platform'
+    }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DNTRNG — Precision Assessment Platform',
+    description: 'Transform Google Sheets into interactive assessments.',
+    images: ['/og-image.png'],
+  },
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  }
+};
+
+export const viewport: Viewport = {
+  themeColor: '#2563EB',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

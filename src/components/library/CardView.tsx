@@ -3,8 +3,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Clock, ListChecks, FileText } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -35,14 +36,14 @@ export function CardView({ tests }: CardViewProps) {
       {tests.map((test) => (
         <Link key={test.id} href={`/quiz?id=${test.id}`} className="group block">
           <Card className="h-full flex flex-col overflow-hidden border-[0.5px] border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 rounded-[16px] bg-white dark:bg-slate-900">
-            {/* Cover Area (130px) */}
             <div className="relative h-[130px] w-full overflow-hidden">
               {test.image_url ? (
                 <>
-                  <img 
+                  <Image 
                     src={test.image_url} 
-                    alt={test.title}
-                    className="w-full h-full object-cover"
+                    alt={`Cover image for ${test.title}`}
+                    fill
+                    className="object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </>
@@ -50,26 +51,17 @@ export function CardView({ tests }: CardViewProps) {
                 <div className={cn("w-full h-full bg-gradient-to-br", getCategoryGradient(test.category))} />
               )}
               
-              {/* Top-Left Category Tag */}
               <div className="absolute top-3 left-3">
                 <Badge className="bg-white/25 text-white border-none backdrop-blur-md font-bold text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full">
                   {test.category || "General"}
                 </Badge>
               </div>
 
-              {/* Top-Right Question Count */}
               <div className="absolute top-3 right-3">
                 <Badge className="bg-black/20 text-white border-none backdrop-blur-md font-bold text-[9px] uppercase tracking-wider px-2 py-1 rounded-full flex items-center gap-1.5">
                   <ListChecks className="w-3 h-3" />
                   {test.questions_count ?? "0"}
                 </Badge>
-              </div>
-
-              {/* Bottom-Left Icon Box */}
-              <div className="absolute bottom-3 left-3">
-                <div className="w-7 h-7 rounded-md bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-white" />
-                </div>
               </div>
             </div>
 
@@ -88,10 +80,7 @@ export function CardView({ tests }: CardViewProps) {
                 <Clock className="w-3 h-3" />
                 <span>{test.duration || '15m'}</span>
               </div>
-              
-              <Button 
-                className="h-7 px-4 rounded-[8px] bg-[#1a2340] text-white font-black text-[11px] uppercase tracking-tighter hover:bg-[#2563EB] transition-colors border-none"
-              >
+              <Button className="h-7 px-4 rounded-[8px] bg-[#1a2340] text-white font-black text-[11px] uppercase tracking-tighter border-none">
                 Start
               </Button>
             </CardFooter>
