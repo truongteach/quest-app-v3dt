@@ -19,7 +19,7 @@ interface Props {
  * Multiple Choice Interaction Module
  * 
  * Renders high-fidelity checkbox cards for multi-select responses.
- * Uses square (rounded-md) checkbox icons to distinguish from single-select radios.
+ * Uses square (rounded) checkbox icons to distinguish from single-select radios.
  */
 export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const options = useMemo(() => {
@@ -61,7 +61,7 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
               onCheckedChange={() => toggle(option)}
               disabled={reviewMode}
               className={cn(
-                "h-5 w-5 rounded-md border-2 transition-transform group-active:scale-95",
+                "h-5 w-5 rounded border-2 transition-transform group-active:scale-95",
                 isSelected ? "bg-[#2563EB] border-[#2563EB] text-white" : "border-slate-300"
               )}
               onClick={(e) => e.stopPropagation()} 
