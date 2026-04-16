@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Question } from '@/types/quiz';
-import { Info, X, CheckCircle2 } from "lucide-react";
+import { Info, X, CheckCircle2, AlertCircle, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseRegistryArray, shuffleArray } from '@/lib/quiz-utils';
 
@@ -12,6 +12,42 @@ interface Props {
   onChange: (val: any) => void;
   reviewMode?: boolean;
 }
+
+/**
+ * Visual Asset Component for Matching Module
+ */
+const MatchingAnswerContent = ({ value }: { value: string }) => {
+  const [error, setError] = useState(false);
+
+  const isImage = useMemo(() => {
+    if (!value) return false;
+    const val = String(value).trim();
+    // Rule: starts with http(s) and has image extension OR starts with https://
+    return (val.startsWith('http') && /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(val)) || val.startsWith('https://');
+  }, [value]);
+
+  if (!isImage) {
+    return <span className="option-text font-black text-xs break-words whitespace-normal leading-tight">{value}</span>;
+  }
+
+  if (error) {
+    return (
+      <div className="w-[120px] h-[80px] bg-slate-100 rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-slate-200 gap-1">
+        <AlertCircle className="w-4 h-4 text-slate-300" />
+        <span className="text-[8px] font-black text-slate-300 uppercase tracking-tighter">Broken Asset</span>
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={value} 
+      alt="Answer Option" 
+      onError={() => setError(true)}
+      className="w-[120px] h-[80px] object-contain rounded-lg border bg-white shadow-sm transition-transform group-hover:scale-105"
+    />
+  );
+};
 
 export const MatchingModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const [draggingItem, setDraggingItem] = useState<string | null>(null);
@@ -50,7 +86,7 @@ export const MatchingModule: React.FC<Props> = ({ question, value, onChange, rev
       {!reviewMode && (
         <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center gap-3">
           <Info className="w-5 h-5 text-primary" />
-          <p className="text-xs font-medium text-primary">Drag answers from the pool into the correct target slots.</p>
+          <p className="text-xs font-medium text-primary">Drag and drop responses from the pool into the designated target clusters.</p>
         </div>
       )}
 
@@ -67,12 +103,12 @@ export const MatchingModule: React.FC<Props> = ({ question, value, onChange, rev
               return (
                 <div key={i} className="space-y-2">
                   <div className={cn(
-                    "p-5 rounded-[2rem] border-2 transition-all grid grid-cols-1 sm:grid-cols-[1fr_200px] gap-6 items-start",
+                    "p-5 rounded-[2rem] border-2 transition-all grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6 items-center",
                     reviewMode 
                       ? (isCorrect ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100") 
                       : "bg-slate-50/50 border-slate-100"
                   )}>
-                    <div className="min-w-0">
+                    <div className="min-w-0 pr-4">
                       <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Prompt</span>
                       <p className="option-text font-medium text-slate-700 text-base leading-relaxed break-words whitespace-normal">{prompt}</p>
                     </div>
@@ -87,19 +123,21 @@ export const MatchingModule: React.FC<Props> = ({ question, value, onChange, rev
                         if (data) handleDrop(prompt, data);
                       }}
                       className={cn(
-                        "w-full min-h-[48px] h-auto rounded-2xl border-2 border-dashed flex items-center justify-center transition-all p-3 relative group",
+                        "w-full sm:w-[200px] min-h-[100px] h-auto rounded-2xl border-2 border-dashed flex items-center justify-center transition-all p-3 relative group",
                         userVal ? "border-primary bg-white shadow-xl" : "border-slate-300 bg-white/50"
                       )}
                     >
                       {userVal ? (
-                        <div className="flex items-center justify-between w-full gap-2">
-                          <span className="option-text font-black text-xs text-primary break-words whitespace-normal leading-tight">{userVal}</span>
+                        <div className="flex flex-col items-center gap-3 w-full">
+                          <div className="flex-1 flex items-center justify-center">
+                            <MatchingAnswerContent value={userVal} />
+                          </div>
                           {!reviewMode && (
                             <button 
                               onClick={() => handleClear(prompt)}
-                              className="p-1 hover:bg-slate-100 rounded-full transition-colors shrink-0"
+                              className="absolute top-2 right-2 p-1 bg-white shadow-sm border rounded-full hover:bg-rose-50 hover:text-rose-500 transition-colors z-10"
                             >
-                              <X className="w-3 h-3 text-slate-400" />
+                              <X className="w-3 h-3" />
                             </button>
                           )}
                         </div>
@@ -109,9 +147,11 @@ export const MatchingModule: React.FC<Props> = ({ question, value, onChange, rev
                     </div>
                   </div>
                   {reviewMode && !isCorrect && (
-                    <div className="px-6 flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                      <p className="option-text text-[10px] font-black text-green-600 uppercase tracking-widest break-words whitespace-normal">Correct Registry: {correctAnswer}</p>
+                    <div className="px-6 py-3 bg-emerald-50/30 rounded-2xl border border-dashed border-emerald-200 flex items-center gap-4 animate-in slide-in-from-top-1 duration-300">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-2">Correct Registry</span>
+                        <MatchingAnswerContent value={correctAnswer || ""} />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -124,7 +164,7 @@ export const MatchingModule: React.FC<Props> = ({ question, value, onChange, rev
           <div className="lg:col-span-5">
             <div className="sticky top-24 space-y-4">
               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Answer Pool</h3>
-              <div className="p-8 bg-slate-100/50 rounded-[3rem] border-4 border-dashed border-slate-200 min-h-[400px] flex flex-col gap-3 items-stretch">
+              <div className="p-8 bg-slate-100/50 rounded-[3rem] border-4 border-dashed border-slate-200 min-h-[400px] flex flex-wrap gap-4 items-start content-start justify-center overflow-y-auto max-h-[70vh] custom-scrollbar">
                 {availableAnswers.map((ans, i) => (
                   <div
                     key={i}
@@ -135,11 +175,11 @@ export const MatchingModule: React.FC<Props> = ({ question, value, onChange, rev
                     }}
                     onDragEnd={() => setDraggingItem(null)}
                     className={cn(
-                      "option-text w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 transition-all font-black text-sm text-slate-600 break-words whitespace-normal leading-tight",
+                      "group relative px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center min-w-[140px] max-w-full",
                       draggingItem === ans && "opacity-20 scale-95 grayscale"
                     )}
                   >
-                    {ans}
+                    <MatchingAnswerContent value={ans} />
                   </div>
                 ))}
                 {availableAnswers.length === 0 && (
