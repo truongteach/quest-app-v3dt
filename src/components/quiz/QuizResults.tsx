@@ -116,6 +116,26 @@ export function QuizResults({
     }
   }, [isPass, testId, endTime]);
 
+  const handleDownloadCertificate = async () => {
+    if (!certificateId) return;
+    setIsGenerating(true);
+    try {
+      await generateCertificatePDF({
+        studentName: userName,
+        testName: title,
+        score,
+        total: totalQuestions,
+        date: new Date(),
+        certificateId: certificateId,
+        platformName: String(settings.platform_name || "DNTRNG")
+      });
+    } catch (error) {
+      console.error("Certificate generation failed:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const durationMs = (endTime && startTime) ? endTime - startTime : 0;
   const formatDuration = (ms: number) => {
     const seconds = Math.floor(ms / 1000);

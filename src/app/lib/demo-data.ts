@@ -83,7 +83,7 @@ export const DEMO_QUESTIONS: Question[] = [
     question_text: "Identify the 'Primary Action' button in the interface preview below.",
     question_type: "hotspot",
     image_url: "https://picsum.photos/seed/ui/800/450",
-    metadata: JSON.stringify([{ id: 'btn', label: 'Action Button', x: 50, y: 50, radius: 15, isCorrect: true }]),
+    metadata: JSON.stringify([{ id: 'btn', label: 'Action Button', x: 50, y: 50, width: 20, height: 10, isCorrect: true }]),
     required: false
   }
 ];
@@ -97,7 +97,9 @@ export const AVAILABLE_TESTS = [
     difficulty: "Beginner",
     questions: 11,
     duration: "15 mins",
-    image: "https://picsum.photos/seed/full/800/450"
+    image: "https://picsum.photos/seed/full/800/450",
+    certificate_enabled: "TRUE",
+    passing_threshold: 70
   },
   {
     id: "logic-master",
@@ -107,7 +109,8 @@ export const AVAILABLE_TESTS = [
     difficulty: "Intermediate",
     questions: 5,
     duration: "10 mins",
-    image: "https://picsum.photos/seed/logic/800/450"
+    image: "https://picsum.photos/seed/logic/800/450",
+    certificate_enabled: "FALSE"
   },
   {
     id: "data-viz",
@@ -117,6 +120,8 @@ export const AVAILABLE_TESTS = [
     difficulty: "Advanced",
     questions: 8,
     duration: "12 mins",
-    image: "https://picsum.photos/seed/viz/800/450"
+    image: "https://picsum.photos/seed/viz/800/450",
+    certificate_enabled: "TRUE",
+    passing_threshold: 85
   }
 ];
