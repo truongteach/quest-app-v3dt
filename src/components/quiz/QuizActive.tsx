@@ -80,6 +80,9 @@ export function QuizActive({
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] flex flex-col items-center transition-colors duration-300">
+      {/* SEO: Exactly one H1 per page protocol */}
+      <h1 className="sr-only">{quizTitle} Assessment Terminal</h1>
+
       <header className="w-full bg-white border-b border-slate-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto h-20 px-4 md:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-6">

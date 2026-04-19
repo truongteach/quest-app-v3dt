@@ -30,10 +30,10 @@ export function logActivity(action: string, target: string) {
     const updatedLogs = [newEntry, ...logs].slice(0, MAX_ENTRIES);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLogs));
     
-    // Trigger a storage event for cross-tab or same-tab synchronization if needed
+    // Trigger a storage event for same-tab synchronization
     window.dispatchEvent(new Event('storage'));
   } catch (e) {
-    console.error("Forensic log failure:", e);
+    // Background logging failure does not interrupt the admin workflow
   }
 }
 

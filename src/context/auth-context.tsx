@@ -9,6 +9,7 @@ interface User {
   role: 'admin' | 'user';
   displayName?: string;
   id?: string;
+  image_url?: string;
 }
 
 interface AuthContextType {
@@ -80,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const ipData = await ipRes.json();
         ip = ipData.ip;
       } catch (e) {
-        // Silently fail IP fetch if blocked by client
+        // IP fetch error does not block the activity log
       }
 
       const device = getDeviceDetails();
@@ -98,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
       });
     } catch (e) {
-      // Background logging failure does not interrupt UI
+      // Activity logging is a non-critical background task
     }
   };
 
@@ -130,7 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: email.toLowerCase(),
           role: data.role as 'admin' | 'user',
           displayName: data.name || email.split('@')[0],
-          id: data.id
+          id: data.id,
+          image_url: data.image_url
         };
         setUser(newUser);
         localStorage.setItem('questflow_user', JSON.stringify(newUser));
