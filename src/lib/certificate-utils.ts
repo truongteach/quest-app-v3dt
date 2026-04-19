@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 
@@ -84,10 +83,10 @@ export async function generateCertificatePDF(data: CertificateData) {
 
   // Certificate Seal Integration
   try {
-    // Note: Standard path for static assets in Next.js public folder
+    // High-Fidelity Seal Placement (Center-Bottom)
     doc.addImage('/brand/certificate-seal.png', 'PNG', pageWidth / 2 - 40, pageHeight - 100, 80, 80);
   } catch (e) {
-    // Fallback if image load fails
+    // Forensic fallback if asset missing from registry
   }
 
   // Verification Footer

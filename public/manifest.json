@@ -1,21 +1,20 @@
-
 {
-  "name": "DNTRNG Precision Assessment",
+  "name": "DNTRNG — Precision Assessment Platform",
   "short_name": "DNTRNG",
-  "description": "High-performance interactive assessment platform.",
+  "description": "High-performance precision assessment platform powered by Google Sheets.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563EB",
   "icons": [
     {
-      "src": "/brand/app-icon.png",
-      "sizes": "1024x1024",
+      "src": "/brand/favicon.png",
+      "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/brand/favicon.png",
-      "sizes": "512x512",
+      "src": "/brand/app-icon.png",
+      "sizes": "1024x1024",
       "type": "image/png"
     }
   ]
