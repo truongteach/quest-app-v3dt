@@ -17,7 +17,7 @@ interface Props {
  * Matrix Choice Interaction Module
  * 
  * Features a high-precision grid system for mapping attributes across multiple rows.
- * Implements the High-Fidelity Matrix Choice Protocol (v18.5).
+ * Implements the High-Fidelity Matrix Choice Protocol (v18.5) with advanced wide-table support.
  */
 export const MatrixChoiceModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const shuffledRows = useMemo(() => {
@@ -41,83 +41,93 @@ export const MatrixChoiceModule: React.FC<Props> = ({ question, value, onChange,
     onChange({ ...responses, [row]: col });
   };
 
-  // Structural Protocol: Use CSS grid for perfect column synchronization
+  // Structural Protocol: Use CSS grid for wide-table tracking and sticky alignment
   const gridStyle = {
     display: 'grid',
-    gridTemplateColumns: `1fr repeat(${columns.length}, 80px)`,
-    alignItems: 'center'
+    gridTemplateColumns: `1fr repeat(${columns.length}, minmax(80px, auto))`,
+    alignItems: 'stretch'
   };
 
   return (
-    <div className="w-full overflow-x-auto custom-scrollbar pb-4">
-      <div className="min-w-[600px]">
-        {/* Header Row: Empty top-left, centered labels */}
-        <div style={gridStyle} className="border-b border-slate-100 pb-4 mb-2 px-2">
-          <div /> {/* Removed "PARAMETER" label per Protocol v18.5 */}
-          {columns.map((col, i) => (
-            <div key={i} className="text-center px-1">
-              <span className="option-text text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] leading-none">
-                {col}
-              </span>
+    <div className="w-full relative bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="overflow-x-auto custom-scrollbar">
+        <div className="min-w-full inline-block align-middle">
+          {/* Header Row: Sticky left for row labels, bottom border for separation */}
+          <div style={gridStyle} className="bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
+            <div className="sticky left-0 bg-slate-50 dark:bg-slate-800 z-20 p-6 flex items-center border-r border-slate-200 dark:border-slate-700">
+               {/* Parameter header intentionally left empty per Protocol v18.5 */}
             </div>
-          ))}
-        </div>
-
-        {/* Content Rows: Dynamic backgrounds and borders */}
-        <div className="divide-y divide-slate-100">
-          {rows.map((row, i) => {
-            const userVal = responses[row];
-            const hasSelection = !!userVal;
-            const originalIdx = originalRows.indexOf(row);
-            const isCorrectRow = reviewMode && userVal === correctAnswersArr[originalIdx];
-
-            return (
-              <div 
-                key={i} 
-                style={gridStyle}
-                className={cn(
-                  "group transition-all py-5 px-2 rounded-xl",
-                  hasSelection ? "bg-[#EFF6FF]" : "bg-transparent",
-                  !reviewMode && "hover:bg-slate-50",
-                  reviewMode && !isCorrectRow ? "opacity-80" : "opacity-100"
-                )}
-              >
-                {/* Parameter Label */}
-                <div className="pr-6">
-                  <p className="option-text text-sm font-normal text-slate-700 leading-tight">
-                    {row}
-                  </p>
-                </div>
-
-                {/* Interaction Nodes */}
-                {columns.map((col, j) => {
-                  const isSelected = userVal === col;
-                  const isCorrectChoice = reviewMode && isSelected && col === correctAnswersArr[originalIdx];
-                  const isWrongChoice = reviewMode && isSelected && col !== correctAnswersArr[originalIdx];
-
-                  return (
-                    <div 
-                      key={j} 
-                      className="flex justify-center"
-                      onClick={() => handleUpdate(row, col)}
-                    >
-                      <div className={cn(
-                        "w-[22px] h-[22px] rounded-full border-[1.5px] transition-all flex items-center justify-center cursor-pointer",
-                        isSelected 
-                          ? "bg-[#3B5BDB] border-[#3B5BDB] shadow-sm" 
-                          : "border-slate-200 bg-white group-hover:border-slate-300",
-                        reviewMode && isWrongChoice && "bg-rose-500 border-rose-500",
-                        reviewMode && isCorrectChoice && "bg-emerald-500 border-emerald-500",
-                        reviewMode && "cursor-default"
-                      )}>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />}
-                      </div>
-                    </div>
-                  );
-                })}
+            {columns.map((col, i) => (
+              <div key={i} className="text-center px-4 py-6 border-r border-slate-200/50 dark:border-slate-700/50 last:border-r-0 flex items-center justify-center">
+                <span className="option-text text-[11px] font-black uppercase text-slate-600 dark:text-slate-300 tracking-wider leading-tight line-clamp-2 overflow-hidden">
+                  {col}
+                </span>
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Content Rows: Alternating backgrounds and horizontal tracking */}
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {rows.map((row, i) => {
+              const userVal = responses[row];
+              const originalIdx = originalRows.indexOf(row);
+              const isCorrectRow = reviewMode && userVal === correctAnswersArr[originalIdx];
+
+              return (
+                <div 
+                  key={i} 
+                  style={gridStyle}
+                  className={cn(
+                    "group transition-all duration-200",
+                    i % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50/50 dark:bg-slate-800/30",
+                    !reviewMode && "hover:bg-primary/5",
+                    reviewMode && !isCorrectRow && userVal ? "bg-rose-50/30 dark:bg-rose-900/10" : ""
+                  )}
+                >
+                  {/* Parameter Label: Sticky implementation for horizontal tracing */}
+                  <div className={cn(
+                    "sticky left-0 z-10 px-6 py-5 flex items-center transition-colors border-r border-slate-200 dark:border-slate-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)]",
+                    i % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50 dark:bg-slate-800/50",
+                    "group-hover:bg-primary/[0.03]"
+                  )}>
+                    <p className="option-text text-sm font-medium text-slate-700 dark:text-slate-200 leading-tight">
+                      {row}
+                    </p>
+                  </div>
+
+                  {/* Interaction Nodes: Vertical dividers and selected cell highlighting */}
+                  {columns.map((col, j) => {
+                    const isSelected = userVal === col;
+                    const isCorrectChoice = reviewMode && isSelected && col === correctAnswersArr[originalIdx];
+                    const isWrongChoice = reviewMode && isSelected && col !== correctAnswersArr[originalIdx];
+
+                    return (
+                      <div 
+                        key={j} 
+                        className={cn(
+                          "flex items-center justify-center border-r border-slate-200/50 dark:border-slate-700/50 last:border-r-0 transition-colors p-4",
+                          isSelected ? "bg-primary/[0.04] dark:bg-primary/[0.08]" : ""
+                        )}
+                        onClick={() => handleUpdate(row, col)}
+                      >
+                        <div className={cn(
+                          "w-[22px] h-[22px] rounded-full border-[1.5px] transition-all flex items-center justify-center cursor-pointer shadow-sm",
+                          isSelected 
+                            ? "bg-[#3B5BDB] border-[#3B5BDB]" 
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 group-hover:border-slate-300 dark:group-hover:border-slate-600",
+                          reviewMode && isWrongChoice && "bg-rose-500 border-rose-500",
+                          reviewMode && isCorrectChoice && "bg-emerald-500 border-emerald-500",
+                          reviewMode && "cursor-default"
+                        )}>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3.5px]" />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
