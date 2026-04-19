@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const ipData = await ipRes.json();
         ip = ipData.ip;
       } catch (e) {
-        console.warn("Could not fetch IP", e);
+        // Silently fail IP fetch if blocked by client
       }
 
       const device = getDeviceDetails();
@@ -98,14 +98,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
       });
     } catch (e) {
-      console.error("Failed to log activity", e);
+      // Background logging failure does not interrupt UI
     }
   };
 
   const login = async (email: string, password?: string): Promise<{ success: boolean; message?: string }> => {
     if (!API_URL) return { success: false, message: "API Offline" };
     
-    // Domain Authorization Registry Protocol
     const allowedDomainsStr = settings.allowed_email_domains || "";
     if (allowedDomainsStr.trim()) {
       const allowedDomains = allowedDomainsStr.split(',').map(d => d.trim().toLowerCase()).filter(Boolean);
@@ -137,21 +136,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('questflow_user', JSON.stringify(newUser));
         localStorage.setItem('questflow_login_ts', Date.now().toString());
         
-        // Log Login Activity with IP and Device
         logActivity(newUser.email, newUser.displayName || 'User', 'Login');
-        
         return { success: true };
       }
       return { success: false, message: "invalid_credentials" };
     } catch (error) {
-      console.error("Login failed:", error);
       return { success: false, message: "sync_error" };
     }
   };
 
   const logout = () => {
     if (user) {
-      // Log Logout Activity before state clear
       logActivity(user.email, user.displayName || 'User', 'Logout');
     }
     setUser(null);

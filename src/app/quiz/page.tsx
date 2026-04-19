@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState, useEffect, Suspense, useMemo } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { QuizState, QuizMode, Question } from '@/types/quiz';
 import { QuizStart } from '@/components/quiz/QuizStart';
 import { QuizResults } from '@/components/quiz/QuizResults';
@@ -26,7 +25,7 @@ function QuizContent() {
   const [loading, setLoading] = useState(true);
   const [isStarted, setIsStarted] = useState(false);
   const [guestName, setGuestName] = useState("");
-  const [timeLeft, setTimeLeft] = useState(900); // Default to 15m
+  const [timeLeft, setTimeLeft] = useState(900); 
   const [isWrongInRace, setIsWrongInRace] = useState(false);
   const [protocolSalt, setProtocolSalt] = useState("");
   const [isProtectionEnabled, setIsProtectionEnabled] = useState(true);
@@ -35,7 +34,6 @@ function QuizContent() {
   const [testMetadata, setTestMetadata] = useState<any>(null);
   const [generatedCertificateId, setGeneratedCertificateId] = useState<string | null>(null);
   
-  // Master registry to keep the original order for Training/Race
   const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
   
   const [quiz, setQuiz] = useState<QuizState>({
@@ -51,6 +49,41 @@ function QuizContent() {
   });
 
   const quizTitle = testMetadata?.title || 'Assessment';
+
+  // State Persistence Protocol: Load saved responses on initialization
+  const loadPersistedState = useCallback((tid: string) => {
+    const saved = sessionStorage.getItem(`quiz_session_${tid}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setQuiz(prev => ({
+          ...prev,
+          responses: parsed.responses || [],
+          currentQuestionIndex: parsed.currentQuestionIndex || 0,
+          highestStepReached: parsed.highestStepReached || 0,
+          startTime: parsed.startTime || Date.now(),
+          mode: parsed.mode || 'test'
+        }));
+        setIsStarted(true);
+      } catch (e) {
+        sessionStorage.removeItem(`quiz_session_${tid}`);
+      }
+    }
+  }, []);
+
+  // Persistence Protocol: Commit state to storage on every mutation
+  useEffect(() => {
+    if (isStarted && !quiz.isSubmitted && testId) {
+      const stateToSave = {
+        responses: quiz.responses,
+        currentQuestionIndex: quiz.currentQuestionIndex,
+        highestStepReached: quiz.highestStepReached,
+        startTime: quiz.startTime,
+        mode: quiz.mode
+      };
+      sessionStorage.setItem(`quiz_session_${testId}`, JSON.stringify(stateToSave));
+    }
+  }, [quiz.responses, quiz.currentQuestionIndex, quiz.highestStepReached, isStarted, quiz.isSubmitted, testId, quiz.startTime, quiz.mode]);
 
   useEffect(() => {
     fetchQuestions();
@@ -101,12 +134,7 @@ function QuizContent() {
         const sData = await sRes.json();
         const tData = await tRes.json();
         
-        if (qData && Array.isArray(qData) && qData.length > 0) {
-          fetched = qData;
-        } else {
-          fetched = DEMO_QUESTIONS;
-        }
-        
+        fetched = (qData && Array.isArray(qData) && qData.length > 0) ? qData : DEMO_QUESTIONS;
         salt = sData.daily_key_salt || "";
         protection = String(sData.access_key_protection_enabled ?? "true") !== "false";
         guestAllowed = String(sData.guest_access_allowed ?? "true") !== "false";
@@ -128,11 +156,14 @@ function QuizContent() {
       setTestMetadata(metadata);
       setOriginalQuestions(fetched);
       
-      // Calculate initial time left based on hierarchy: Test Dur -> Global Fallback -> 15m
       const seconds = parseDurationToSeconds(metadata?.duration, globalFallbackTime);
       setTimeLeft(seconds);
 
       setQuiz(prev => ({ ...prev, questions: fetched, startTime: Date.now() }));
+      
+      // Post-Fetch Persistence Sync
+      if (testId) loadPersistedState(testId);
+      
     } catch (err) {
       setOriginalQuestions(DEMO_QUESTIONS);
       setQuiz(prev => ({ ...prev, questions: DEMO_QUESTIONS, startTime: Date.now() }));
@@ -227,18 +258,18 @@ function QuizContent() {
     const timestamp = Date.now();
     const finalPercentage = Math.round((finalScore / quiz.questions.length) * 100);
     
-    // Check for certificate award
     let certId = "";
     const threshold = Number(testMetadata?.passing_threshold || 70);
     const certEnabled = String(testMetadata?.certificate_enabled) === "TRUE";
     
     if (certEnabled && finalPercentage >= threshold) {
-      // Unique Certificate ID Protocol: [StudentID/Email]-[TestID]-[Timestamp]
       const cleanEmail = finalEmail.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
       certId = `CRT-${cleanEmail}-${testId}-${timestamp.toString().slice(-6)}`.toUpperCase();
       setGeneratedCertificateId(certId);
     }
     
+    // Clear persistence upon submission
+    if (testId) sessionStorage.removeItem(`quiz_session_${testId}`);
     setQuiz({ ...quiz, isSubmitted: true, score: finalScore, endTime: timestamp });
 
     if (API_URL) {
@@ -261,7 +292,7 @@ function QuizContent() {
         });
         toast({ title: "Intelligence Synced", description: "Assessment results have been committed." });
       } catch (e) {
-        console.error("Submission failed", e);
+        // Submission logged but network trace hidden per Protocol v18.5
       }
     }
   };
@@ -276,7 +307,8 @@ function QuizContent() {
   };
 
   const restart = () => {
-    fetchQuestions(); // Re-fetch to ensure fresh timer and metadata
+    if (testId) sessionStorage.removeItem(`quiz_session_${testId}`);
+    fetchQuestions();
     setQuiz({
       ...quiz,
       currentQuestionIndex: 0,
@@ -317,7 +349,6 @@ function QuizContent() {
     </div>
   );
 
-  // Enforcement Protocol: Maintenance Mode
   if (isMaintenanceMode && user?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center transition-colors duration-500">
