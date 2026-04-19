@@ -1,20 +1,20 @@
 
 {
-  "name": "DNTRNG Assessment Platform",
+  "name": "DNTRNG Precision Assessment",
   "short_name": "DNTRNG",
-  "description": "High-performance precision assessment platform.",
+  "description": "High-performance interactive assessment platform.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563EB",
   "icons": [
     {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
+      "src": "/brand/app-icon.png",
+      "sizes": "1024x1024",
       "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/brand/favicon.png",
       "sizes": "512x512",
       "type": "image/png"
     }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -36,6 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from 'next/image';
 
 export type AdminTab = 'overview' | 'tests' | 'users' | 'responses' | 'activity' | 'settings';
 
@@ -64,18 +66,11 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
   return (
     <Sidebar className="border-r border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
       <SidebarHeader className="p-8">
-        <div className="flex items-center gap-4">
-          <div className="bg-primary p-3 rounded-2xl shadow-xl rotate-3 shrink-0 overflow-hidden flex items-center justify-center w-12 h-12">
-            {settings.logo_url ? (
-              <img src={settings.logo_url} alt={brandName} className="w-full h-full object-contain" />
-            ) : (
-              <Zap className="text-white w-5 h-5 fill-current" />
-            )}
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none truncate">
-              {brandName}
-            </h1>
+        <div className="flex flex-col gap-4">
+          <Link href="/" className="block">
+            <Image src="/brand/logo-horizontal.png" alt="DNTRNG" width={130} height={32} />
+          </Link>
+          <div>
             <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1.5">{t('adminConsole')}</p>
           </div>
         </div>

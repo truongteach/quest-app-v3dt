@@ -50,7 +50,7 @@ export default function LandingPage() {
     "name": brandName,
     "url": "https://quest-dntrng.vercel.app",
     "description": "High-performance precision assessment platform powered by Google Sheets.",
-    "logo": settings.logo_url || "https://quest-dntrng.vercel.app/logo.png"
+    "logo": settings.logo_url || "https://quest-dntrng.vercel.app/brand/logo-horizontal.png"
   };
 
   return (
@@ -74,14 +74,13 @@ export default function LandingPage() {
 
       <header className="py-4 px-6 md:px-12 border-b border-slate-200 bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center space-x-2">
-            {settings.logo_url ? (
-              <Image src={settings.logo_url} alt={brandName} width={32} height={32} className="h-8 w-auto object-contain mr-1" />
-            ) : (
-              <div className="text-2xl font-black tracking-tighter text-slate-900 uppercase flex items-center">
-                {brandName}<span className="w-2 h-2 rounded-full bg-[#2563EB] ml-1" />
-              </div>
-            )}
+          <Link href="/" className="flex items-center">
+            <div className="hidden sm:block">
+              <Image src="/brand/logo-horizontal.png" alt="DNTRNG" width={160} height={40} priority />
+            </div>
+            <div className="sm:hidden">
+              <Image src="/brand/logo-symbol.png" alt="DNTRNG" width={40} height={40} priority />
+            </div>
           </Link>
           
           <nav className="hidden md:flex items-center gap-8 text-xs font-black uppercase tracking-widest text-slate-500">
@@ -112,32 +111,56 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="relative pt-20 pb-24 md:pt-32 md:pb-40 px-6">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-[10px] font-black uppercase tracking-widest">
-              <Zap className="w-3 h-3 fill-current" />
-              {t('heroBadge')}
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight text-slate-900 leading-[1.1]">
-              {t('heroTitle')}
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-              {t('heroSubtitle')}
-            </p>
+        <section className="relative pt-20 pb-24 md:pt-32 md:pb-40 px-6 overflow-hidden">
+          {/* Background Pattern Layer */}
+          <div 
+            className="absolute inset-0 z-[-1]"
+            style={{
+              backgroundImage: "url('/brand/pattern.png')",
+              backgroundRepeat: "repeat",
+              backgroundSize: "400px 400px",
+              opacity: 0.05
+            }}
+          />
 
-            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-              <Link href="/tests">
-                <Button size="lg" className="h-16 px-10 text-lg rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] font-black shadow-xl transition-all hover:scale-[1.02]">
-                  {t('browseTests')}
-                </Button>
-              </Link>
-              <Link href="/quiz?id=demo-full">
-                <Button size="lg" variant="outline" className="h-16 px-10 text-lg rounded-full bg-white border-2 border-slate-200 text-slate-900 font-black transition-all hover:bg-slate-50">
-                  {t('tryDemo')}
-                </Button>
-              </Link>
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1 text-center md:text-left space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-[10px] font-black uppercase tracking-widest">
+                <Zap className="w-3 h-3 fill-current" />
+                {t('heroBadge')}
+              </div>
+              
+              <h1 className="text-5xl md:text-7xl font-black tracking-tight text-slate-900 leading-[1.1]">
+                {t('heroTitle')}
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-slate-500 max-w-2xl font-medium leading-relaxed">
+                {t('heroSubtitle')}
+              </p>
+
+              <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-4 pt-4">
+                <Link href="/tests">
+                  <Button size="lg" className="h-16 px-10 text-lg rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] font-black shadow-xl transition-all hover:scale-[1.02]">
+                    {t('browseTests')}
+                  </Button>
+                </Link>
+                <Link href="/quiz?id=demo-full">
+                  <Button size="lg" variant="outline" className="h-16 px-10 text-lg rounded-full bg-white border-2 border-slate-200 text-slate-900 font-black transition-all hover:bg-slate-50">
+                    {t('tryDemo')}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="flex-1 hidden md:block animate-in fade-in slide-in-from-right-8 duration-1000">
+              <Image 
+                src="/brand/hero-visual.png" 
+                alt="" 
+                aria-hidden="true" 
+                width={600} 
+                height={400} 
+                className="object-contain"
+              />
             </div>
           </div>
         </section>
@@ -173,10 +196,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-start gap-12 md:gap-32 mb-16">
             <div className="space-y-6 max-w-sm">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="text-2xl font-black tracking-tighter text-slate-900 uppercase flex items-center">
-                  {brandName}<span className="w-2 h-2 rounded-full bg-[#2563EB] ml-1" />
-                </div>
+              <Link href="/" className="flex items-center">
+                <Image src="/brand/logo-horizontal.png" alt="DNTRNG" width={140} height={35} />
               </Link>
               <p className="text-slate-400 font-medium text-sm leading-relaxed">{t('footerDesc')}</p>
             </div>
@@ -194,7 +215,7 @@ export default function LandingPage() {
           
           <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 gap-8">
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">
-              {settings.custom_footer_text || `© ${new Date().getFullYear()} ${brandName.toUpperCase()} • PRECISION ASSESSMENT`}
+              {settings.custom_footer_text || `© ${new Date().getFullYear()} DNTRNG • PRECISION ASSESSMENT`}
             </p>
             <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-100">
               <div className={cn("w-2 h-2 rounded-full animate-pulse", systemStatus === 'Optimal' ? "bg-emerald-500" : systemStatus === 'Degraded' ? "bg-amber-500" : "bg-red-500")} />

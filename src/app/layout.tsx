@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: 'DNTRNG — Precision Assessment Platform',
     template: '%s | DNTRNG'
   },
-  description: 'A premium interactive assessment and data platform powered by Google Sheets. Take quizzes and discover insights instantly.',
+  description: 'Take quizzes, discover your strengths and weaknesses instantly. Free, no account needed.',
   keywords: ['assessment', 'quiz', 'google sheets', 'education', 'testing'],
   authors: [{ name: 'DNTRNG Team' }],
   creator: 'DNTRNG',
@@ -23,9 +23,9 @@ export const metadata: Metadata = {
     url: 'https://quest-dntrng.vercel.app',
     siteName: 'DNTRNG',
     title: 'DNTRNG — Precision Assessment Platform',
-    description: 'Transform Google Sheets into interactive assessments.',
+    description: 'Take quizzes, discover your strengths and weaknesses instantly. Free, no account needed.',
     images: [{
-      url: '/og-image.png',
+      url: '/brand/logo-dark.png',
       width: 1200,
       height: 630,
       alt: 'DNTRNG Platform'
@@ -34,13 +34,13 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'DNTRNG — Precision Assessment Platform',
-    description: 'Transform Google Sheets into interactive assessments.',
-    images: ['/og-image.png'],
+    description: 'Take quizzes, discover your strengths and weaknesses instantly. Free, no account needed.',
+    images: ['/brand/logo-dark.png'],
   },
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-icon.png',
+    icon: '/brand/favicon.png',
+    apple: '/brand/app-icon.png',
   }
 };
 
@@ -61,6 +61,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link rel="icon" href="/brand/favicon.png" />
+        <link rel="apple-touch-icon" href="/brand/app-icon.png" />
       </head>
       <body className="font-body antialiased min-h-screen bg-background text-foreground">
         <SettingsProvider>

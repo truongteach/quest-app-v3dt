@@ -82,6 +82,14 @@ export async function generateCertificatePDF(data: CertificateData) {
   doc.text(`DATE COMPLETED: ${format(data.date, 'MMMM dd, yyyy')}`, 40, 170);
   doc.text(`ACHIEVED PRECISION: ${percentage}% (${data.score}/${data.total})`, pageWidth - 40, 170, { align: 'right' });
 
+  // Certificate Seal Integration
+  try {
+    // Note: Standard path for static assets in Next.js public folder
+    doc.addImage('/brand/certificate-seal.png', 'PNG', pageWidth / 2 - 40, pageHeight - 100, 80, 80);
+  } catch (e) {
+    // Fallback if image load fails
+  }
+
   // Verification Footer
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184); // Slate 400
