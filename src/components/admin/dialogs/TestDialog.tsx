@@ -32,8 +32,10 @@ export function TestDialog({ open, onOpenChange, editingItem, onSave, loading }:
 
   useEffect(() => {
     if (open && editingItem) {
-      // Protocol: Normalize string values from GAS registry
-      setCertEnabled(String(editingItem.certificate_enabled || "").toUpperCase() === "TRUE");
+      // Protocol: Normalize string values from GAS registry ("TRUE" or "FALSE")
+      const rawVal = editingItem.certificate_enabled;
+      const isEnabled = String(rawVal ?? "").toUpperCase() === "TRUE";
+      setCertEnabled(isEnabled);
     } else if (open) {
       setCertEnabled(false);
     }
@@ -42,15 +44,24 @@ export function TestDialog({ open, onOpenChange, editingItem, onSave, loading }:
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loading) return;
+    
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
     
+    // Explicit Cast: Convert boolean state to registry-compatible string
     data.certificate_enabled = certEnabled ? "TRUE" : "FALSE";
     
     // Ensure passing_threshold is always included in payload even if input is unmounted
     if (!data.passing_threshold) {
       data.passing_threshold = String(editingItem?.passing_threshold ?? settings.default_pass_threshold ?? 70);
     }
+    
+    // Protocol Audit: Confirm payload integrity
+    console.log('[Registry Sync] Saving Test:', {
+      id: data.id,
+      certificate_enabled: data.certificate_enabled,
+      passing_threshold: data.passing_threshold
+    });
     
     onSave(data);
   };
@@ -158,7 +169,11 @@ export function TestDialog({ open, onOpenChange, editingItem, onSave, loading }:
                   <p className="text-[10px] text-slate-500 font-medium">Award certificate on completion</p>
                 </div>
               </div>
-              <Switch checked={certEnabled} onCheckedChange={setCertEnabled} disabled={loading} />
+              <Switch 
+                checked={certEnabled} 
+                onCheckedChange={setCertEnabled} 
+                disabled={loading} 
+              />
             </div>
 
             {certEnabled && (

@@ -38,13 +38,13 @@ export default function NewTestPage() {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
     
-    // Explicitly add controlled values
+    // Explicit Cast: Convert boolean state to registry-compatible string
     data.difficulty = difficulty;
     data.certificate_enabled = certEnabled ? "TRUE" : "FALSE";
     
     // Protocol: Ensure passing_threshold is always present in the payload
     if (!data.passing_threshold) {
-      data.passing_threshold = settings.default_pass_threshold || "70";
+      data.passing_threshold = String(settings.default_pass_threshold || "70");
     }
     
     // Auto-formatting duration suffix if only number provided
@@ -56,6 +56,13 @@ export default function NewTestPage() {
       const slug = (data.title as string || 'test').toLowerCase().replace(/[^a-z0-9]/g, '-');
       data.id = `${slug}-${Date.now().toString().slice(-4)}`;
     }
+
+    // Protocol Audit: Confirm payload integrity
+    console.log('[Registry Sync] Creating Test:', {
+      id: data.id,
+      certificate_enabled: data.certificate_enabled,
+      passing_threshold: data.passing_threshold
+    });
 
     try {
       await fetch(API_URL, {
