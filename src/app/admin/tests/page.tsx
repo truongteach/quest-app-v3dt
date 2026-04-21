@@ -105,10 +105,16 @@ export default function AdminTestsPage() {
         questions={[]}
         onSaveTest={(testData) => {
           const payload = { ...testData };
+          // Registry Guard: Preserve immutable ID in edit mode
           if (!payload.id) {
             const slug = (payload.title as string || 'test').toLowerCase().replace(/[^a-z0-9]/g, '-');
             payload.id = `${slug}-${Date.now().toString().slice(-4)}`;
+          } else if (editingItem && payload.id !== editingItem.id) {
+            // Safety Protocol: Ensure we are not accidentally overriding the identifier
+            console.error('[Registry Violation] Attempted ID mutation on existing record');
+            payload.id = editingItem.id;
           }
+          
           handlePost('saveTest', { data: payload });
           logActivity(editingItem ? "Test edited" : "Test created", payload.title);
         }}

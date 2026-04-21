@@ -93,12 +93,12 @@ export function TestDialog({ open, onOpenChange, editingItem, onSave, loading }:
               <Input 
                 name="id" 
                 defaultValue={editingItem?.id} 
-                disabled={loading || !!editingItem}
+                disabled={loading}
                 placeholder="auto-id" 
                 readOnly={!!editingItem} 
                 className={cn(
                   "rounded-xl h-12 bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 font-mono text-xs",
-                  !!editingItem && "opacity-60 cursor-not-allowed select-none"
+                  !!editingItem && "opacity-60 cursor-not-allowed select-none bg-slate-100 dark:bg-slate-800"
                 )} 
               />
             </div>

@@ -147,6 +147,7 @@ export default function AdminDashboard() {
         questions={[]}
         onSaveTest={async (testData) => {
           const payload = { ...testData };
+          // Persistence Protocol: Only generate ID for new tests. Existing IDs are immutable.
           if (!payload.id) {
             const slug = (payload.title as string || 'test').toLowerCase().replace(/[^a-z0-9]/g, '-');
             payload.id = `${slug}-${Date.now().toString().slice(-4)}`;
