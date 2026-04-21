@@ -66,7 +66,15 @@
     3. Make changes to `latest.ts` only.
 *   Never edit or delete version files — read-only backups.
 
-## 10. Changelog & Activity Log Rules
+## 10. GAS Version Management
+*   Every time `src/lib/gas/latest.ts` is changed:
+    1. Increment the `GAS_VERSION` constant inside the script string.
+    2. Update `REQUIRED_GAS_VERSION` in `src/lib/gas-version.ts` to match exactly.
+    3. Create a read-only copy in `src/lib/gas/versions/vX.ts`.
+    4. Update the primary `CHANGELOG.md` and the GAS-specific changelog.
+*   These 4 steps are mandatory — never skip them.
+
+## 11. Changelog & Activity Log Rules
 System Changelog (CHANGELOG.md):
 - Every time a significant code change is made, add an entry to CHANGELOG.md at project root BEFORE making the change.
 - Format: `## v{X} — {date}` followed by bulleted changes.
@@ -79,7 +87,7 @@ Activity Log (automatic):
 - The helper is at `src/lib/activity-log.ts`.
 - Do not remove or skip `logActivity` calls.
 
-## 11. General Rules
+## 12. General Rules
 *   **No New Packages**: Ask before adding dependencies to keep the Electron bundle size optimal.
 *   **Self-Documentation**: Use clear naming (e.g., `isProtectionEnabled`) instead of excessive comments.
 *   **Zero Breakage**: Never modify the core authentication logic without a full registry audit.

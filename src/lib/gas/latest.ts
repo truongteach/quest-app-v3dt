@@ -2,15 +2,21 @@ export const GAS_CODE = `/**
  * QUESTFLOW BACKEND v18.6 - GRANULAR PERSISTENCE PROTOCOL
  * 
  * ACTIONS SUPPORTED:
- * - GET: login, getTests, getUsers, getResponses, getQuestions, getActivity, getSettings
+ * - GET: login, getTests, getUsers, getResponses, getQuestions, getActivity, getSettings, getVersion
  * - POST: submitResponse, saveTest, deleteTest, saveUser, deleteUser, saveQuestion, saveQuestions, saveUsers, logActivity, saveSetting, deleteResponse
  */
+
+const GAS_VERSION = "18.6";
 
 function doGet(e) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const action = e.parameter.action;
 
   try {
+    if (action === 'getVersion') {
+      return createResponse({ version: GAS_VERSION });
+    }
+
     if (action === 'login') {
       const email = e.parameter.email;
       const password = e.parameter.password;
