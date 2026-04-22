@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
@@ -18,7 +18,9 @@ import {
   XCircle,
   FileBadge,
   Download,
-  CheckCircle2
+  CheckCircle2,
+  ChevronRight,
+  ListChecks
 } from "lucide-react";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
@@ -43,7 +45,35 @@ interface QuizResultsProps {
   startTime?: number;
   endTime?: number;
   testMetadata?: any;
+  allTests?: any[];
   certificateId?: string;
+}
+
+/**
+ * Normalizes a string by removing accents and non-alphanumeric characters.
+ */
+function normalizeString(str: string) {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Extracts the series prefix and trailing number from a test title.
+ */
+function getSeriesInfo(title: string) {
+  const normalized = normalizeString(title);
+  // Match prefix followed by optional number at the end
+  const match = normalized.match(/^(.*?)\s*(\d*)$/);
+  return {
+    prefix: match ? match[1].trim() : normalized,
+    number: (match && match[2]) ? parseInt(match[2]) : null
+  };
 }
 
 export function QuizResults({
@@ -58,6 +88,7 @@ export function QuizResults({
   startTime,
   endTime,
   testMetadata,
+  allTests = [],
   certificateId
 }: QuizResultsProps) {
   const { settings } = useSettings();
@@ -77,6 +108,59 @@ export function QuizResults({
   
   const isPass = percentage >= testThreshold;
   const verdict = getVerdictData(percentage);
+
+  // Suggested Tests Logic
+  const suggestions = useMemo(() => {
+    if (!allTests || allTests.length === 0 || !testMetadata) return [];
+
+    const currentTitle = testMetadata.title || "";
+    const currentSeries = getSeriesInfo(currentTitle);
+    
+    // Find tests in same series
+    const related = allTests.filter(t => {
+      if (t.id === testId) return false;
+      const tSeries = getSeriesInfo(t.title || "");
+      // Match if prefixes match
+      return tSeries.prefix === currentSeries.prefix;
+    }).map(t => ({
+      ...t,
+      seriesInfo: getSeriesInfo(t.title || "")
+    }));
+
+    let result = [];
+    if (isPass) {
+      // Suggest higher numbers in same series
+      const higher = related
+        .filter(t => (t.seriesInfo.number || 0) > (currentSeries.number || 0))
+        .sort((a, b) => (a.seriesInfo.number || 0) - (b.seriesInfo.number || 0));
+      
+      result = higher;
+
+      // If less than 3, look for next level (Level X -> Level X+1)
+      if (result.length < 3) {
+        const nextLevelMatch = currentTitle.match(/(Level|LV)\s*(\d+)/i);
+        if (nextLevelMatch) {
+          const nextLevelNum = parseInt(nextLevelMatch[2]) + 1;
+          const nextLevelPattern = new RegExp(`(Level|LV)\\s*${nextLevelNum}`, 'i');
+          const nextLevelTests = allTests.filter(t => 
+            t.id !== testId && 
+            t.title?.match(nextLevelPattern) &&
+            !result.find(r => r.id === t.id)
+          );
+          result = [...result, ...nextLevelTests];
+        }
+      }
+    } else {
+      // Suggest lower numbers in same level
+      const lower = related
+        .filter(t => (t.seriesInfo.number || 0) < (currentSeries.number || 0))
+        .sort((a, b) => (b.seriesInfo.number || 0) - (a.seriesInfo.number || 0));
+      
+      result = lower;
+    }
+
+    return result.slice(0, 3);
+  }, [allTests, testMetadata, isPass, testId]);
 
   // High-Fidelity Celebration Protocol
   useEffect(() => {
@@ -130,7 +214,7 @@ export function QuizResults({
         platformName: String(settings.platform_name || "DNTRNG")
       });
     } catch (error) {
-      console.error("Certificate generation failed:", error);
+      // Error handled centrally
     } finally {
       setIsGenerating(false);
     }
@@ -143,6 +227,14 @@ export function QuizResults({
     const remainingSeconds = seconds % 60;
     if (minutes > 0) return `${minutes}m ${remainingSeconds}s`;
     return `${remainingSeconds}s`;
+  };
+
+  const getDifficultyColor = (diff: string) => {
+    const d = String(diff || "").toLowerCase();
+    if (d === 'beginner' || d === 'easy') return 'bg-emerald-500';
+    if (d === 'medium') return 'bg-amber-500';
+    if (d === 'hard') return 'bg-red-500';
+    return 'bg-slate-300';
   };
 
   const IconMap = {
@@ -251,6 +343,44 @@ export function QuizResults({
                   </Button>
                 </Link>
               </div>
+
+              {/* Suggested Tests Section */}
+              {suggestions.length > 0 && (
+                <div className="mt-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+                  <div className="flex items-center gap-2">
+                    <h3 className={cn(
+                      "text-sm font-black uppercase tracking-widest",
+                      isPass ? "text-emerald-600" : "text-slate-400"
+                    )}>
+                      {isPass ? "Ready for more? →" : "Keep practicing"}
+                    </h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {suggestions.map((s, idx) => (
+                      <Link key={s.id} href={`/quiz?id=${s.id}`}>
+                        <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:shadow-md transition-all group mb-2">
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className={cn("w-2 h-2 rounded-full shrink-0", getDifficultyColor(s.difficulty))} />
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2">
+                                {s.title}
+                              </p>
+                              <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                                <span className="flex items-center gap-1"><ListChecks className="w-3 h-3" /> {s.questions_count || 10} Items</span>
+                                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {s.duration || '15m'}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button variant="outline" className="h-8 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest border-slate-200 dark:border-slate-600 group-hover:border-primary group-hover:text-primary shrink-0">
+                            Start <ChevronRight className="w-3 h-3 ml-1" />
+                          </Button>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </Card>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5">

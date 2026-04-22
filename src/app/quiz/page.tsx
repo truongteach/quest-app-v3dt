@@ -34,6 +34,7 @@ function QuizContent() {
   const [guestAccessAllowed, setGuestAccessAllowed] = useState(true);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [testMetadata, setTestMetadata] = useState<any>(null);
+  const [allTests, setAllTests] = useState<any[]>([]);
   const [generatedCertificateId, setGeneratedCertificateId] = useState<string | null>(null);
   
   const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
@@ -123,6 +124,7 @@ function QuizContent() {
       let guestAllowed = true;
       let maintenance = false;
       let metadata = null;
+      let fetchedAllTests: any[] = [];
       let globalFallbackTime = "15";
       
       if (API_URL) {
@@ -144,10 +146,12 @@ function QuizContent() {
         globalFallbackTime = sData.global_timer_limit || "15";
 
         if (Array.isArray(tData)) {
+          fetchedAllTests = tData;
           metadata = tData.find(t => String(t.id) === String(testId));
         }
       } else {
         fetched = DEMO_QUESTIONS;
+        fetchedAllTests = AVAILABLE_TESTS;
         metadata = AVAILABLE_TESTS.find(t => t.id === testId);
       }
       
@@ -156,6 +160,7 @@ function QuizContent() {
       setGuestAccessAllowed(guestAllowed);
       setIsMaintenanceMode(maintenance);
       setTestMetadata(metadata);
+      setAllTests(fetchedAllTests);
       setOriginalQuestions(fetched);
       
       const seconds = parseDurationToSeconds(metadata?.duration, globalFallbackTime);
@@ -168,6 +173,7 @@ function QuizContent() {
       
     } catch (err) {
       setOriginalQuestions(DEMO_QUESTIONS);
+      setAllTests(AVAILABLE_TESTS);
       setQuiz(prev => ({ ...prev, questions: DEMO_QUESTIONS, startTime: Date.now() }));
     } finally {
       setLoading(false);
@@ -402,6 +408,7 @@ function QuizContent() {
         startTime={quiz.startTime}
         endTime={quiz.endTime}
         testMetadata={testMetadata}
+        allTests={allTests}
         certificateId={generatedCertificateId || undefined}
       />
     );
