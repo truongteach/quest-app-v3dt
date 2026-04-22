@@ -49,9 +49,6 @@ interface QuizResultsProps {
   certificateId?: string;
 }
 
-/**
- * Normalizes a string by removing accents and non-alphanumeric characters.
- */
 function normalizeString(str: string) {
   return str
     .toLowerCase()
@@ -63,12 +60,8 @@ function normalizeString(str: string) {
     .trim();
 }
 
-/**
- * Extracts the series prefix and trailing number from a test title.
- */
 function getSeriesInfo(title: string) {
   const normalized = normalizeString(title);
-  // Match prefix followed by optional number at the end
   const match = normalized.match(/^(.*?)\s*(\d*)$/);
   return {
     prefix: match ? match[1].trim() : normalized,
@@ -109,18 +102,14 @@ export function QuizResults({
   const isPass = percentage >= testThreshold;
   const verdict = getVerdictData(percentage);
 
-  // Suggested Tests Logic
   const suggestions = useMemo(() => {
     if (!allTests || allTests.length === 0 || !testMetadata) return [];
-
     const currentTitle = testMetadata.title || "";
     const currentSeries = getSeriesInfo(currentTitle);
     
-    // Find tests in same series
     const related = allTests.filter(t => {
       if (t.id === testId) return false;
       const tSeries = getSeriesInfo(t.title || "");
-      // Match if prefixes match
       return tSeries.prefix === currentSeries.prefix;
     }).map(t => ({
       ...t,
@@ -129,71 +118,41 @@ export function QuizResults({
 
     let result = [];
     if (isPass) {
-      // Suggest higher numbers in same series
       const higher = related
         .filter(t => (t.seriesInfo.number || 0) > (currentSeries.number || 0))
         .sort((a, b) => (a.seriesInfo.number || 0) - (b.seriesInfo.number || 0));
-      
       result = higher;
-
-      // If less than 3, look for next level (Level X -> Level X+1)
       if (result.length < 3) {
         const nextLevelMatch = currentTitle.match(/(Level|LV)\s*(\d+)/i);
         if (nextLevelMatch) {
           const nextLevelNum = parseInt(nextLevelMatch[2]) + 1;
           const nextLevelPattern = new RegExp(`(Level|LV)\\s*${nextLevelNum}`, 'i');
-          const nextLevelTests = allTests.filter(t => 
-            t.id !== testId && 
-            t.title?.match(nextLevelPattern) &&
-            !result.find(r => r.id === t.id)
-          );
+          const nextLevelTests = allTests.filter(t => t.id !== testId && t.title?.match(nextLevelPattern) && !result.find(r => r.id === t.id));
           result = [...result, ...nextLevelTests];
         }
       }
     } else {
-      // Suggest lower numbers in same level
       const lower = related
         .filter(t => (t.seriesInfo.number || 0) < (currentSeries.number || 0))
         .sort((a, b) => (b.seriesInfo.number || 0) - (a.seriesInfo.number || 0));
-      
       result = lower;
     }
-
     return result.slice(0, 3);
   }, [allTests, testMetadata, isPass, testId]);
 
-  // High-Fidelity Celebration Protocol
   useEffect(() => {
     if (isPass) {
       const attemptKey = `confetti_shown_${testId || 'unknown'}_${endTime || Date.now()}`;
       const shown = sessionStorage.getItem(attemptKey);
-      
       if (!shown) {
         const duration = 3 * 1000;
         const animationEnd = Date.now() + duration;
         const colors = ['#0F172A', '#3B5BDB', '#FFFFFF'];
-
         const frame = () => {
-          confetti({
-            particleCount: 2,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0, y: 0 },
-            colors: colors,
-          });
-          confetti({
-            particleCount: 2,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1, y: 0 },
-            colors: colors,
-          });
-
-          if (Date.now() < animationEnd) {
-            requestAnimationFrame(frame);
-          }
+          confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0, y: 0 }, colors: colors });
+          confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1, y: 0 }, colors: colors });
+          if (Date.now() < animationEnd) requestAnimationFrame(frame);
         };
-
         frame();
         sessionStorage.setItem(attemptKey, 'true');
       }
@@ -213,9 +172,7 @@ export function QuizResults({
         certificateId: certificateId,
         platformName: String(settings.platform_name || "DNTRNG")
       });
-    } catch (error) {
-      // Error handled centrally
-    } finally {
+    } catch (error) {} finally {
       setIsGenerating(false);
     }
   };
@@ -237,19 +194,13 @@ export function QuizResults({
     return 'bg-slate-300';
   };
 
-  const IconMap = {
-    Trophy,
-    CheckCircle2,
-    Target,
-    XCircle
-  };
+  const IconMap = { Trophy, CheckCircle2, Target, XCircle };
   const VerdictIcon = (IconMap as any)[verdict.iconName] || AlertCircle;
-
   const isBenchmarkingEnabled = String(settings.enable_benchmarking ?? 'true') !== 'false';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center py-12 px-4 md:px-8 selection:bg-primary selection:text-white pb-32 transition-colors duration-500">
-      <div className="w-full max-w-6xl space-y-12 animate-in fade-in duration-700">
+      <div className="w-full max-w-5xl space-y-8 animate-in fade-in duration-700">
         
         {/* Header: Identity Bar */}
         <div className="flex flex-col items-center text-center space-y-6">
@@ -262,137 +213,138 @@ export function QuizResults({
               <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">{userName}</h1>
             </div>
           </div>
-          
           <div className="space-y-2">
             <h2 className="text-xl font-black text-slate-400 uppercase tracking-[0.5em]">{title}</h2>
-            <div className="h-1 w-32 bg-primary/20 mx-auto rounded-full" />
           </div>
         </div>
 
-        {/* Main Performance Hub */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* 1. TOP ROW: Summary Diagnostic */}
+        <Card className="p-8 md:p-10 border-none shadow-2xl rounded-[3rem] bg-white dark:bg-slate-900 overflow-hidden flex flex-col md:flex-row items-center gap-10">
+          <div className="shrink-0">
+            <PerformanceGauge 
+              percentage={percentage} 
+              score={score} 
+              totalQuestions={totalQuestions} 
+              isPass={isPass}
+              compact={true}
+            />
+          </div>
           
-          {/* Performance Gauge Section */}
-          <PerformanceGauge 
-            percentage={percentage} 
-            score={score} 
-            totalQuestions={totalQuestions} 
-            isPass={isPass}
-          />
-
-          {/* Diagnostics & Metrics */}
-          <div className="lg:col-span-7 space-y-8 flex flex-col">
-            <Card className="flex-1 border-none shadow-2xl rounded-[3rem] bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 p-12 flex flex-col justify-center relative overflow-hidden transition-all duration-500">
-              {/* Verdict Module */}
-              <div className={cn(
-                "p-10 rounded-[2rem] border-l-[6px] mb-10 transition-all duration-500 shadow-sm",
-                verdict.border,
-                verdict.bg
-              )}>
-                <div className="flex items-center gap-3 mb-6">
-                  <VerdictIcon className={cn("w-5 h-5", verdict.color)} />
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Your Result</h4>
-                </div>
-                <div className="space-y-3">
-                  <h3 className={cn("text-3xl font-black uppercase tracking-tight", verdict.color)}>
-                    {verdict.title}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-300 font-medium text-lg leading-relaxed max-w-xl">
-                    {verdict.message}
-                  </p>
-                </div>
-              </div>
-
-              {/* Benchmarking Module */}
-              {isBenchmarkingEnabled && (
-                <BenchmarkingSection testId={testId} percentage={percentage} enabled={true} />
-              )}
-
-              {/* Certificate Download Panel */}
-              {certificateId && isPass && (
-                <div className="mb-10 p-8 rounded-[2rem] bg-slate-900 text-white relative overflow-hidden group shadow-2xl animate-in zoom-in-95 duration-500">
-                  <div className="absolute top-0 right-0 p-6 opacity-10 rotate-12 group-hover:rotate-45 transition-transform duration-700">
-                    <FileBadge className="w-32 h-32" />
-                  </div>
-                  <div className="relative z-10 space-y-6">
-                    <div>
-                      <h4 className="text-primary font-black uppercase text-[10px] tracking-[0.4em] mb-2">Registry Award</h4>
-                      <p className="text-xl font-bold leading-tight">Your certification is ready for high-fidelity extraction.</p>
-                    </div>
-                    <Button 
-                      onClick={handleDownloadCertificate}
-                      disabled={isGenerating}
-                      className="h-14 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase text-xs tracking-widest gap-3 shadow-xl transition-all hover:scale-[1.02]"
-                    >
-                      {isGenerating ? <Zap className="w-4 h-4 animate-pulse" /> : <Download className="w-4 h-4" />}
-                      {isGenerating ? 'Generating PDF...' : 'Download Certificate'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <Button onClick={onRestart} variant="outline" className="h-18 rounded-full font-black border-2 border-slate-200 dark:border-slate-700 bg-transparent text-slate-600 dark:text-slate-400 text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all py-8">
-                  <RotateCcw className="w-5 h-5 mr-3" />
-                  Try Again
-                </Button>
-                <Link href="/tests" className="w-full">
-                  <Button className="w-full h-18 rounded-full font-black shadow-2xl bg-primary hover:scale-[1.02] transition-all text-xs uppercase tracking-widest text-white border-none py-8">
-                    Back to Tests
-                    <ArrowRight className="w-5 h-5 ml-3" />
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Suggested Tests Section */}
-              {suggestions.length > 0 && (
-                <div className="mt-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
-                  <div className="flex items-center gap-2">
-                    <h3 className={cn(
-                      "text-sm font-black uppercase tracking-widest",
-                      isPass ? "text-emerald-600" : "text-slate-400"
-                    )}>
-                      {isPass ? "Ready for more? →" : "Keep practicing"}
-                    </h3>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {suggestions.map((s, idx) => (
-                      <Link key={s.id} href={`/quiz?id=${s.id}`}>
-                        <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:shadow-md transition-all group mb-2">
-                          <div className="flex items-center gap-4 min-w-0">
-                            <div className={cn("w-2 h-2 rounded-full shrink-0", getDifficultyColor(s.difficulty))} />
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2">
-                                {s.title}
-                              </p>
-                              <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                                <span className="flex items-center gap-1"><ListChecks className="w-3 h-3" /> {s.questions_count || 10} Items</span>
-                                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {s.duration || '15m'}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <Button variant="outline" className="h-8 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest border-slate-200 dark:border-slate-600 group-hover:border-primary group-hover:text-primary shrink-0">
-                            Start <ChevronRight className="w-3 h-3 ml-1" />
-                          </Button>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Card>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-              <StatMetric icon={History} label="Attempts" value="01" />
-              <StatMetric icon={Target} label="Accuracy" value={percentage >= 80 ? "High" : isPass ? "Med" : "Low"} />
-              <StatMetric icon={Clock} label="Time Taken" value={formatDuration(durationMs)} />
-              <StatMetric icon={Activity} label="Status" value="Live" />
+          <div className="flex flex-row md:flex-col lg:flex-row gap-8 items-center border-x md:border-x-0 lg:border-x border-slate-100 dark:border-slate-800 px-10">
+            <div className="text-center">
+              <p className="text-3xl font-black text-emerald-600">{score}</p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Correct</p>
+            </div>
+            <div className="h-10 w-px bg-slate-100 dark:bg-slate-800 hidden md:block lg:hidden" />
+            <div className="text-center">
+              <p className="text-3xl font-black text-rose-600">{totalQuestions - score}</p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Incorrect</p>
             </div>
           </div>
+
+          <div className={cn(
+            "flex-1 p-8 rounded-[2rem] border-l-[6px] transition-all duration-500",
+            verdict.border,
+            verdict.bg
+          )}>
+            <div className="flex items-center gap-3 mb-3">
+              <VerdictIcon className={cn("w-4 h-4", verdict.color)} />
+              <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Verdict</h4>
+            </div>
+            <h3 className={cn("text-2xl font-black uppercase tracking-tight mb-2", verdict.color)}>
+              {verdict.title}
+            </h3>
+            <p className="text-slate-600 dark:text-slate-300 font-medium text-sm leading-relaxed">
+              {verdict.message}
+            </p>
+          </div>
+        </Card>
+
+        {/* 2. MIDDLE ROW: Benchmarking */}
+        {isBenchmarkingEnabled && (
+          <div className="w-full">
+            <BenchmarkingSection testId={testId} percentage={percentage} enabled={true} />
+          </div>
+        )}
+
+        {/* 3. CERTIFICATE ROW */}
+        {certificateId && isPass && (
+          <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white relative overflow-hidden group shadow-2xl animate-in zoom-in-95 duration-500 w-full">
+            <div className="absolute top-0 right-0 p-6 opacity-10 rotate-12 group-hover:rotate-45 transition-transform duration-700">
+              <FileBadge className="w-32 h-32" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div>
+                <h4 className="text-primary font-black uppercase text-[10px] tracking-[0.4em] mb-2">Credential Issued</h4>
+                <p className="text-xl font-bold leading-tight">Your certification is ready for official download.</p>
+              </div>
+              <Button 
+                onClick={handleDownloadCertificate}
+                disabled={isGenerating}
+                className="h-14 rounded-full px-10 bg-primary hover:bg-primary/90 font-black uppercase text-xs tracking-widest gap-3 shadow-xl transition-all hover:scale-[1.02] border-none"
+              >
+                {isGenerating ? <Zap className="w-4 h-4 animate-pulse" /> : <Download className="w-4 h-4" />}
+                {isGenerating ? 'Generating...' : 'Download Certificate'}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* 4. BUTTONS ROW */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
+          <Button onClick={onRestart} variant="outline" className="h-16 rounded-full font-black border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+            <RotateCcw className="w-5 h-5 mr-3" />
+            Try Again
+          </Button>
+          <Link href="/tests" className="w-full">
+            <Button className="w-full h-16 rounded-full font-black shadow-2xl bg-primary hover:scale-[1.02] transition-all text-xs uppercase tracking-widest text-white border-none">
+              Back to Tests
+              <ArrowRight className="w-5 h-5 ml-3" />
+            </Button>
+          </Link>
         </div>
 
-        {/* Step Analytics Section */}
+        {/* 5. SUGGESTIONS ROW */}
+        {suggestions.length > 0 && (
+          <div className="w-full p-8 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+            <div className="flex items-center gap-3 mb-6">
+              <Zap className={cn("w-5 h-5", isPass ? "text-emerald-500" : "text-slate-400")} />
+              <h3 className={cn("text-sm font-black uppercase tracking-widest", isPass ? "text-emerald-600" : "text-slate-400")}>
+                {isPass ? "Recommended Path" : "Suggested Practice"}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {suggestions.map((s) => (
+                <Link key={s.id} href={`/quiz?id=${s.id}`} className="group">
+                  <div className="h-full p-5 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl hover:bg-white dark:hover:bg-slate-700 hover:shadow-xl transition-all duration-300">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={cn("w-2 h-2 rounded-full", getDifficultyColor(s.difficulty))} />
+                      <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tighter opacity-50 px-2 rounded-md">#{s.id}</Badge>
+                    </div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate mb-4 group-hover:text-primary transition-colors">{s.title}</p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span className="flex items-center gap-1"><ListChecks className="w-3 h-3" /> {s.questions_count || 10}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {s.duration || '15m'}</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 6. STATS ROW: 4 Columns */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+          <StatMetric icon={History} label="Attempts" value="01" />
+          <StatMetric icon={Target} label="Accuracy" value={percentage >= 80 ? "High" : isPass ? "Med" : "Low"} />
+          <StatMetric icon={Clock} label="Time Taken" value={formatDuration(durationMs)} />
+          <StatMetric icon={Activity} label="Status" value="Verified" />
+        </div>
+
+        {/* 7. QUESTION REVIEW */}
         <StepAnalytics 
           questions={questions} 
           responses={responses} 
@@ -415,10 +367,10 @@ export function QuizResults({
 
 function StatMetric({ icon: Icon, label, value }: { icon: any, label: string, value: string }) {
   return (
-    <div className="p-8 rounded-[2rem] border bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-3 group transition-all hover:shadow-md hover:-translate-y-1">
-      <Icon className="w-5 h-5 text-primary opacity-40 group-hover:opacity-100 transition-opacity" />
-      <div className="space-y-1">
-        <p className="text-xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{value}</p>
+    <div className="p-6 rounded-[2rem] border bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-2 group transition-all hover:shadow-md hover:-translate-y-1">
+      <Icon className="w-4 h-4 text-primary opacity-40 group-hover:opacity-100 transition-opacity" />
+      <div className="space-y-0.5">
+        <p className="text-lg font-black text-slate-900 dark:text-white leading-none tracking-tight">{value}</p>
         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">{label}</p>
       </div>
     </div>
