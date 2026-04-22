@@ -47,10 +47,12 @@ export function calculateResponseStats(responses: any[], tests: any[], threshold
     
     totalScorePct += pct;
     
+    // Pass rate logic uses the dynamic system threshold
     if (pct >= threshold) passes++;
     
+    // Grade distribution logic uses fixed professional tiers per Protocol v18.6
     if (pct >= 80) gradeCounts.Excellent++;
-    else if (pct >= threshold) gradeCounts.Pass++;
+    else if (pct >= 50) gradeCounts.Pass++;
     else gradeCounts.Fail++;
 
     const testId = String(r['Test ID'] || 'Unknown');
@@ -60,9 +62,9 @@ export function calculateResponseStats(responses: any[], tests: any[], threshold
   });
 
   const gradeData = [
-    { name: `Excellent (80%+)`, value: gradeCounts.Excellent, color: '#22c55e' },
-    { name: `Pass (${threshold}-${79}%)`, value: gradeCounts.Pass, color: '#f59e0b' },
-    { name: `Fail (<${threshold}%)`, value: gradeCounts.Fail, color: '#ef4444' }
+    { name: `Excellent (80%+)`, value: gradeCounts.Excellent, color: '#22C55E' },
+    { name: `Pass (50-79%)`, value: gradeCounts.Pass, color: '#F59E0B' },
+    { name: `Fail (<50%)`, value: gradeCounts.Fail, color: '#EF4444' }
   ];
 
   const testPerformanceData = Object.entries(testStats).map(([id, data]) => {
