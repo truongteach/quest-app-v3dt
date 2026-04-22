@@ -5,24 +5,27 @@ import { API_URL } from '@/lib/api-config';
 import { AVAILABLE_TESTS as DEMO_TESTS } from '@/app/lib/demo-data';
 import { LibraryHeader } from '@/components/library/LibraryHeader';
 import { EmptyState } from '@/components/library/EmptyState';
-import { CategorySection } from '@/components/library/CategorySection';
+import { CardView } from '@/components/library/CardView';
+import { ListView } from '@/components/library/ListView';
 import { AILoader } from '@/components/ui/ai-loader';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
+import { cn } from '@/lib/utils';
 
 /**
- * INTELLIGENCE LIBRARY PROTOCOL - CATEGORICAL REFACTOR
+ * INTELLIGENCE LIBRARY PROTOCOL - TABBED REFACTOR
  * 
- * This component manages the retrieval and grouped presentation of assessment modules.
+ * This component manages the retrieval and grouped presentation of assessment modules
+ * using a horizontal category selector.
  */
 export default function TestsLibrary() {
   const { t } = useLanguage();
   const { settings } = useSettings();
   const [search, setSearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [tests, setTests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,9 +33,13 @@ export default function TestsLibrary() {
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('dntrng_test_view') as 'card' | 'list';
-    if (saved && (saved === 'card' || saved === 'list')) {
-      setViewMode(saved);
+    const savedView = localStorage.getItem('dntrng_test_view') as 'card' | 'list';
+    if (savedView && (savedView === 'card' || savedView === 'list')) {
+      setViewMode(savedView);
+    }
+    const savedCat = localStorage.getItem('dntrng_selected_cat');
+    if (savedCat) {
+      setSelectedCategory(savedCat);
     }
     fetchTests();
   }, []);
@@ -40,6 +47,11 @@ export default function TestsLibrary() {
   const handleViewChange = (mode: 'card' | 'list') => {
     setViewMode(mode);
     localStorage.setItem('dntrng_test_view', mode);
+  };
+
+  const handleCategoryChange = (cat: string) => {
+    setSelectedCategory(cat);
+    localStorage.setItem('dntrng_selected_cat', cat);
   };
 
   const fetchTests = async () => {
@@ -70,44 +82,55 @@ export default function TestsLibrary() {
     }
   };
 
+  // Search Override Protocol: Switch to "All" when searching
+  useEffect(() => {
+    if (search && selectedCategory !== "All") {
+      setSelectedCategory("All");
+    }
+  }, [search]);
+
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    tests.forEach(t_item => {
+      const cat = (t_item.category || "General").trim();
+      cats.add(cat);
+    });
+    return ["All", ...Array.from(cats).sort()];
+  }, [tests]);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { "All": tests.length };
+    tests.forEach(t_item => {
+      const cat = (t_item.category || "General").trim();
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
+  }, [tests]);
+
   const filteredTests = useMemo(() => {
     return tests.filter(t_item => {
       const title = String(t_item.title || "");
       const matchesSearch = title.toLowerCase().includes(search.toLowerCase());
       const matchesDifficulty = difficultyFilter === "all" || String(t_item.difficulty).toLowerCase() === difficultyFilter.toLowerCase();
-      const matchesCategory = categoryFilter === "all" || String(t_item.category).toLowerCase() === categoryFilter.toLowerCase();
+      
+      // When searching, show matches from all categories
+      if (search) return matchesSearch && matchesDifficulty;
+
+      const cat = (t_item.category || "General").trim();
+      const matchesCategory = selectedCategory === "All" || cat === selectedCategory;
+      
       return matchesSearch && matchesDifficulty && matchesCategory;
     });
-  }, [tests, search, difficultyFilter, categoryFilter]);
+  }, [tests, search, difficultyFilter, selectedCategory]);
 
-  // CATEGORY GROUPING ENGINE
-  const groupedTests = useMemo(() => {
-    const groups: Record<string, any[]> = {};
-    
-    filteredTests.forEach(test => {
-      const cat = (test.category || "General").trim();
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(test);
-    });
-
-    const getLevelScore = (cat: string) => {
-      const match = cat.match(/(LV|Level)\s*(\d+)/i);
-      return match ? parseInt(match[2]) : 999;
-    };
-
-    // Sort categories: LV1 -> LV2 -> LV3 -> Alphabetical
-    return Object.keys(groups)
-      .sort((a, b) => {
-        const scoreA = getLevelScore(a);
-        const scoreB = getLevelScore(b);
-        if (scoreA !== scoreB) return scoreA - scoreB;
-        return a.localeCompare(b);
-      })
-      .map(name => ({
-        name,
-        tests: groups[name]
-      }));
-  }, [filteredTests]);
+  const getTabColor = (cat: string) => {
+    const n = cat.toUpperCase();
+    if (cat === "All") return "#1a2340";
+    if (n.includes("LV1")) return "#22C55E";
+    if (n.includes("LV2")) return "#3B5BDB";
+    if (n.includes("LV3")) return "#7C3AED";
+    return "#6B7280";
+  };
 
   return (
     <div className="min-h-screen bg-slate-50/30 dark:bg-slate-950 flex flex-col transition-colors duration-300">
@@ -132,28 +155,60 @@ export default function TestsLibrary() {
           </div>
         ) : (
           <div className="space-y-12">
-            {!search && (
-              <div className="px-4">
+            <div className="px-4 space-y-8">
+              <div>
                 <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase mb-4">{t('chooseTest')}</h1>
                 <p className="text-slate-500 dark:text-slate-400 font-medium text-lg max-w-2xl">{t('testSubtitle')}</p>
               </div>
-            )}
+
+              {/* Category Tab Selector */}
+              {!search && (
+                <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {categories.map((cat) => {
+                    const isActive = selectedCategory === cat;
+                    const color = getTabColor(cat);
+                    const count = categoryCounts[cat] || 0;
+                    
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => handleCategoryChange(cat)}
+                        className={cn(
+                          "whitespace-nowrap px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300 border flex items-center gap-3",
+                          isActive 
+                            ? "text-white shadow-lg scale-105" 
+                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300"
+                        )}
+                        style={isActive ? { backgroundColor: color, borderColor: color } : {}}
+                      >
+                        {cat}
+                        <span className={cn(
+                          "px-2 py-0.5 rounded-full text-[10px] font-bold",
+                          isActive ? "bg-white/20" : "bg-slate-100 dark:bg-slate-800"
+                        )}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             
-            {groupedTests.length > 0 ? (
-              <div className="space-y-2">
-                {groupedTests.map((group, idx) => (
-                  <CategorySection 
-                    key={group.name}
-                    name={group.name}
-                    tests={group.tests}
-                    viewMode={viewMode}
-                    isDefaultExpanded={idx === 0 || search.length > 0}
-                    isSearching={search.length > 0}
-                  />
-                ))}
+            {filteredTests.length > 0 ? (
+              <div className="animate-in fade-in duration-700 px-4">
+                {viewMode === 'card' ? (
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
+                    <CardView tests={filteredTests} />
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-[10px]">
+                    <ListView tests={filteredTests} />
+                  </div>
+                )}
               </div>
             ) : (
-              <EmptyState onClear={() => { setSearch(""); setDifficultyFilter("all"); setCategoryFilter("all"); }} />
+              <EmptyState onClear={() => { setSearch(""); setDifficultyFilter("all"); setSelectedCategory("All"); }} />
             )}
           </div>
         )}
