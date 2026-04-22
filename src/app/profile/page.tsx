@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -283,11 +282,6 @@ export default function ProfilePage() {
                       </div>
                       
                       <div className="flex items-center gap-1.5">
-                        <Link href={`/quiz?id=${r['Test ID']}&view_result=${new Date(r.Timestamp).getTime()}`}>
-                          <Button variant="outline" className="h-8 px-3 rounded-lg border-slate-200 text-[9px] font-black uppercase tracking-widest hover:bg-slate-50">
-                            Results
-                          </Button>
-                        </Link>
                         <Link href={`/quiz?id=${r['Test ID']}`}>
                           <Button variant="outline" className="h-8 px-3 rounded-lg border-slate-200 text-[9px] font-black uppercase tracking-widest hover:text-primary hover:border-primary/40 group-hover:bg-primary/5">
                             Retake <ChevronRight className="w-2.5 h-2.5 ml-1" />
