@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ListChecks } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CardView } from './CardView';
 import { ListView } from './ListView';
@@ -45,15 +45,16 @@ export function CategorySection({
     localStorage.setItem(storageKey, String(newState));
   };
 
-  const getTierStyles = (catName: string) => {
+  const getTierColor = (catName: string) => {
     const n = catName.toUpperCase();
-    if (n.includes("LV1")) return { border: "border-l-[#22C55E]", text: "text-[#22C55E]" };
-    if (n.includes("LV2")) return { border: "border-l-[#3B5BDB]", text: "text-[#3B5BDB]" };
-    if (n.includes("LV3")) return { border: "border-l-[#7C3AED]", text: "text-[#7C3AED]" };
-    return { border: "border-l-slate-300", text: "text-[#1a2340] dark:text-white" };
+    if (n.includes("LV1") || n.includes("1")) return "#22C55E";
+    if (n.includes("LV2") || n.includes("2")) return "#3B5BDB";
+    if (n.includes("LV3") || n.includes("3")) return "#7C3AED";
+    if (n.includes("LV4") || n.includes("4")) return "#F59E0B";
+    return "#6B7280";
   };
 
-  const styles = getTierStyles(name);
+  const color = getTierColor(name);
 
   const diffMix = useMemo(() => {
     const mix = { easy: false, medium: false, hard: false };
@@ -67,40 +68,47 @@ export function CategorySection({
   }, [tests]);
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500">
       <button 
         onClick={toggle}
         className={cn(
-          "w-full flex items-center justify-between p-4 pr-6 rounded-[12px] bg-white dark:bg-slate-900 border-[0.5px] border-slate-200 dark:border-slate-800 border-l-[4px] transition-all duration-150 group hover:bg-slate-50 dark:hover:bg-slate-800/50 shadow-sm cursor-pointer",
-          styles.border
+          "w-full flex items-center justify-between h-12 px-2 transition-all duration-150 group cursor-pointer border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:rounded-lg"
         )}
       >
-        <div className="flex items-center gap-4">
-          <div className="text-left">
-            <h3 className={cn("text-[16px] font-semibold uppercase tracking-tight leading-none mb-2", styles.text)}>
-              {name}
-            </h3>
-            <div className="flex items-center gap-3">
-              <div className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center gap-1.5">
-                <ListChecks className="w-3 h-3 text-slate-400" />
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 lowercase">
-                  {tests.length} {tests.length === 1 ? 'test' : 'tests'}
-                </span>
-              </div>
-              <div className="h-2 w-px bg-slate-100 dark:bg-slate-800" />
-              <div className="flex items-center gap-1.5">
-                {diffMix.easy && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.3)]" title="Easy modules present" />}
-                {diffMix.medium && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.3)]" title="Medium modules present" />}
-                {diffMix.hard && <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_5px_rgba(244,63,94,0.3)]" title="Hard modules present" />}
-              </div>
-            </div>
+        <div className="flex items-center gap-3">
+          {/* Colored Indicator */}
+          <div 
+            className="w-2.5 h-2.5 rounded-full shrink-0" 
+            style={{ backgroundColor: color }} 
+          />
+          
+          {/* Category Name */}
+          <h3 
+            className="text-[14px] font-semibold tracking-tight leading-none"
+            style={{ color: color }}
+          >
+            {name}
+          </h3>
+
+          {/* Test Count Pill */}
+          <div className="px-2 py-0.5 border border-slate-200 dark:border-slate-700 rounded-full">
+            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
+              {tests.length} {tests.length === 1 ? 'test' : 'tests'}
+            </span>
+          </div>
+
+          {/* Difficulty Dots */}
+          <div className="flex items-center gap-[3px] ml-1">
+            {diffMix.easy && <div className="w-[7px] h-[7px] rounded-full bg-emerald-500" title="Easy" />}
+            {diffMix.medium && <div className="w-[7px] h-[7px] rounded-full bg-amber-500" title="Medium" />}
+            {diffMix.hard && <div className="w-[7px] h-[7px] rounded-full bg-rose-500" title="Hard" />}
           </div>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center text-slate-400">
           <ChevronDown 
             className={cn(
-              "w-5 h-5 text-slate-400 transition-transform duration-200",
+              "w-5 h-5 transition-transform duration-200",
               isExpanded ? "rotate-0" : "-rotate-90"
             )} 
           />
@@ -109,7 +117,7 @@ export function CategorySection({
 
       <div className={cn(
         "transition-all duration-500 overflow-hidden",
-        isExpanded ? "max-h-[10000px] opacity-100 mt-6" : "max-h-0 opacity-0 pointer-events-none"
+        isExpanded ? "max-h-[10000px] opacity-100 mt-3 pb-8" : "max-h-0 opacity-0 pointer-events-none"
       )}>
         {viewMode === 'card' ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">

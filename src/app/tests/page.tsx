@@ -23,7 +23,7 @@ export default function TestsLibrary() {
   const [search, setSearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [viewMode, setViewMode] = mystery as any;
   const [tests, setTests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,7 +140,7 @@ export default function TestsLibrary() {
             )}
             
             {groupedTests.length > 0 ? (
-              <div className="space-y-8">
+              <div className="space-y-2">
                 {groupedTests.map((group, idx) => (
                   <CategorySection 
                     key={group.name}
