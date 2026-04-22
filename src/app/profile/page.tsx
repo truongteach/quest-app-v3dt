@@ -18,7 +18,10 @@ import {
   Star,
   Shield,
   Diamond,
-  Check
+  Check,
+  TrendingUp,
+  Target,
+  Database
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +30,17 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { AILoader } from '@/components/ui/ai-loader';
 import { useLanguage } from '@/context/language-context';
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Dot
+} from "recharts";
+import { PerformanceGauge } from '@/components/quiz/PerformanceGauge';
 
 type ProfileFilter = 'all' | 'pass' | 'fail' | 'perfect';
 
@@ -121,6 +135,17 @@ export default function ProfilePage() {
     };
   }, [responses]);
 
+  const chartData = useMemo(() => {
+    return [...responses]
+      .reverse() // Chronological
+      .slice(-10) // Last 10 attempts
+      .map((r, i) => ({
+        index: i + 1,
+        score: Math.round((Number(r.Score) / (Number(r.Total) || 1)) * 100),
+        test: testTitleMap[r['Test ID']] || r['Test ID']
+      }));
+  }, [responses, testTitleMap]);
+
   const filteredResponses = useMemo(() => {
     const filtered = responses.filter(r => {
       const pct = Math.round((Number(r.Score) / (Number(r.Total) || 1)) * 100);
@@ -142,6 +167,16 @@ export default function ProfilePage() {
   const handleFilterChange = (filter: ProfileFilter) => {
     setActiveFilter(filter);
     setCurrentPage(1);
+  };
+
+  const CustomChartDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (payload.score === 100) {
+      return (
+        <circle cx={cx} cy={cy} r={5} fill="#f59e0b" stroke="#fff" strokeWidth={2} />
+      );
+    }
+    return <circle cx={cx} cy={cy} r={3} fill="#1a2340" stroke="#fff" strokeWidth={1} />;
   };
 
   if (authLoading || !user) {
@@ -222,12 +257,89 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Stats Row: Fractional Registry */}
-          <div className="grid grid-cols-4 divide-x divide-slate-100 bg-slate-50/50">
-            <StatColumn label="Tests taken" value={stats.total} />
-            <StatColumn label="Avg score" value={`${stats.avg}%`} />
-            <StatColumn label="Best score" value={`${stats.highest}%`} />
-            <StatColumn label="Perfect 100%" value={stats.perfectCount} highlight />
+          {/* Visual Analytics Dashboard */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 border-b border-slate-100 bg-white">
+            {/* Performance Trend Chart */}
+            <div className="lg:col-span-8 p-8 border-r border-slate-100 bg-[#f9fafb]/30">
+              <div className="flex items-center justify-between mb-6">
+                <div className="space-y-1">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Performance Trend</h3>
+                  <p className="text-xs font-bold text-slate-500">Last 10 Mission Cycles</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">100% Record</span>
+                </div>
+              </div>
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1a2340" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#1a2340" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="index" 
+                      hide={true}
+                    />
+                    <YAxis 
+                      domain={[0, 100]} 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 700 }}
+                      ticks={[0, 25, 50, 75, 100]}
+                    />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                      labelClassName="hidden"
+                      formatter={(value: any, name: any, props: any) => [`${value}% Accuracy`, props.payload.test]}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="score" 
+                      stroke="#1a2340" 
+                      strokeWidth={3} 
+                      fillOpacity={1} 
+                      fill="url(#colorScore)" 
+                      dot={<CustomChartDot />}
+                      activeDot={{ r: 6, fill: '#3B5BDB', stroke: '#fff', strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            
+            {/* Mastery Gauge & Micro Stats */}
+            <div className="lg:col-span-4 p-8 flex flex-col justify-between bg-white">
+              <div className="flex flex-col items-center text-center">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6">Mastery Level</h3>
+                <PerformanceGauge 
+                  percentage={stats.avg} 
+                  score={stats.avg} 
+                  totalQuestions={100} 
+                  compact={true} 
+                />
+                <p className="text-[9px] font-black uppercase text-primary tracking-widest mt-4">Mean Registry Score</p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-slate-50">
+                <div className="text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Taken</p>
+                  <p className="text-sm font-black text-[#1a2340]">{stats.total}</p>
+                </div>
+                <div className="text-center border-x border-slate-50">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Peak</p>
+                  <p className="text-sm font-black text-[#1a2340]">{stats.highest}%</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Perfect</p>
+                  <p className="text-sm font-black text-[#f59e0b]">{stats.perfectCount}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* History Section: Registry Audit */}
@@ -354,22 +466,6 @@ export default function ProfilePage() {
           </Link>
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatColumn({ label, value, highlight }: { label: string, value: string | number, highlight?: boolean }) {
-  return (
-    <div className="p-6 text-center space-y-1">
-      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">
-        {label}
-      </p>
-      <p className={cn(
-        "text-xl font-black tracking-tight",
-        highlight ? "text-amber-500" : "text-[#1a2340]"
-      )}>
-        {value}
-      </p>
     </div>
   );
 }
