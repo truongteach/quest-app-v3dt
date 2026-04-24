@@ -26,7 +26,7 @@ export interface QuestionStat {
  * @param threshold - The percentage required to pass (default 70).
  */
 export function calculateResponseStats(responses: any[], tests: any[], threshold: number = 70): ResponseStats | null {
-  if (!responses || responses.length === 0) return null;
+  if (!responses || !Array.isArray(responses) || responses.length === 0) return null;
 
   const total = responses.length;
   let totalScorePct = 0;
@@ -68,7 +68,7 @@ export function calculateResponseStats(responses: any[], tests: any[], threshold
   ];
 
   const testPerformanceData = Object.entries(testStats).map(([id, data]) => {
-    const test = tests.find(t => t.id === id);
+    const test = (tests || []).find(t => t.id === id);
     return {
       name: test?.title || id,
       avg: Math.round(data.totalScore / data.count),
@@ -89,7 +89,8 @@ export function calculateResponseStats(responses: any[], tests: any[], threshold
  * Calculates per-question metrics for a specific test.
  */
 export function calculateQuestionStats(testId: string, questions: any[], allResponses: any[]): QuestionStat[] {
-  const testResponses = allResponses.filter(r => String(r['Test ID']) === String(testId));
+  if (!questions || !Array.isArray(questions)) return [];
+  const testResponses = (allResponses || []).filter(r => String(r['Test ID']) === String(testId));
   
   return questions.map(q => {
     let attempts = 0;
@@ -97,11 +98,12 @@ export function calculateQuestionStats(testId: string, questions: any[], allResp
 
     testResponses.forEach(r => {
       try {
-        const raw = typeof r['Raw Responses'] === 'string' 
-          ? JSON.parse(r['Raw Responses']) 
-          : (r['Raw Responses'] || []);
+        const rawData = r['Raw Responses'];
+        const raw = typeof rawData === 'string' 
+          ? JSON.parse(rawData || '[]') 
+          : (rawData || []);
         
-        const qResponse = raw.find((item: any) => String(item.questionId) === String(q.id));
+        const qResponse = Array.isArray(raw) ? raw.find((item: any) => String(item.questionId) === String(q.id)) : null;
         
         if (qResponse) {
           attempts++;

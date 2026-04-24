@@ -41,6 +41,8 @@ import { MatrixFields } from './question-forms/MatrixFields';
 import { MatchingFields } from './question-forms/MatchingFields';
 import { HotspotMapperDialog } from './HotspotMapperDialog';
 import { QuestionRenderer } from '@/components/quiz/QuestionRenderer';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SafeImage } from '@/components/SafeImage';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,7 +77,15 @@ const QUESTION_TYPES = [
   { value: 'rating', icon: Star, label: 'Rating' },
 ];
 
-export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId, onSave, loading }: QuestionDialogProps) {
+export function QuestionDialog(props: QuestionDialogProps) {
+  return (
+    <ErrorBoundary>
+      <QuestionDialogContent {...props} />
+    </ErrorBoundary>
+  );
+}
+
+function QuestionDialogContent({ open, onOpenChange, editingItem, selectedTestId, onSave, loading }: QuestionDialogProps) {
   const [selectedType, setSelectedType] = useState<QuestionType>('single_choice');
   const [questionText, setQuestionText] = useState('');
   const [isRequired, setIsRequired] = useState(false);
@@ -330,7 +340,7 @@ export function QuestionDialog({ open, onOpenChange, editingItem, selectedTestId
                           "overflow-hidden rounded-2xl border-2 shadow-sm transition-all duration-500 bg-white",
                           isValidImage === true ? "border-slate-200 opacity-100 scale-100" : "border-transparent opacity-0 h-0 scale-95"
                         )}>
-                          <img 
+                          <SafeImage 
                             src={debouncedUrl} 
                             onLoad={() => setIsValidImage(true)}
                             onError={() => setIsValidImage(false)}

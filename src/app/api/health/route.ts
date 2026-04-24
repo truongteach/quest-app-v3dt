@@ -10,6 +10,14 @@ import { API_URL } from '@/lib/api-config';
  * - Offline: No response or invalid configuration.
  */
 export async function GET() {
+  // CORS & Environment Integrity Protocol: Prevent requests to invalid or dev-only workstation URLs
+  if (!API_URL || API_URL.includes('localhost') || API_URL.includes('cloudworkstations.dev')) {
+     // If API_URL is pointing to a local or internal workstation, treat as offline for production nodes
+     if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ status: 'Offline', message: 'Environment misconfigured' });
+     }
+  }
+
   if (!API_URL) {
     return NextResponse.json({ status: 'Offline' });
   }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -17,21 +16,34 @@ import { Button } from "@/components/ui/button";
 import { History, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/context/language-context';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface DashboardChartsProps {
   responses: any[];
   onSeeAll: () => void;
 }
 
-export function DashboardCharts({ responses, onSeeAll }: DashboardChartsProps) {
+export function DashboardCharts(props: DashboardChartsProps) {
+  return (
+    <ErrorBoundary>
+      <DashboardChartsContent {...props} />
+    </ErrorBoundary>
+  );
+}
+
+function DashboardChartsContent({ responses, onSeeAll }: DashboardChartsProps) {
   const { t } = useLanguage();
 
   const chartData = useMemo(() => {
-    if (!responses.length) return [];
+    if (!responses || !responses.length) return [];
     const counts: Record<string, number> = {};
     responses.forEach(r => {
-      const date = new Date(r.Timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      counts[date] = (counts[date] || 0) + 1;
+      try {
+        const date = new Date(r.Timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        counts[date] = (counts[date] || 0) + 1;
+      } catch (e) {
+        // Skip invalid timestamps
+      }
     });
     return Object.entries(counts).map(([date, count]) => ({ date, count })).reverse().slice(-7);
   }, [responses]);
@@ -88,7 +100,7 @@ export function DashboardCharts({ responses, onSeeAll }: DashboardChartsProps) {
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-0 max-h-[350px]">
           <div className="divide-y">
-            {responses.slice(0, 6).map((resp, i) => (
+            {(responses || []).slice(0, 6).map((resp, i) => (
               <div key={i} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-[10px]", getScoreBadgeStyles(Number(resp.Score), Number(resp.Total)))}>
                   {resp.Score}/{resp.Total}

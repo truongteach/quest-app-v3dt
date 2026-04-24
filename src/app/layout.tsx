@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/auth-context';
 import { LanguageProvider } from '@/context/language-context';
 import { SettingsProvider } from '@/context/settings-context';
 import { ThemeColorManager } from '@/components/ThemeColorManager';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://quest-dntrng.vercel.app'),
@@ -64,15 +65,17 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/brand/app-icon.png" />
       </head>
       <body className="font-body antialiased min-h-screen bg-background text-foreground">
-        <SettingsProvider>
-          <ThemeColorManager />
-          <LanguageProvider>
-            <AuthProvider>
-              {children}
-              <Toaster />
-            </AuthProvider>
-          </LanguageProvider>
-        </SettingsProvider>
+        <ErrorBoundary>
+          <SettingsProvider>
+            <ThemeColorManager />
+            <LanguageProvider>
+              <AuthProvider>
+                {children}
+                <Toaster />
+              </AuthProvider>
+            </LanguageProvider>
+          </SettingsProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -24,6 +23,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HotspotZone } from '@/types/quiz';
+import { safeFixed } from '@/lib/utils/safe-number';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface HotspotMapperDialogProps {
   open: boolean;
@@ -33,7 +34,15 @@ interface HotspotMapperDialogProps {
   onSave: (data: string) => void;
 }
 
-export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData, onSave }: HotspotMapperDialogProps) {
+export function HotspotMapperDialog(props: HotspotMapperDialogProps) {
+  return (
+    <ErrorBoundary>
+      <HotspotMapperContent {...props} />
+    </ErrorBoundary>
+  );
+}
+
+function HotspotMapperContent({ open, onOpenChange, imageUrl, initialData, onSave }: HotspotMapperDialogProps) {
   const [zones, setZones] = useState<HotspotZone[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number, y: number } | null>(null);
@@ -268,10 +277,10 @@ export function HotspotMapperDialog({ open, onOpenChange, imageUrl, initialData,
                   </div>
 
                   <div className="flex justify-between text-[8px] font-mono text-slate-400 uppercase">
-                    <span>X: {z.x.toFixed(1)}%</span>
-                    <span>Y: {z.y.toFixed(1)}%</span>
-                    <span>W: {z.width.toFixed(1)}%</span>
-                    <span>H: {z.height.toFixed(1)}%</span>
+                    <span>X: {safeFixed(z.x, 1)}%</span>
+                    <span>Y: {safeFixed(z.y, 1)}%</span>
+                    <span>W: {safeFixed(z.width, 1)}%</span>
+                    <span>H: {safeFixed(z.height, 1)}%</span>
                   </div>
                 </div>
               ))}

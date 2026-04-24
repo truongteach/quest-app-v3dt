@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -59,6 +58,7 @@ import { Button } from "@/components/ui/button";
 import { Pagination } from './Pagination';
 import { useRegistryFilter } from '@/hooks/useRegistryFilter';
 import { calculateResponseStats } from '@/lib/analytics-utils';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface ResponsesTabProps {
   responses: any[];
@@ -68,13 +68,21 @@ interface ResponsesTabProps {
   onDelete: (timestamp: string, email: string) => void;
 }
 
-export function ResponsesTab({ responses, tests, loading, onRefresh, onDelete }: ResponsesTabProps) {
+export function ResponsesTab(props: ResponsesTabProps) {
+  return (
+    <ErrorBoundary>
+      <ResponsesTabContent {...props} />
+    </ErrorBoundary>
+  );
+}
+
+function ResponsesTabContent({ responses, tests, loading, onRefresh, onDelete }: ResponsesTabProps) {
   const { t } = useLanguage();
   const { settings } = useSettings();
   const [deleteConfirm, setDeleteConfirm] = React.useState<{ timestamp: string, email: string } | null>(null);
 
   const threshold = Number(settings.default_pass_threshold || '70');
-  const stats = useMemo(() => calculateResponseStats(responses, tests, threshold), [responses, tests, threshold]);
+  const stats = useMemo(() => calculateResponseStats(responses || [], tests || [], threshold), [responses, tests, threshold]);
 
   const {
     searchTerm,
@@ -85,7 +93,7 @@ export function ResponsesTab({ responses, tests, loading, onRefresh, onDelete }:
     totalItems,
     pageSize
   } = useRegistryFilter({
-    data: responses,
+    data: responses || [],
     searchFields: (r) => [String(r['User Name'] || ''), String(r['User Email'] || ''), String(r['Test ID'] || '')],
     initialSort: { key: 'Timestamp', direction: 'desc' }
   });
@@ -133,27 +141,29 @@ export function ResponsesTab({ responses, tests, loading, onRefresh, onDelete }:
             <CardDescription className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Frequency of results per tier</CardDescription>
           </CardHeader>
           <CardContent className="pt-10 h-[350px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.gradeData} layout="vertical" margin={{ left: 20, right: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
-                <XAxis type="number" hide />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  width={140} 
-                  tick={{ fontSize: 11, fontWeight: 800, fill: '#64748b' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip 
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                />
-                <Bar dataKey="value" radius={[0, 12, 12, 0]} barSize={40}>
-                  {stats.gradeData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <ErrorBoundary>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.gradeData} layout="vertical" margin={{ left: 20, right: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    width={140} 
+                    tick={{ fontSize: 11, fontWeight: 800, fill: '#64748b' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'transparent' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar dataKey="value" radius={[0, 12, 12, 0]} barSize={40}>
+                    {stats.gradeData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
           </CardContent>
         </Card>
 
@@ -166,36 +176,38 @@ export function ResponsesTab({ responses, tests, loading, onRefresh, onDelete }:
             <CardDescription className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Average score per assessment module</CardDescription>
           </CardHeader>
           <CardContent className="pt-10 h-[350px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.testPerformanceData} margin={{ bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="name" 
-                  tickFormatter={(val) => truncate(val, 12)}
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                  interval={0}
-                  angle={-45}
-                  textAnchor="end"
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis 
-                  domain={[0, 100]}
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip 
-                  formatter={(val) => [`${val}%`, 'Mean Score']}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                />
-                <Bar dataKey="avg" radius={[12, 12, 0, 0]} barSize={32}>
-                  {stats.testPerformanceData.map((entry, i) => (
-                    <Cell key={i} fill={getEfficiencyColor(entry.name)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <ErrorBoundary>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.testPerformanceData} margin={{ bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="name" 
+                    tickFormatter={(val) => truncate(val, 12)}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    domain={[0, 100]}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip 
+                    formatter={(val) => [`${val}%`, 'Mean Score']}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar dataKey="avg" radius={[12, 12, 0, 0]} barSize={32}>
+                    {stats.testPerformanceData.map((entry, i) => (
+                      <Cell key={i} fill={getEfficiencyColor(entry.name)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
           </CardContent>
         </Card>
       </div>

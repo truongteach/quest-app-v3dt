@@ -4,6 +4,7 @@ import { Question, HotspotZone } from '@/types/quiz';
  * Fisher-Yates shuffle algorithm for stable randomization.
  */
 export const shuffleArray = <T,>(array: T[]): T[] => {
+  if (!array || !Array.isArray(array)) return [];
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -58,6 +59,7 @@ export const getRegistryValue = (obj: any, keys: string[]): any => {
  * Calculates whether a user's response is correct for a given question.
  */
 export const calculateScoreForQuestion = (q: Question, response: any): boolean => {
+  if (!q) return false;
   if (q.correct_answer === undefined && q.question_type !== 'hotspot') return false;
   if (response === undefined || response === null) return false;
   
@@ -106,7 +108,7 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
   } 
   
   if (questionType === 'matching') {
-    const userPairs = Object.entries(response as Record<string, string>)
+    const userPairs = Object.entries((response || {}) as Record<string, string>)
       .map(([k, v]) => `${k.trim()}|${v.trim()}`)
       .sort();
     
@@ -118,7 +120,7 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
 
   if (questionType === 'multiple_true_false') {
     const statements = parseRegistryArray(q.order_group);
-    const userResp = response as Record<string, string>;
+    const userResp = (response || {}) as Record<string, string>;
     
     return statements.every((s, i) => {
       const userVal = (userResp[s] || "").toLowerCase();
@@ -129,7 +131,7 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
 
   if (questionType === 'matrix_choice') {
     const rows = parseRegistryArray(q.order_group);
-    const userResp = response as Record<string, string>;
+    const userResp = (response || {}) as Record<string, string>;
 
     return rows.every((row, i) => {
       const userVal = (userResp[row] || "").toLowerCase();
@@ -145,6 +147,7 @@ export const calculateScoreForQuestion = (q: Question, response: any): boolean =
  * Calculates the total score for a set of responses.
  */
 export const calculateTotalScore = (questions: Question[], responses: { questionId: string; answer: any }[]): number => {
+  if (!questions || !responses) return 0;
   let score = 0;
   questions.forEach(q => {
     const response = responses.find(r => r.questionId === q.id)?.answer;
