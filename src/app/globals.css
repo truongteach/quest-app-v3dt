@@ -56,6 +56,11 @@
   body {
     @apply bg-background text-foreground font-sans antialiased transition-colors duration-300;
   }
+  
+  /* Focus States Protocol */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
 }
 
 .hotspot-container {

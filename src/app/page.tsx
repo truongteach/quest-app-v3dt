@@ -58,10 +58,10 @@ export default function LandingPage() {
       
       {settings.announcement_banner && (
         <div className="bg-[#2563EB] text-white py-3 px-6 text-center relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" aria-hidden="true" />
           <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
             <div className="flex items-center gap-2 px-2 py-0.5 bg-white/20 rounded-full text-[9px] font-black uppercase tracking-widest">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" aria-hidden="true" />
               {t('registryBroadcast')}
             </div>
             <p className="text-xs md:text-sm font-bold tracking-tight">
@@ -73,12 +73,12 @@ export default function LandingPage() {
 
       <header className="py-4 px-6 md:px-12 border-b border-slate-200 bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center" aria-label={brandName}>
             <div className="hidden sm:block">
-              <Image src="/brand/logo-horizontal.png" alt="DNTRNG" width={160} height={40} priority />
+              <Image src="/brand/logo-horizontal.png" alt={brandName} width={160} height={40} priority />
             </div>
             <div className="sm:hidden">
-              <Image src="/brand/logo-symbol.png" alt="DNTRNG" width={40} height={40} priority />
+              <Image src="/brand/logo-symbol.png" alt={brandName} width={40} height={40} priority />
             </div>
           </Link>
           
@@ -88,12 +88,13 @@ export default function LandingPage() {
           </nav>
           
           <div className="flex items-center gap-4">
-            <div className="flex bg-slate-100 p-1 rounded-full border border-slate-200 shadow-inner">
+            <div className="flex bg-slate-100 p-1 rounded-full border border-slate-200 shadow-inner" role="group" aria-label="Language Selector">
               {['en', 'vi', 'es'].map((l) => (
                 <button 
                   key={l}
                   onClick={() => setLanguage(l as any)} 
-                  className={cn("px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest transition-all", language === l ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
+                  aria-label={`Switch to ${l.toUpperCase()}`}
+                  className={cn("px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest transition-all focus-visible:ring-2", language === l ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700")}
                 >
                   {l.toUpperCase()}
                 </button>
@@ -111,9 +112,9 @@ export default function LandingPage() {
 
       <main className="flex-1">
         <section className="relative pt-20 pb-24 md:pt-32 md:pb-40 px-6 overflow-hidden">
-          {/* Background Pattern Layer */}
           <div 
             className="absolute inset-0 z-[-1]"
+            aria-hidden="true"
             style={{
               backgroundImage: "url('/brand/pattern.png')",
               backgroundRepeat: "repeat",
@@ -125,7 +126,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 text-center md:text-left space-y-8">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-[10px] font-black uppercase tracking-widest">
-                <Zap className="w-3 h-3 fill-current" />
+                <Zap className="w-3 h-3 fill-current" aria-hidden="true" />
                 {t('heroBadge')}
               </div>
               
@@ -154,11 +155,11 @@ export default function LandingPage() {
             <div className="flex-1 hidden md:block animate-in fade-in slide-in-from-right-8 duration-1000">
               <Image 
                 src="/brand/hero-visual.png" 
-                alt="" 
-                aria-hidden="true" 
+                alt="DNTRNG Interface Simulation" 
                 width={600} 
                 height={400} 
                 className="object-contain"
+                priority
               />
             </div>
           </div>
@@ -178,13 +179,13 @@ export default function LandingPage() {
                 { title: t('feature3Title'), desc: t('feature3Desc'), icon: ListOrdered, color: "bg-orange-500" },
                 { title: t('feature4Title'), desc: t('feature4Desc'), icon: BarChart3, color: "bg-purple-500" }
               ].map((feature, i) => (
-                <div key={i} className="group p-8 rounded-[2.5rem] bg-[#F4F5F7] hover:bg-white border-2 border-transparent hover:border-slate-100 transition-all duration-500 hover:shadow-2xl">
+                <article key={i} className="group p-8 rounded-[2.5rem] bg-[#F4F5F7] hover:bg-white border-2 border-transparent hover:border-slate-100 transition-all duration-500 hover:shadow-2xl">
                   <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-8 shadow-lg transition-transform group-hover:scale-110", feature.color)}>
-                    <feature.icon className="w-6 h-6 text-white" />
+                    <feature.icon className="w-6 h-6 text-white" aria-hidden="true" />
                   </div>
                   <h3 className="text-xl font-black text-slate-900 mb-4 tracking-tight">{feature.title}</h3>
                   <p className="text-slate-500 font-medium leading-relaxed text-sm">{feature.desc}</p>
-                </div>
+                </article>
               ))}
             </div>
           </div>
@@ -196,15 +197,15 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-start gap-12 md:gap-32 mb-16">
             <div className="space-y-6 max-w-sm">
               <Link href="/" className="flex items-center">
-                <Image src="/brand/logo-horizontal.png" alt="DNTRNG" width={140} height={35} />
+                <Image src="/brand/logo-horizontal.png" alt={brandName} width={140} height={35} />
               </Link>
-              <p className="text-slate-400 font-medium text-sm leading-relaxed">{t('footerDesc')}</p>
+              <p className="text-slate-500 font-medium text-sm leading-relaxed">{t('footerDesc')}</p>
             </div>
             
             <div className="flex flex-1 gap-12 md:gap-24">
               <div className="space-y-6">
                 <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">{t('platform')}</h4>
-                <nav className="flex flex-col gap-4 text-xs font-bold text-slate-400">
+                <nav className="flex flex-col gap-4 text-xs font-bold text-slate-500">
                   <Link href="/tests" className="hover:text-[#2563EB] transition-colors">{t('library')}</Link>
                   <Link href="/admin" className="hover:text-[#2563EB] transition-colors">{t('adminConsole')}</Link>
                 </nav>
@@ -213,12 +214,12 @@ export default function LandingPage() {
           </div>
           
           <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 gap-8">
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">
+            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">
               {settings.custom_footer_text || `© ${new Date().getFullYear()} DNTRNG • PRECISION ASSESSMENT`}
             </p>
             <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-100">
-              <div className={cn("w-2 h-2 rounded-full animate-pulse", systemStatus === 'Optimal' ? "bg-emerald-500" : systemStatus === 'Degraded' ? "bg-amber-500" : "bg-red-500")} />
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+              <div className={cn("w-2 h-2 rounded-full animate-pulse", systemStatus === 'Optimal' ? "bg-emerald-500" : systemStatus === 'Degraded' ? "bg-amber-500" : "bg-red-500")} aria-hidden="true" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
                 {t('systemStatus')}: {t(systemStatus.toLowerCase())}
               </span>
             </div>
