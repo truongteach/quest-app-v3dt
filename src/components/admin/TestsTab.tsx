@@ -99,11 +99,12 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative w-full md:w-64 flex items-center gap-2">
+          <div className="relative w-full md:w-64 flex items-center gap-2" role="search">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
               <Input 
                 placeholder={t('searchTests')} 
+                aria-label="Search tests"
                 className="pl-10 rounded-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 h-11" 
                 value={searchTerm} 
                 disabled={loading}
@@ -115,6 +116,7 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
               size="icon" 
               onClick={onRefresh} 
               disabled={loading}
+              aria-label="Refresh tests"
               className="rounded-full h-11 w-11 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <RefreshCcw className={cn("w-4 h-4 text-slate-400", loading && "animate-spin text-primary")} />
@@ -127,6 +129,7 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
               size="icon" 
               onClick={() => setViewMode('list')}
               disabled={loading}
+              aria-label="Switch to list view"
               className={cn("rounded-full h-9 w-9", viewMode === 'list' && "bg-white dark:bg-slate-700 shadow-sm")}
             >
               <List className="w-4 h-4" />
@@ -136,6 +139,7 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
               size="icon" 
               onClick={() => setViewMode('card')}
               disabled={loading}
+              aria-label="Switch to card view"
               className={cn("rounded-full h-9 w-9", viewMode === 'card' && "bg-white dark:bg-slate-700 shadow-sm")}
             >
               <LayoutGrid className="w-4 h-4" />
@@ -152,15 +156,15 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
         <div className="space-y-4">
           <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden rounded-[2rem] border dark:border-slate-800">
             <CardContent className="p-0">
-              <Table>
+              <Table aria-label="Test library">
                 <TableHeader>
                   <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-none">
-                    <TableHead className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">{t('id')}</TableHead>
-                    <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-slate-400">{t('title')}</TableHead>
-                    <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-center text-slate-400">Items</TableHead>
-                    <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-slate-400">{t('category')}</TableHead>
-                    <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-center text-slate-400">Status</TableHead>
-                    <TableHead className="font-black uppercase text-[10px] tracking-widest px-8 text-right text-slate-400 min-w-[320px]">{t('actions')}</TableHead>
+                    <TableHead scope="col" className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">{t('id')}</TableHead>
+                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-slate-400">{t('title')}</TableHead>
+                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-center text-slate-400">Items</TableHead>
+                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-slate-400">{t('category')}</TableHead>
+                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-center text-slate-400">Status</TableHead>
+                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-right text-slate-400 min-w-[320px]">{t('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -193,27 +197,55 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
                         {t_item.questions_count ?? "---"}
                       </TableCell>
                       <TableCell className="px-8">
-                        <Badge variant="secondary" className="font-black text-[10px] uppercase tracking-wider px-3 rounded-full bg-primary/5 text-primary border-none">
+                        <Badge variant="secondary" aria-label={`Category: ${t_item.category || 'General'}`} className="font-black text-[10px] uppercase tracking-wider px-3 rounded-full bg-primary/5 text-primary border-none">
                           {t_item.category || 'General'}
                         </Badge>
                       </TableCell>
                       <TableCell className="px-8 text-center">
-                        <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-none text-[9px] font-black uppercase px-3 py-1 rounded-full">
+                        <Badge aria-label="Status: Published" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-none text-[9px] font-black uppercase px-3 py-1 rounded-full">
                           Published
                         </Badge>
                       </TableCell>
                       <TableCell className="px-8 text-right">
-                        <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap">
-                          <Button variant="ghost" size="sm" disabled={loading} onClick={() => onViewAnalytics(t_item)} className="rounded-full text-primary font-black text-xs hover:bg-primary/5">
+                        <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap transition-all opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto duration-150">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            disabled={loading} 
+                            onClick={() => onViewAnalytics(t_item)} 
+                            aria-label={`View analytics for ${t_item.title}`}
+                            className="rounded-full text-primary font-black text-xs hover:bg-primary/5"
+                          >
                             <BarChart3 className="w-4 h-4 mr-1.5" /> Analytics
                           </Button>
-                          <Button variant="ghost" size="sm" disabled={loading} onClick={() => onManageQuestions(t_item.id)} className="rounded-full text-slate-600 dark:text-slate-400 font-black text-xs hover:bg-slate-100 dark:hover:bg-slate-800">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            disabled={loading} 
+                            onClick={() => onManageQuestions(t_item.id)} 
+                            aria-label={`Questions for ${t_item.title}`}
+                            className="rounded-full text-slate-600 dark:text-slate-400 font-black text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
+                          >
                             <FileEdit className="w-4 h-4 mr-1.5" /> {t('questions')}
                           </Button>
-                          <Button variant="ghost" size="icon" disabled={loading} onClick={() => onEdit(t_item)} className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            disabled={loading} 
+                            onClick={() => onEdit(t_item)} 
+                            aria-label={`Edit ${t_item.title}`}
+                            className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" disabled={loading} onClick={() => setDeleteConfirmId(t_item.id)} className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/5">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            disabled={loading} 
+                            onClick={() => setDeleteConfirmId(t_item.id)} 
+                            aria-label={`Delete ${t_item.title}`}
+                            className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/5"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -275,7 +307,7 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
                   <div className="absolute top-4 right-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild disabled={loading}>
-                        <Button size="icon" variant="secondary" className="rounded-full h-10 w-10 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md">
+                        <Button size="icon" variant="secondary" aria-label="Module options" className="rounded-full h-10 w-10 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
