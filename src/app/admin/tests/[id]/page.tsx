@@ -33,10 +33,24 @@ export default function AdminTestDetailPage() {
       ]);
       const qData = await qRes.json();
       const tData = await tRes.json();
+
+      // Module Existence Protocol: Validate test exists in library
+      const testExists = Array.isArray(tData) && tData.some(t => String(t.id) === String(testId));
+      if (!testExists && !loading) {
+        toast({
+          variant: "destructive",
+          title: "Test Not Found",
+          description: "The requested module does not exist in the registry.",
+        });
+        router.replace('/admin/tests');
+        return;
+      }
+
       setQuestions(Array.isArray(qData) ? qData : []);
       setTests(Array.isArray(tData) ? tData : []);
     } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to load data." });
+      toast({ variant: "destructive", title: "Error", description: "Failed to load module data." });
+      router.replace('/admin/tests');
     } finally {
       setLoading(false);
     }

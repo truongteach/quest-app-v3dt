@@ -6,13 +6,13 @@ import { QuizStart } from '@/components/quiz/QuizStart';
 import { QuizResults } from '@/components/quiz/QuizResults';
 import { QuizActive } from '@/components/quiz/QuizActive';
 import { useToast } from '@/hooks/use-toast';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { DEMO_QUESTIONS, AVAILABLE_TESTS } from '@/app/lib/demo-data';
 import { API_URL } from '@/lib/api-config';
 import { useAuth } from '@/context/auth-context';
 import { calculateTotalScore, calculateScoreForQuestion } from '@/lib/quiz-utils';
 import { AILoader } from '@/components/ui/ai-loader';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSettings } from '@/context/settings-context';
 import Link from 'next/link';
@@ -20,6 +20,7 @@ import Link from 'next/link';
 function QuizContent() {
   const searchParams = useSearchParams();
   const testId = searchParams.get('id');
+  const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
   const { settings } = useSettings();
@@ -35,6 +36,7 @@ function QuizContent() {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [testMetadata, setTestMetadata] = useState<any>(null);
   const [allTests, setAllTests] = useState<any[]>([]);
+  const [notFound, setNotFound] = useState(false);
   const [generatedCertificateId, setGeneratedCertificateId] = useState<string | null>(null);
   
   const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
@@ -53,7 +55,6 @@ function QuizContent() {
 
   const quizTitle = testMetadata?.title || 'Assessment';
 
-  // State Persistence Protocol: Load saved responses on initialization
   const loadPersistedState = useCallback((tid: string) => {
     const saved = sessionStorage.getItem(`quiz_session_${tid}`);
     if (saved) {
@@ -74,7 +75,6 @@ function QuizContent() {
     }
   }, []);
 
-  // Persistence Protocol: Commit state to storage on every mutation
   useEffect(() => {
     if (isStarted && !quiz.isSubmitted && testId) {
       const stateToSave = {
@@ -89,7 +89,12 @@ function QuizContent() {
   }, [quiz.responses, quiz.currentQuestionIndex, quiz.highestStepReached, isStarted, quiz.isSubmitted, testId, quiz.startTime, quiz.mode]);
 
   useEffect(() => {
-    fetchQuestions();
+    if (testId) {
+      fetchQuestions();
+    } else {
+      setNotFound(true);
+      setLoading(false);
+    }
   }, [testId]);
 
   useEffect(() => {
@@ -117,6 +122,7 @@ function QuizContent() {
 
   const fetchQuestions = async () => {
     setLoading(true);
+    setNotFound(false);
     try {
       let fetched: Question[] = [];
       let salt = "";
@@ -138,7 +144,7 @@ function QuizContent() {
         const sData = await sRes.json();
         const tData = await tRes.json();
         
-        fetched = (qData && Array.isArray(qData) && qData.length > 0) ? qData : DEMO_QUESTIONS;
+        fetched = (qData && Array.isArray(qData)) ? qData : [];
         salt = sData.daily_key_salt || "";
         protection = String(sData.access_key_protection_enabled ?? "true") !== "false";
         guestAllowed = String(sData.guest_access_allowed ?? "true") !== "false";
@@ -149,10 +155,22 @@ function QuizContent() {
           fetchedAllTests = tData;
           metadata = tData.find(t => String(t.id) === String(testId));
         }
+
+        // Module Presence Protocol: Verify ID exists in the registry
+        if (!metadata) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
       } else {
         fetched = DEMO_QUESTIONS;
         fetchedAllTests = AVAILABLE_TESTS;
         metadata = AVAILABLE_TESTS.find(t => t.id === testId);
+        if (!metadata) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
       }
       
       setProtocolSalt(salt);
@@ -168,13 +186,10 @@ function QuizContent() {
 
       setQuiz(prev => ({ ...prev, questions: fetched, startTime: Date.now() }));
       
-      // Post-Fetch Persistence Sync
       if (testId) loadPersistedState(testId);
       
     } catch (err) {
-      setOriginalQuestions(DEMO_QUESTIONS);
-      setAllTests(AVAILABLE_TESTS);
-      setQuiz(prev => ({ ...prev, questions: DEMO_QUESTIONS, startTime: Date.now() }));
+      setNotFound(true);
     } finally {
       setLoading(false);
     }
@@ -277,7 +292,6 @@ function QuizContent() {
       setGeneratedCertificateId(certId);
     }
     
-    // Clear persistence upon submission
     if (testId) sessionStorage.removeItem(`quiz_session_${testId}`);
     setQuiz({ ...quiz, isSubmitted: true, score: finalScore, endTime: timestamp });
 
@@ -299,9 +313,7 @@ function QuizContent() {
             certificateId: certId
           })
         });
-      } catch (e) {
-        // Submission logged but network trace hidden per Protocol v18.5
-      }
+      } catch (e) {}
     }
   };
 
@@ -356,6 +368,39 @@ function QuizContent() {
       <AILoader />
     </div>
   );
+
+  // Module Presence Exception: Show friendly error for invalid IDs
+  if (notFound) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-12 border border-slate-100 animate-in zoom-in-95 duration-500">
+          <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-rose-500/10">
+            <AlertCircle className="w-10 h-10 text-rose-500" />
+          </div>
+          
+          <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-4">Module Not Found</h2>
+          <p className="text-slate-500 font-medium leading-relaxed mb-10">
+            This assessment module doesn't exist in the registry or has been decommissioned.
+          </p>
+
+          <div className="grid grid-cols-1 gap-4">
+            <Link href="/tests">
+              <Button className="w-full h-14 rounded-full bg-slate-900 font-black uppercase text-xs tracking-widest gap-2 shadow-xl border-none transition-all hover:scale-[1.02]">
+                <Search className="w-4 h-4" /> Browse Library
+              </Button>
+            </Link>
+            <Button 
+              variant="ghost"
+              onClick={() => router.back()} 
+              className="h-14 rounded-full font-black uppercase text-xs tracking-widest text-slate-400 hover:text-slate-900"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" /> Return to Previous
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isMaintenanceMode && user?.role !== 'admin') {
     return (

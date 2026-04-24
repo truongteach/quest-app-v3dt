@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/lib/api-config';
 import { OverviewTab } from '@/components/admin/OverviewTab';
 import { AdminDialogs } from '@/components/admin/AdminDialogs';
 import { ChangelogPanel } from '@/components/admin/ChangelogPanel';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DEMO_QUESTIONS, AVAILABLE_TESTS } from '@/app/lib/demo-data';
 import { useSettings } from '@/context/settings-context';
 import { logActivity } from '@/lib/activity-log';
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const [loading, setLoading] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [data, setData] = useState<{ tests: any[], users: any[], responses: any[] }>({
@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   });
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { settings, refreshSettings } = useSettings();
 
   const [dialogs, setDialogs] = useState({
@@ -29,6 +30,20 @@ export default function AdminDashboard() {
     question: false,
     bulk: false
   });
+
+  // Navigation Protocol: Handle redirected errors from catch-all routes
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error === 'route-not-found') {
+      toast({
+        variant: "destructive",
+        title: "Navigation Error",
+        description: "The requested administrative route was not found. Redirected to Dashboard.",
+      });
+      // Clear the URL param
+      router.replace('/admin');
+    }
+  }, [searchParams, router, toast]);
 
   const fetchData = async () => {
     if (!API_URL) return;
@@ -147,7 +162,6 @@ export default function AdminDashboard() {
         questions={[]}
         onSaveTest={async (testData) => {
           const payload = { ...testData };
-          // Persistence Protocol: Only generate ID for new tests. Existing IDs are immutable.
           if (!payload.id) {
             const slug = (payload.title as string || 'test').toLowerCase().replace(/[^a-z0-9]/g, '-');
             payload.id = `${slug}-${Date.now().toString().slice(-4)}`;
@@ -172,5 +186,13 @@ export default function AdminDashboard() {
         loading={loading}
       />
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={null}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }
