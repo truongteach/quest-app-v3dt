@@ -21,7 +21,12 @@ import {
   Check,
   TrendingUp,
   Target,
-  Database
+  Database,
+  ArrowRight,
+  BookOpen,
+  LayoutGrid,
+  Clock,
+  ListChecks
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +43,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Dot
 } from "recharts";
 import { PerformanceGauge } from '@/components/quiz/PerformanceGauge';
 
@@ -101,7 +105,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Registry Lookup Map for Titles
   const testTitleMap = useMemo(() => {
     const map: Record<string, string> = {};
     tests.forEach(t => { map[t.id] = t.title; });
@@ -146,6 +149,38 @@ export default function ProfilePage() {
       }));
   }, [responses, testTitleMap]);
 
+  const suggestions = useMemo(() => {
+    if (loadingStats) return [];
+    
+    if (stats.total === 0) {
+      // Beginner tests for new users
+      return tests
+        .filter(t => 
+          String(t.difficulty || "").toLowerCase() === 'beginner' || 
+          String(t.difficulty || "").toLowerCase() === 'easy' ||
+          String(t.category || "").toLowerCase().includes('lv1')
+        )
+        .slice(0, 3);
+    } else {
+      // Continue learning: not taken or previously failed
+      const takenIds = new Set(responses.map(r => String(r['Test ID'])));
+      
+      const notTaken = tests.filter(t => !takenIds.has(String(t.id)));
+      
+      const failedIds = new Set(responses.filter(r => {
+        const pct = (Number(r.Score) / (Number(r.Total) || 1)) * 100;
+        return pct < threshold;
+      }).map(r => String(r['Test ID'])));
+      
+      const toRetry = tests.filter(t => failedIds.has(String(t.id)));
+      
+      const combined = [...toRetry, ...notTaken];
+      const unique = Array.from(new Map(combined.map(t => [t.id, t])).values());
+      
+      return unique.slice(0, 3);
+    }
+  }, [tests, responses, stats.total, threshold, loadingStats]);
+
   const filteredResponses = useMemo(() => {
     const filtered = responses.filter(r => {
       const pct = Math.round((Number(r.Score) / (Number(r.Total) || 1)) * 100);
@@ -186,6 +221,8 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const hasNoData = stats.total === 0;
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-6 md:px-12 selection:bg-primary selection:text-white">
@@ -263,52 +300,61 @@ export default function ProfilePage() {
             <div className="lg:col-span-8 p-8 border-r border-slate-100 bg-[#f9fafb]/30">
               <div className="flex items-center justify-between mb-6">
                 <div className="space-y-1">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Performance Trend</h3>
-                  <p className="text-xs font-bold text-slate-500">Last 10 Mission Cycles</p>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Score History</h3>
+                  <p className="text-xs font-bold text-slate-500">Last 10 Tests</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#f59e0b]" />
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">100% Record</span>
-                </div>
+                {!hasNoData && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">100% Record</span>
+                  </div>
+                )}
               </div>
               <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#1a2340" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#1a2340" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis 
-                      dataKey="index" 
-                      hide={true}
-                    />
-                    <YAxis 
-                      domain={[0, 100]} 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 700 }}
-                      ticks={[0, 25, 50, 75, 100]}
-                    />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
-                      labelClassName="hidden"
-                      formatter={(value: any, name: any, props: any) => [`${value}% Accuracy`, props.payload.test]}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="score" 
-                      stroke="#1a2340" 
-                      strokeWidth={3} 
-                      fillOpacity={1} 
-                      fill="url(#colorScore)" 
-                      dot={<CustomChartDot />}
-                      activeDot={{ r: 6, fill: '#3B5BDB', stroke: '#fff', strokeWidth: 2 }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {hasNoData ? (
+                   <div className="h-full flex flex-col items-center justify-center text-center px-10">
+                     <TrendingUp className="w-10 h-10 text-slate-200 mb-3" />
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Start a test to initialize trend registry</p>
+                   </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#1a2340" stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor="#1a2340" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis 
+                        dataKey="index" 
+                        hide={true}
+                      />
+                      <YAxis 
+                        domain={[0, 100]} 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 700 }}
+                        ticks={[0, 25, 50, 75, 100]}
+                      />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                        labelClassName="hidden"
+                        formatter={(value: any, name: any, props: any) => [`${value}% Accuracy`, props.payload.test]}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="score" 
+                        stroke="#1a2340" 
+                        strokeWidth={3} 
+                        fillOpacity={1} 
+                        fill="url(#colorScore)" 
+                        dot={<CustomChartDot />}
+                        activeDot={{ r: 6, fill: '#3B5BDB', stroke: '#fff', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
             
@@ -321,26 +367,62 @@ export default function ProfilePage() {
                   score={stats.avg} 
                   totalQuestions={100} 
                   compact={true} 
+                  hasData={!hasNoData}
                 />
-                <p className="text-[9px] font-black uppercase text-primary tracking-widest mt-4">Mean Registry Score</p>
+                <p className="text-[9px] font-black uppercase text-primary tracking-widest mt-4">Average Score</p>
               </div>
 
               <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-slate-50">
                 <div className="text-center">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Taken</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Tests taken</p>
                   <p className="text-sm font-black text-[#1a2340]">{stats.total}</p>
                 </div>
                 <div className="text-center border-x border-slate-50">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Peak</p>
-                  <p className="text-sm font-black text-[#1a2340]">{stats.highest}%</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Best score</p>
+                  <p className="text-sm font-black text-[#1a2340]">{hasNoData ? "--" : `${stats.highest}%`}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Perfect</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Perfect scores</p>
                   <p className="text-sm font-black text-[#f59e0b]">{stats.perfectCount}</p>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Suggestions Section: Next Mission Pathway */}
+          {suggestions.length > 0 && (
+            <div className="p-8 border-b border-slate-100 bg-white">
+               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6">
+                 {hasNoData ? "Start your first test" : "Try these next"}
+               </h3>
+               <div className="space-y-3">
+                 {suggestions.map((s) => (
+                   <Link key={s.id} href={`/quiz?id=${s.id}`} className="group block">
+                     <div className="flex items-center gap-4 p-4 bg-slate-50/50 border border-slate-100 rounded-[1.5rem] hover:bg-white hover:shadow-lg hover:border-primary/20 transition-all duration-300">
+                       <div className={cn(
+                         "w-2.5 h-2.5 rounded-full shrink-0",
+                         String(s.difficulty).toLowerCase() === 'hard' ? "bg-rose-500" : String(s.difficulty).toLowerCase() === 'medium' ? "bg-amber-500" : "bg-emerald-500"
+                       )} />
+                       <div className="flex-1 min-w-0">
+                         <h4 className="text-sm font-black text-slate-700 truncate uppercase tracking-tight group-hover:text-primary transition-colors">{s.title}</h4>
+                         <div className="flex items-center gap-3 mt-0.5">
+                           <span className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                             <ListChecks className="w-3 h-3" /> {s.questions_count || 10} Items
+                           </span>
+                           <span className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                             <Clock className="w-3 h-3" /> {s.duration || '15m'}
+                           </span>
+                         </div>
+                       </div>
+                       <Button variant="ghost" size="sm" className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest border-2 border-slate-200 group-hover:border-primary/40 group-hover:text-primary bg-white">
+                         Start <ArrowRight className="w-3 h-3 ml-1.5" />
+                       </Button>
+                     </div>
+                   </Link>
+                 ))}
+               </div>
+            </div>
+          )}
 
           {/* History Section: Registry Audit */}
           <div className="p-8 space-y-6">
@@ -406,9 +488,23 @@ export default function ProfilePage() {
               })}
 
               {filteredResponses.length === 0 && !loadingStats && (
-                <div className="py-20 text-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
-                  <FileText className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">No sessions matched the current filter</p>
+                <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-[3rem] border-4 border-dashed border-slate-100 dark:border-slate-800">
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <BookOpen className="w-8 h-8 text-slate-200" />
+                  </div>
+                  <h4 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                    {hasNoData ? "No tests taken yet" : "No results for this filter"}
+                  </h4>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 max-w-xs mx-auto">
+                    {hasNoData 
+                      ? "Start a test from the library to initialize your personal achievement registry."
+                      : "We couldn't find any sessions matching your current filter parameters."}
+                  </p>
+                  <Link href="/tests">
+                    <Button className="mt-8 h-12 px-8 rounded-full bg-slate-900 dark:bg-primary font-black uppercase text-[10px] tracking-widest shadow-xl border-none">
+                      Browse Tests <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
                 </div>
               )}
             </div>
