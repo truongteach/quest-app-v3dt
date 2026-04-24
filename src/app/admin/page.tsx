@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/lib/api-config';
 import { OverviewTab } from '@/components/admin/OverviewTab';
@@ -10,6 +10,22 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { DEMO_QUESTIONS, AVAILABLE_TESTS } from '@/app/lib/demo-data';
 import { useSettings } from '@/context/settings-context';
 import { logActivity } from '@/lib/activity-log';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Performance: Lazy load heavy chart components
+const DashboardCharts = dynamic(() => 
+  import('@/components/admin/DashboardCharts').then(mod => mod.DashboardCharts), 
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[450px]">
+        <Skeleton className="lg:col-span-8 rounded-[2.5rem]" />
+        <Skeleton className="lg:col-span-4 rounded-[2.5rem]" />
+      </div>
+    )
+  }
+);
 
 function AdminDashboardContent() {
   const [loading, setLoading] = useState(false);
@@ -40,15 +56,16 @@ function AdminDashboardContent() {
         title: "Navigation Error",
         description: "The requested administrative route was not found. Redirected to Dashboard.",
       });
-      // Clear the URL param
       router.replace('/admin');
     }
   }, [searchParams, router, toast]);
 
-  const fetchData = async () => {
+  // Performance: Parallel fetching protocol
+  const fetchData = useCallback(async () => {
     if (!API_URL) return;
     setLoading(true);
     try {
+      // Parallelize API calls to reduce total wait time
       const [testsRes, usersRes, responsesRes] = await Promise.all([
         fetch(`${API_URL}?action=getTests`),
         fetch(`${API_URL}?action=getUsers`),
@@ -73,11 +90,11 @@ function AdminDashboardContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, refreshSettings]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handlePost = async (action: string, payload: any) => {
     if (!API_URL) return;
@@ -88,7 +105,7 @@ function AdminDashboardContent() {
         mode: 'no-cors',
         body: JSON.stringify({ action, ...payload })
       });
-      setDialogs({ ...dialogs, test: false, user: false });
+      setDialogs(prev => ({ ...prev, test: false, user: false }));
       return true;
     } catch (err) {
       console.error(err);
@@ -151,6 +168,8 @@ function AdminDashboardContent() {
         setActiveTab={(tab) => router.push(`/admin/${tab === 'overview' ? '' : tab}`)}
         loading={loading}
       />
+
+      <DashboardCharts responses={data.responses} onSeeAll={() => router.push('/admin/responses')} />
 
       <ChangelogPanel />
 

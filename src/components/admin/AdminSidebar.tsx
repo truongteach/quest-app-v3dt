@@ -46,8 +46,8 @@ interface AdminSidebarProps {
   logout: () => void;
 }
 
-export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
-  const router = useRouter();
+// Performance: Memoize sidebar to prevent re-renders on dashboard updates
+export const AdminSidebar = React.memo(({ activeTab, user, logout }: AdminSidebarProps) => {
   const { language, setLanguage, t } = useLanguage();
   const { settings } = useSettings();
 
@@ -63,11 +63,11 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
   ];
 
   return (
-    <Sidebar className="border-r border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+    <Sidebar className="border-r border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900" role="navigation">
       <SidebarHeader className="p-8">
         <div className="flex flex-col gap-4">
-          <Link href="/" className="block">
-            <Image src="/brand/logo-horizontal.png" alt="DNTRNG" width={130} height={32} />
+          <Link href="/" className="block" aria-label="Go to homepage">
+            <Image src="/brand/logo-horizontal.png" alt={brandName} width={130} height={32} />
           </Link>
           <div>
             <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1.5">{t('adminConsole')}</p>
@@ -81,7 +81,7 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
-                  <Link href={item.href}>
+                  <Link href={item.href} aria-current={activeTab === item.id ? "page" : undefined}>
                     <SidebarMenuButton 
                       isActive={activeTab === item.id} 
                       className={cn(
@@ -91,7 +91,7 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
                           : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                       )}
                     >
-                      <item.icon className="w-5 h-5 mr-4" /> {item.label}
+                      <item.icon className="w-5 h-5 mr-4" aria-hidden="true" /> {item.label}
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
@@ -105,9 +105,9 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
             <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Language</p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full h-10 rounded-xl justify-between border-slate-200 dark:border-slate-700 font-bold text-xs uppercase tracking-widest bg-white dark:bg-slate-800">
+                <Button variant="outline" className="w-full h-10 rounded-xl justify-between border-slate-200 dark:border-slate-700 font-bold text-xs uppercase tracking-widest bg-white dark:bg-slate-800" aria-label="Change language">
                   <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                    <Languages className="w-3.5 h-3.5 text-primary" />
+                    <Languages className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
                     {language === 'en' ? 'English' : language === 'vi' ? 'Tiếng Việt' : 'Español'}
                   </span>
                 </Button>
@@ -127,11 +127,13 @@ export function AdminSidebar({ activeTab, user, logout }: AdminSidebarProps) {
             <span className="text-sm font-black text-slate-900 dark:text-white truncate">{user?.displayName || 'Admin'}</span>
             <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest truncate">{user?.role}</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={logout} className="rounded-full text-destructive hover:bg-destructive/10">
-            <LogOut className="w-4 h-4" />
+          <Button variant="ghost" size="icon" onClick={logout} className="rounded-full text-destructive hover:bg-destructive/10" aria-label="Sign out">
+            <LogOut className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
       </SidebarFooter>
     </Sidebar>
   );
-}
+});
+
+AdminSidebar.displayName = 'AdminSidebar';

@@ -55,14 +55,17 @@ function DashboardChartsContent({ responses, onSeeAll }: DashboardChartsProps) {
     return "bg-green-100 text-green-700";
   };
 
+  // Performance: Limit initial dashboard load to top 5 results
+  const dashboardResults = (responses || []).slice(0, 5);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <Card className="lg:col-span-8 border-none shadow-sm overflow-hidden bg-white">
+      <Card className="lg:col-span-8 border-none shadow-sm overflow-hidden bg-white" role="img" aria-label="Activity trend chart showing tests completed this week">
         <CardHeader className="border-b bg-slate-50/50">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg font-black text-slate-900">{t('activityTrend')}</CardTitle>
-              <CardDescription>Tests completed this week</CardDescription>
+              <CardDescription className="text-slate-500 font-medium">Tests completed this week</CardDescription>
             </div>
             <Badge variant="secondary" className="px-3 py-1 font-bold">LIVE</Badge>
           </div>
@@ -85,8 +88,8 @@ function DashboardChartsContent({ responses, onSeeAll }: DashboardChartsProps) {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4">
-              <History className="w-12 h-12 opacity-20" />
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
+              <History className="w-12 h-12 opacity-20" aria-hidden="true" />
               <p className="font-bold">No results found yet</p>
             </div>
           )}
@@ -96,26 +99,28 @@ function DashboardChartsContent({ responses, onSeeAll }: DashboardChartsProps) {
       <Card className="lg:col-span-4 border-none shadow-sm flex flex-col bg-white">
         <CardHeader className="border-b bg-slate-50/50">
           <CardTitle className="text-lg font-black text-slate-900">{t('recentResults')}</CardTitle>
-          <CardDescription>{t('recentSubmissions')}</CardDescription>
+          <CardDescription className="text-slate-500 font-medium">{t('recentSubmissions')}</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-0 max-h-[350px]">
-          <div className="divide-y">
-            {(responses || []).slice(0, 6).map((resp, i) => (
-              <div key={i} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+          <div className="divide-y" role="list">
+            {dashboardResults.map((resp, i) => (
+              <div key={i} role="listitem" className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-[10px]", getScoreBadgeStyles(Number(resp.Score), Number(resp.Total)))}>
                   {resp.Score}/{resp.Total}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm truncate">{resp['Test ID']}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{resp['User Name'] || 'Guest'} · {new Date(resp.Timestamp).toLocaleDateString()}</p>
+                  <p className="font-bold text-sm truncate text-slate-900">{resp['Test ID']}</p>
+                  <p className="text-[10px] text-slate-500 font-medium truncate">{resp['User Name'] || 'Guest'} · {new Date(resp.Timestamp).toLocaleDateString()}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
+                <ChevronRight className="w-4 h-4 text-slate-300" aria-hidden="true" />
               </div>
             ))}
           </div>
         </CardContent>
         <CardFooter className="border-t p-4">
-          <Button variant="ghost" className="w-full font-bold text-xs rounded-xl" onClick={onSeeAll}>{t('seeAllResults')}</Button>
+          <Button variant="ghost" className="w-full font-black text-[10px] uppercase tracking-widest rounded-xl h-11" onClick={onSeeAll}>
+            {t('seeAllResults')}
+          </Button>
         </CardFooter>
       </Card>
     </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -54,14 +53,14 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" aria-hidden="true"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary" aria-hidden="true"></span>
             </span>
             <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('statusActive')}</span>
           </div>
           {lastSync && (
             <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border shadow-sm">
-              <Clock className="w-3 h-3 text-primary" />
+              <Clock className="w-3 h-3 text-primary" aria-hidden="true" />
               <span className="text-[10px] font-black text-slate-500 uppercase">
                 {t('lastSync')}: {lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -79,8 +78,6 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
         <StatCard icon={Activity} label={t('avgScore')} value={`${avgScoreValue}%`} color="orange" trend={<TrendingUp className="w-3 h-3 text-emerald-500 ml-1" />} />
       </div>
 
-      <DashboardCharts responses={data.responses} onSeeAll={() => setActiveTab('responses')} />
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <QuickActionCard title={t('createTest')} icon={Plus} onClick={() => router.push('/admin/tests/new')} theme="primary" disabled={loading} />
         <QuickActionCard title={t('manageTests')} icon={Zap} onClick={onManageContent} theme="dark" disabled={loading} />
@@ -92,7 +89,8 @@ export function OverviewTab({ data, lastSync, settings, onNewTest, onManageConte
   );
 }
 
-function StatCard({ icon: Icon, label, value, color, trend }: any) {
+// Performance: Memoize atomic stat cards
+const StatCard = React.memo(({ icon: Icon, label, value, color, trend }: any) => {
   const colors: Record<string, string> = {
     blue: "bg-blue-50 text-blue-600",
     green: "bg-green-50 text-green-600",
@@ -100,19 +98,20 @@ function StatCard({ icon: Icon, label, value, color, trend }: any) {
     orange: "bg-orange-50 text-orange-600"
   };
   return (
-    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white" aria-label={`${label}: ${value}`}>
       <CardContent className="pt-6 flex items-center gap-4">
-        <div className={cn("p-4 rounded-2xl", colors[color])}><Icon className="w-6 h-6" /></div>
+        <div className={cn("p-4 rounded-2xl", colors[color])} aria-hidden="true"><Icon className="w-6 h-6" /></div>
         <div>
-          <p className="text-xs font-bold text-muted-foreground uppercase">{label}</p>
+          <p className="text-xs font-bold text-slate-500 uppercase">{label}</p>
           <p className="text-3xl font-black text-slate-900">{value}{trend}</p>
         </div>
       </CardContent>
     </Card>
   );
-}
+});
+StatCard.displayName = 'StatCard';
 
-function QuickActionCard({ title, icon: Icon, onClick, theme, disabled, loading }: any) {
+const QuickActionCard = React.memo(({ title, icon: Icon, onClick, theme, disabled, loading }: any) => {
   const themes: Record<string, string> = {
     primary: "bg-primary text-white",
     dark: "bg-slate-900 text-white",
@@ -122,6 +121,10 @@ function QuickActionCard({ title, icon: Icon, onClick, theme, disabled, loading 
   };
   return (
     <Card 
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
       className={cn(
         "border-none shadow-sm cursor-pointer transition-all", 
         themes[theme],
@@ -130,11 +133,12 @@ function QuickActionCard({ title, icon: Icon, onClick, theme, disabled, loading 
       onClick={!disabled ? onClick : undefined}
     >
       <CardContent className="pt-6 flex items-center gap-4">
-        <div className={cn("p-3 rounded-xl", theme === 'light' ? 'bg-slate-100' : 'bg-white/20')}>
+        <div className={cn("p-3 rounded-xl", theme === 'light' ? 'bg-slate-100' : 'bg-white/20')} aria-hidden="true">
           <Icon className={cn("w-6 h-6", loading && "animate-spin")} />
         </div>
         <p className="font-black text-base">{title}</p>
       </CardContent>
     </Card>
   );
-}
+});
+QuickActionCard.displayName = 'QuickActionCard';
