@@ -1,12 +1,13 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { History, Target, ChevronRight, BookOpen } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from '@/lib/utils';
 import { trackEvent } from '@/lib/tracker';
+import { Pagination } from '@/components/admin/Pagination';
 
 interface ProfileHistoryProps {
   responses: any[];
@@ -14,7 +15,27 @@ interface ProfileHistoryProps {
   hasHistory: boolean;
 }
 
+const REGISTRY_PAGE_SIZE = 10;
+
+/**
+ * DNTRNG™ INTERACTION REGISTRY
+ * 
+ * Displays a chronological, paginated list of all assessment interactions.
+ */
 export function ProfileHistory({ responses, settings, hasHistory }: ProfileHistoryProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Pagination Registry: Slice the responses into discrete pages
+  const paginatedResponses = useMemo(() => {
+    const start = (currentPage - 1) * REGISTRY_PAGE_SIZE;
+    return responses.slice(start, start + REGISTRY_PAGE_SIZE);
+  }, [responses, currentPage]);
+
+  // Reset to first page if responses change (e.g. dynamic refresh)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [responses.length]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between px-2">
@@ -22,10 +43,17 @@ export function ProfileHistory({ responses, settings, hasHistory }: ProfileHisto
           <History className="w-5 h-5 text-slate-400" />
           <h3 className="text-lg font-black uppercase tracking-tight text-slate-900">Interaction Registry</h3>
         </div>
+        {hasHistory && (
+          <div className="px-3 py-1 bg-slate-100 rounded-full border border-slate-200">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+              Total Nodes: {responses.length}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-3">
-        {responses.map((r: any, i: number) => {
+        {paginatedResponses.map((r: any, i: number) => {
           const score = Number(r.Score) || 0;
           const total = Number(r.Total) || 1;
           const pct = Math.round((score / total) * 100);
@@ -33,7 +61,7 @@ export function ProfileHistory({ responses, settings, hasHistory }: ProfileHisto
           const isPass = pct >= threshold;
 
           return (
-            <div key={i} className="group flex flex-col sm:flex-row items-center gap-6 p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
+            <div key={`${r.Timestamp}-${i}`} className="group flex flex-col sm:flex-row items-center gap-6 p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
               <div className={cn(
                 "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border-2 transition-colors",
                 isPass ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-rose-50 border-rose-100 text-rose-600"
@@ -67,6 +95,22 @@ export function ProfileHistory({ responses, settings, hasHistory }: ProfileHisto
           );
         })}
         
+        {hasHistory && responses.length > REGISTRY_PAGE_SIZE && (
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <Pagination 
+              currentPage={currentPage}
+              totalItems={responses.length}
+              pageSize={REGISTRY_PAGE_SIZE}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                // UX Protocol: Scroll back to section header on page change
+                window.scrollTo({ top: 400, behavior: 'smooth' });
+              }}
+              className="bg-transparent border-none px-0"
+            />
+          </div>
+        )}
+
         {!hasHistory && (
           <div className="py-32 text-center bg-white rounded-[3rem] border-4 border-dashed border-slate-50 flex flex-col items-center gap-6">
             <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-200 shadow-inner">
