@@ -1,46 +1,65 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
+import useSWR from 'swr';
 import { API_URL } from '@/lib/api-config';
 import { AVAILABLE_TESTS as DEMO_TESTS } from '@/app/lib/demo-data';
 import { LibraryHeader } from '@/components/library/LibraryHeader';
 import { EmptyState } from '@/components/library/EmptyState';
 import { CardView } from '@/components/library/CardView';
 import { ListView } from '@/components/library/ListView';
-import { AILoader } from '@/components/ui/ai-loader';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/context/language-context';
-import { useSettings } from '@/context/settings-context';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
 
 /**
- * INTELLIGENCE LIBRARY PROTOCOL - ACCESSIBILITY & PERFORMANCE OPTIMIZED
+ * INTELLIGENCE LIBRARY PROTOCOL - SWR CACHED & VIEWPORT AWARE
  */
 export default function TestsLibrary() {
   const { t } = useLanguage();
-  const { settings } = useSettings();
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const [tests, setTests] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
+  // SWR Registry Sync
+  const { data, error, isLoading, isValidating, mutate } = useSWR(
+    API_URL ? `${API_URL}?action=getTests` : 'tests-demo',
+    async (url) => {
+      if (!API_URL) return DEMO_TESTS;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Registry Handshake Rejected");
+      const tests = await res.json();
+      setLastSync(new Date());
+      return Array.isArray(tests) ? tests : [];
+    }
+  );
+
+  const tests = data || [];
+
+  // Persistence & Prefetching Protocol
   useEffect(() => {
     const savedView = localStorage.getItem('dntrng_test_view') as 'card' | 'list';
-    if (savedView && (savedView === 'card' || savedView === 'list')) {
-      setViewMode(savedView);
-    }
+    if (savedView) setViewMode(savedView);
+    
     const savedCat = localStorage.getItem('dntrng_selected_cat');
-    if (savedCat) {
-      setSelectedCategory(savedCat);
-    }
-    fetchTests();
+    if (savedCat) setSelectedCategory(savedCat);
   }, []);
+
+  // Prefetch first 4 cards for instant transition
+  useEffect(() => {
+    if (tests.length > 0) {
+      tests.slice(0, 4).forEach(test => {
+        router.prefetch(`/quiz?id=${test.id}`);
+      });
+    }
+  }, [tests, router]);
 
   const handleViewChange = (mode: 'card' | 'list') => {
     setViewMode(mode);
@@ -50,34 +69,6 @@ export default function TestsLibrary() {
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
     localStorage.setItem('dntrng_selected_cat', cat);
-  };
-
-  const fetchTests = async () => {
-    setLoading(true);
-    setError(null);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort("Timeout"), 8000);
-
-    try {
-      if (API_URL) {
-        const res = await fetch(`${API_URL}?action=getTests`, { 
-          signal: controller.signal,
-          cache: 'no-store'
-        });
-        clearTimeout(timeoutId);
-        if (!res.ok) throw new Error("Registry Handshake Rejected");
-        const data = await res.json();
-        setTests(Array.isArray(data) ? data : []);
-      } else {
-        setTests(DEMO_TESTS);
-      }
-      setLastSync(new Date());
-    } catch (err: any) {
-      clearTimeout(timeoutId);
-      setError("The Registry Bridge is currently unresponsive or misconfigured.");
-    } finally {
-      setLoading(false);
-    }
   };
 
   useEffect(() => {
@@ -133,9 +124,10 @@ export default function TestsLibrary() {
         setSearch={setSearch}
         viewMode={viewMode}
         setViewMode={handleViewChange}
-        loading={loading}
-        onRefresh={fetchTests}
+        loading={isLoading}
+        onRefresh={() => mutate()}
         lastSync={lastSync}
+        isValidating={isValidating}
       />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-16">
@@ -143,7 +135,7 @@ export default function TestsLibrary() {
           <div className="max-w-xl mx-auto text-center py-32 space-y-10">
             <AlertCircle className="w-24 h-24 text-red-500 mx-auto" />
             <h2 className="text-4xl font-black uppercase tracking-tight">Sync Failure</h2>
-            <Button onClick={fetchTests} className="h-16 px-12 rounded-full bg-slate-900">Re-initialize Connection</Button>
+            <Button onClick={() => mutate()} className="h-16 px-12 rounded-full bg-slate-900">Re-initialize Connection</Button>
           </div>
         ) : (
           <div className="space-y-10">
@@ -220,7 +212,7 @@ export default function TestsLibrary() {
             )}
             
             <div id="test-grid" role="tabpanel" aria-labelledby={`tab-${selectedCategory}`}>
-              {loading ? (
+              {(isLoading && tests.length === 0) ? (
                 <div className={cn(
                   "animate-in fade-in duration-700 px-4",
                   viewMode === 'card' ? "grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4" : "flex flex-col gap-[10px]"

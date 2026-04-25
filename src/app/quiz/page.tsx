@@ -1,6 +1,8 @@
+
 "use client";
 
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import useSWR, { mutate as globalMutate } from 'swr';
 import { QuizState, QuizMode, Question } from '@/types/quiz';
 import { QuizStart } from '@/components/quiz/QuizStart';
 import { QuizResults } from '@/components/quiz/QuizResults';
@@ -25,21 +27,11 @@ function QuizContent() {
   const { toast } = useToast();
   const { settings } = useSettings();
   
-  const [loading, setLoading] = useState(true);
   const [isStarted, setIsStarted] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [timeLeft, setTimeLeft] = useState(900); 
   const [isWrongInRace, setIsWrongInRace] = useState(false);
-  const [protocolSalt, setProtocolSalt] = useState("");
-  const [isProtectionEnabled, setIsProtectionEnabled] = useState(true);
-  const [guestAccessAllowed, setGuestAccessAllowed] = useState(true);
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
-  const [testMetadata, setTestMetadata] = useState<any>(null);
-  const [allTests, setAllTests] = useState<any[]>([]);
-  const [notFound, setNotFound] = useState(false);
   const [generatedCertificateId, setGeneratedCertificateId] = useState<string | null>(null);
-  
-  const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
   
   const [quiz, setQuiz] = useState<QuizState>({
     questions: [],
@@ -53,7 +45,41 @@ function QuizContent() {
     flaggedQuestionIds: []
   });
 
-  const quizTitle = testMetadata?.title || 'Assessment';
+  // SWR Caching: Questions Registry
+  const { data: questionsData, isLoading: qLoading } = useSWR(
+    testId ? `questions-${testId}` : null,
+    async () => {
+      if (!API_URL) return DEMO_QUESTIONS;
+      const res = await fetch(`${API_URL}?action=getQuestions&id=${testId}`);
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }
+  );
+
+  // SWR Caching: Test Metadata & Global Config
+  const { data: globalData, isLoading: configLoading } = useSWR(
+    'quiz-config',
+    async () => {
+      if (!API_URL) return { tests: AVAILABLE_TESTS, salt: "", protection: true, guest: true, maintenance: false };
+      const [sRes, tRes] = await Promise.all([
+        fetch(`${API_URL}?action=getSettings`),
+        fetch(`${API_URL}?action=getTests`)
+      ]);
+      const sData = await sRes.json();
+      const tData = await tRes.json();
+      return {
+        tests: Array.isArray(tData) ? tData : [],
+        salt: sData.daily_key_salt || "",
+        protection: String(sData.access_key_protection_enabled ?? "true") !== "false",
+        guest: String(sData.guest_access_allowed ?? "true") !== "false",
+        maintenance: String(sData.maintenance_mode ?? "false") === "true",
+        globalTimer: sData.global_timer_limit || "15"
+      };
+    }
+  );
+
+  const testMetadata = globalData?.tests.find(t => String(t.id) === String(testId));
+  const notFound = !qLoading && (!questionsData || (testId && !testMetadata));
 
   const loadPersistedState = useCallback((tid: string) => {
     const saved = sessionStorage.getItem(`quiz_session_${tid}`);
@@ -89,16 +115,17 @@ function QuizContent() {
   }, [quiz.responses, quiz.currentQuestionIndex, quiz.highestStepReached, isStarted, quiz.isSubmitted, testId, quiz.startTime, quiz.mode]);
 
   useEffect(() => {
-    if (testId) {
-      fetchQuestions();
-    } else {
-      setNotFound(true);
-      setLoading(false);
+    if (testId && questionsData) {
+      setQuiz(prev => ({ ...prev, questions: questionsData }));
+      loadPersistedState(testId);
+      
+      const seconds = parseDurationToSeconds(testMetadata?.duration, globalData?.globalTimer);
+      setTimeLeft(seconds);
     }
-  }, [testId]);
+  }, [testId, questionsData, testMetadata, globalData, loadPersistedState]);
 
   useEffect(() => {
-    if (quiz.isSubmitted || loading || !isStarted || quiz.mode === 'training') return;
+    if (quiz.isSubmitted || qLoading || !isStarted || quiz.mode === 'training') return;
     
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
@@ -112,87 +139,12 @@ function QuizContent() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [quiz.isSubmitted, loading, isStarted, quiz.mode]);
+  }, [quiz.isSubmitted, qLoading, isStarted, quiz.mode]);
 
   const parseDurationToSeconds = (dur: string | number | undefined, fallback: string | number = "15"): number => {
     const raw = dur || fallback;
     const num = parseInt(String(raw).replace(/[^0-9]/g, ''));
     return isNaN(num) ? 900 : num * 60;
-  };
-
-  const fetchQuestions = async () => {
-    setLoading(true);
-    setNotFound(false);
-    try {
-      let fetched: Question[] = [];
-      let salt = "";
-      let protection = true;
-      let guestAllowed = true;
-      let maintenance = false;
-      let metadata = null;
-      let fetchedAllTests: any[] = [];
-      let globalFallbackTime = "15";
-      
-      if (API_URL) {
-        const [qRes, sRes, tRes] = await Promise.all([
-          fetch(`${API_URL}?action=getQuestions&id=${testId}`),
-          fetch(`${API_URL}?action=getSettings`),
-          fetch(`${API_URL}?action=getTests`)
-        ]);
-        
-        const qData = await qRes.json();
-        const sData = await sRes.json();
-        const tData = await tRes.json();
-        
-        fetched = (qData && Array.isArray(qData)) ? qData : [];
-        salt = sData.daily_key_salt || "";
-        protection = String(sData.access_key_protection_enabled ?? "true") !== "false";
-        guestAllowed = String(sData.guest_access_allowed ?? "true") !== "false";
-        maintenance = String(sData.maintenance_mode ?? "false") === "true";
-        globalFallbackTime = sData.global_timer_limit || "15";
-
-        if (Array.isArray(tData)) {
-          fetchedAllTests = tData;
-          metadata = tData.find(t => String(t.id) === String(testId));
-        }
-
-        // Module Presence Protocol: Verify ID exists in the registry
-        if (!metadata) {
-          setNotFound(true);
-          setLoading(false);
-          return;
-        }
-      } else {
-        fetched = DEMO_QUESTIONS;
-        fetchedAllTests = AVAILABLE_TESTS;
-        metadata = AVAILABLE_TESTS.find(t => t.id === testId);
-        if (!metadata) {
-          setNotFound(true);
-          setLoading(false);
-          return;
-        }
-      }
-      
-      setProtocolSalt(salt);
-      setIsProtectionEnabled(protection);
-      setGuestAccessAllowed(guestAllowed);
-      setIsMaintenanceMode(maintenance);
-      setTestMetadata(metadata);
-      setAllTests(fetchedAllTests);
-      setOriginalQuestions(fetched);
-      
-      const seconds = parseDurationToSeconds(metadata?.duration, globalFallbackTime);
-      setTimeLeft(seconds);
-
-      setQuiz(prev => ({ ...prev, questions: fetched, startTime: Date.now() }));
-      
-      if (testId) loadPersistedState(testId);
-      
-    } catch (err) {
-      setNotFound(true);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleResponseChange = (val: any) => {
@@ -262,19 +214,6 @@ function QuizContent() {
   };
 
   const submit = async () => {
-    const currentQuestion = quiz.questions[quiz.currentQuestionIndex];
-    if (quiz.mode === 'race') {
-      const resp = quiz.responses.find(r => r.questionId === currentQuestion.id);
-      if (!resp || !resp.isCorrect) {
-        setIsWrongInRace(true);
-        setTimeout(() => {
-          setQuiz(prev => ({ ...prev, currentQuestionIndex: 0, responses: [], flaggedQuestionIds: [] }));
-          setIsWrongInRace(false);
-        }, 1500);
-        return;
-      }
-    }
-
     const finalScore = calculateTotalScore(quiz.questions, quiz.responses);
     const finalName = (user?.displayName || guestName?.trim() || 'Guest User');
     const finalEmail = (user?.email || 'Anonymous');
@@ -294,6 +233,9 @@ function QuizContent() {
     
     if (testId) sessionStorage.removeItem(`quiz_session_${testId}`);
     setQuiz({ ...quiz, isSubmitted: true, score: finalScore, endTime: timestamp });
+
+    // Invalidate profile results cache on submission
+    if (user?.email) globalMutate(`results-${user.email}`);
 
     if (API_URL) {
       try {
@@ -328,7 +270,7 @@ function QuizContent() {
 
   const restart = () => {
     if (testId) sessionStorage.removeItem(`quiz_session_${testId}`);
-    fetchQuestions();
+    setIsStarted(false);
     setQuiz({
       ...quiz,
       currentQuestionIndex: 0,
@@ -336,7 +278,7 @@ function QuizContent() {
       isSubmitted: false,
       score: 0,
       startTime: Date.now(),
-      mode: quiz.mode,
+      mode: 'test',
       highestStepReached: 0,
       flaggedQuestionIds: []
     });
@@ -350,7 +292,7 @@ function QuizContent() {
 
   const handleStart = (mode: QuizMode) => {
     setIsStarted(true);
-    let q = [...originalQuestions];
+    let q = [...(questionsData || [])];
     if (mode === 'test') {
       q = shuffleQuestions(q);
     }
@@ -363,13 +305,12 @@ function QuizContent() {
     }));
   };
 
-  if (loading) return (
+  if (qLoading || configLoading) return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
       <AILoader />
     </div>
   );
 
-  // Module Presence Exception: Show friendly error for invalid IDs
   if (notFound) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
@@ -377,46 +318,25 @@ function QuizContent() {
           <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-rose-500/10">
             <AlertCircle className="w-10 h-10 text-rose-500" />
           </div>
-          
           <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-4">Module Not Found</h2>
-          <p className="text-slate-500 font-medium leading-relaxed mb-10">
-            This assessment module doesn't exist in the registry or has been decommissioned.
-          </p>
-
+          <p className="text-slate-500 font-medium leading-relaxed mb-10">This assessment module doesn't exist in the registry.</p>
           <div className="grid grid-cols-1 gap-4">
-            <Link href="/tests">
-              <Button className="w-full h-14 rounded-full bg-slate-900 font-black uppercase text-xs tracking-widest gap-2 shadow-xl border-none transition-all hover:scale-[1.02]">
-                <Search className="w-4 h-4" /> Browse Library
-              </Button>
-            </Link>
-            <Button 
-              variant="ghost"
-              onClick={() => router.back()} 
-              className="h-14 rounded-full font-black uppercase text-xs tracking-widest text-slate-400 hover:text-slate-900"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" /> Return to Previous
-            </Button>
+            <Link href="/tests"><Button className="w-full h-14 rounded-full bg-slate-900 font-black uppercase text-xs tracking-widest gap-2 shadow-xl border-none"><Search className="w-4 h-4" /> Browse Library</Button></Link>
           </div>
         </div>
       </div>
     );
   }
 
-  if (isMaintenanceMode && user?.role !== 'admin') {
+  if (globalData?.maintenance && user?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center transition-colors duration-500">
         <div className="w-24 h-24 bg-amber-50 dark:bg-amber-900/20 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl ring-8 ring-white dark:ring-slate-900">
           <AlertCircle className="w-12 h-12 text-amber-500" />
         </div>
         <h2 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-4">System Maintenance</h2>
-        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-md mx-auto mb-10 leading-relaxed text-lg">
-          This assessment node is currently offline for structural calibration. Please return later or contact your supervisor.
-        </p>
-        <Link href="/">
-          <Button className="h-14 rounded-full px-10 bg-slate-900 dark:bg-primary font-black uppercase text-xs tracking-widest shadow-xl hover:scale-105 transition-all border-none">
-            Return Home
-          </Button>
-        </Link>
+        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-md mx-auto mb-10 leading-relaxed text-lg">This assessment node is currently offline.</p>
+        <Link href="/"><Button className="h-14 rounded-full px-10 bg-slate-900 dark:bg-primary font-black uppercase text-xs tracking-widest shadow-xl border-none">Return Home</Button></Link>
       </div>
     );
   }
@@ -424,16 +344,16 @@ function QuizContent() {
   if (!isStarted) {
     return (
       <QuizStart 
-        title={quizTitle}
+        title={testMetadata?.title || 'Assessment'}
         description={testMetadata?.description}
         questionsCount={quiz.questions.length}
         duration={testMetadata?.duration}
         user={user}
         guestName={guestName}
         setGuestName={setGuestName}
-        protocolSalt={protocolSalt}
-        isProtectionEnabled={isProtectionEnabled}
-        guestAccessAllowed={guestAccessAllowed}
+        protocolSalt={globalData?.salt}
+        isProtectionEnabled={globalData?.protection}
+        guestAccessAllowed={globalData?.guest}
         onStart={handleStart}
       />
     );
@@ -442,7 +362,7 @@ function QuizContent() {
   if (quiz.isSubmitted) {
     return (
       <QuizResults 
-        title={quizTitle}
+        title={testMetadata?.title || 'Assessment'}
         testId={testId || undefined}
         score={quiz.score}
         totalQuestions={quiz.questions.length}
@@ -453,7 +373,7 @@ function QuizContent() {
         startTime={quiz.startTime}
         endTime={quiz.endTime}
         testMetadata={testMetadata}
-        allTests={allTests}
+        allTests={globalData?.tests}
         certificateId={generatedCertificateId || undefined}
       />
     );
@@ -462,7 +382,7 @@ function QuizContent() {
   return (
     <QuizActive 
       quiz={quiz}
-      quizTitle={quizTitle}
+      quizTitle={testMetadata?.title || 'Assessment'}
       timeLeft={timeLeft}
       isWrongInRace={isWrongInRace}
       onResponseChange={handleResponseChange}
@@ -477,11 +397,7 @@ function QuizContent() {
 
 export default function QuizPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
-        <AILoader />
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950"><AILoader /></div>}>
       <QuizContent />
     </Suspense>
   );

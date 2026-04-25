@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -6,6 +7,7 @@ import { LanguageProvider } from '@/context/language-context';
 import { SettingsProvider } from '@/context/settings-context';
 import { ThemeColorManager } from '@/components/ThemeColorManager';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SWRProvider } from '@/components/SWRProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://quest-dntrng.vercel.app'),
@@ -66,15 +68,17 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased min-h-screen bg-background text-foreground">
         <ErrorBoundary>
-          <SettingsProvider>
-            <ThemeColorManager />
-            <LanguageProvider>
-              <AuthProvider>
-                {children}
-                <Toaster />
-              </AuthProvider>
-            </LanguageProvider>
-          </SettingsProvider>
+          <SWRProvider>
+            <SettingsProvider>
+              <ThemeColorManager />
+              <LanguageProvider>
+                <AuthProvider>
+                  {children}
+                  <Toaster />
+                </AuthProvider>
+              </LanguageProvider>
+            </SettingsProvider>
+          </SWRProvider>
         </ErrorBoundary>
       </body>
     </html>

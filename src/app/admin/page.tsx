@@ -1,6 +1,8 @@
+
 "use client";
 
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import useSWR from 'swr';
 import { useToast } from '@/hooks/use-toast';
 import { API_URL } from '@/lib/api-config';
 import { OverviewTab } from '@/components/admin/OverviewTab';
@@ -28,13 +30,6 @@ const DashboardCharts = dynamic(() =>
 );
 
 function AdminDashboardContent() {
-  const [loading, setLoading] = useState(false);
-  const [lastSync, setLastSync] = useState<Date | null>(null);
-  const [data, setData] = useState<{ tests: any[], users: any[], responses: any[] }>({
-    tests: [],
-    users: [],
-    responses: []
-  });
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,71 +42,57 @@ function AdminDashboardContent() {
     bulk: false
   });
 
-  // Navigation Protocol: Handle redirected errors from catch-all routes
+  // SWR Parallel Data Registry
+  const { data, mutate, isLoading } = useSWR(
+    API_URL ? 'admin-dashboard-data' : null,
+    async () => {
+      const [testsRes, usersRes, responsesRes] = await Promise.all([
+        fetch(`${API_URL}?action=getTests`),
+        fetch(`${API_URL}?action=getUsers`),
+        fetch(`${API_URL}?action=getResponses`)
+      ]);
+      const [tests, users, responses] = await Promise.all([
+        testsRes.json(),
+        usersRes.json(),
+        responsesRes.json()
+      ]);
+      return {
+        tests: Array.isArray(tests) ? tests : [],
+        users: Array.isArray(users) ? users : [],
+        responses: Array.isArray(responses) ? responses : []
+      };
+    },
+    { revalidateOnFocus: false }
+  );
+
+  const dashboardData = data || { tests: [], users: [], responses: [] };
+
   useEffect(() => {
     const error = searchParams.get('error');
     if (error === 'route-not-found') {
       toast({
         variant: "destructive",
         title: "Navigation Error",
-        description: "The requested administrative route was not found. Redirected to Dashboard.",
+        description: "The requested administrative route was not found.",
       });
       router.replace('/admin');
     }
   }, [searchParams, router, toast]);
 
-  // Performance: Parallel fetching protocol
-  const fetchData = useCallback(async () => {
-    if (!API_URL) return;
-    setLoading(true);
-    try {
-      // Parallelize API calls to reduce total wait time
-      const [testsRes, usersRes, responsesRes] = await Promise.all([
-        fetch(`${API_URL}?action=getTests`),
-        fetch(`${API_URL}?action=getUsers`),
-        fetch(`${API_URL}?action=getResponses`)
-      ]);
-
-      const [testsData, usersData, responsesData] = await Promise.all([
-        testsRes.json(),
-        usersRes.json(),
-        responsesRes.json()
-      ]);
-
-      setData({
-        tests: Array.isArray(testsData) ? testsData : [],
-        users: Array.isArray(usersData) ? usersData : [],
-        responses: Array.isArray(responsesData) ? responsesData : []
-      });
-      setLastSync(new Date());
-      refreshSettings();
-    } catch (err) {
-      toast({ variant: "destructive", title: "Sync Error", description: "Could not fetch data." });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast, refreshSettings]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const handlePost = async (action: string, payload: any) => {
     if (!API_URL) return;
-    setLoading(true);
     try {
       await fetch(API_URL, {
         method: 'POST',
         mode: 'no-cors',
         body: JSON.stringify({ action, ...payload })
       });
-      setDialogs(prev => ({ ...prev, test: false, user: false }));
+      // Registry Cache Invalidation Protocol
+      mutate();
       return true;
     } catch (err) {
       console.error(err);
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -120,56 +101,39 @@ function AdminDashboardContent() {
     if (ok) {
       toast({ title: "Success", description: "System settings updated." });
       logActivity("Settings updated", key);
+      refreshSettings();
     }
   };
 
   const handleSeedData = async () => {
-    toast({ title: "Seeding Started", description: "Initializing demo library across all nodes..." });
-    
+    toast({ title: "Seeding Started", description: "Initializing demo library..." });
     try {
       for (const test of AVAILABLE_TESTS) {
-        await handlePost('saveTest', { data: {
-          id: test.id,
-          title: test.title,
-          description: test.description,
-          category: test.category,
-          difficulty: test.difficulty,
-          duration: test.duration,
-          image_url: test.image
-        }});
+        await handlePost('saveTest', { data: { ...test, image_url: test.image }});
       }
-
-      for (const test of AVAILABLE_TESTS) {
-        await handlePost('saveQuestions', { 
-          testId: test.id, 
-          questions: DEMO_QUESTIONS 
-        });
-      }
-
-      logActivity("Bulk seed performed", `${AVAILABLE_TESTS.length} modules initialized`);
       toast({ title: "Sync Complete", description: "All assessment modules are now live." });
-      setTimeout(fetchData, 2000);
+      mutate();
     } catch (error) {
-      toast({ variant: "destructive", title: "Seed Error", description: "Could not complete the library sync." });
+      toast({ variant: "destructive", title: "Seed Error" });
     }
   };
 
   return (
     <div className="space-y-8 pb-24">
       <OverviewTab 
-        data={data} 
-        lastSync={lastSync}
+        data={dashboardData} 
+        lastSync={new Date()}
         settings={settings}
         onNewTest={() => setDialogs({ ...dialogs, test: true })}
         onManageContent={() => router.push('/admin/tests')}
-        onSync={fetchData}
+        onSync={() => mutate()}
         onSeed={handleSeedData}
         onSaveSetting={handleSaveSetting}
         setActiveTab={(tab) => router.push(`/admin/${tab === 'overview' ? '' : tab}`)}
-        loading={loading}
+        loading={isLoading}
       />
 
-      <DashboardCharts responses={data.responses} onSeeAll={() => router.push('/admin/responses')} />
+      <DashboardCharts responses={dashboardData.responses} onSeeAll={() => router.push('/admin/responses')} />
 
       <ChangelogPanel />
 
@@ -188,21 +152,19 @@ function AdminDashboardContent() {
           const ok = await handlePost('saveTest', { data: payload });
           if (ok) {
             toast({ title: "Success", description: "Test record updated." });
-            logActivity("Test created/edited", payload.title);
-            fetchData();
+            setDialogs(prev => ({ ...prev, test: false }));
           }
         }}
         onSaveUser={async (userData) => {
           const ok = await handlePost('saveUser', { data: userData });
           if (ok) {
             toast({ title: "Success", description: "Student record updated." });
-            logActivity("Student provisioning", userData.name);
-            fetchData();
+            setDialogs(prev => ({ ...prev, user: false }));
           }
         }}
         onSaveQuestion={() => {}}
         onSaveBulk={() => {}}
-        loading={loading}
+        loading={isLoading}
       />
     </div>
   );
