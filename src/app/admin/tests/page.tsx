@@ -8,6 +8,7 @@ import { AdminDialogs } from '@/components/admin/AdminDialogs';
 import { QuestionAnalyticsDialog } from '@/components/admin/analytics/QuestionAnalyticsDialog';
 import { useRouter } from 'next/navigation';
 import { logActivity } from '@/lib/activity-log';
+import { trackEvent } from '@/lib/tracker';
 
 export default function AdminTestsPage() {
   const [loading, setLoading] = useState(false);
@@ -59,8 +60,10 @@ export default function AdminTestsPage() {
       toast({ title: "Success", description: "Test list updated." });
       setDialogs({ ...dialogs, test: false });
       setTimeout(fetchTests, 1500);
+      return true;
     } catch (err) {
       toast({ variant: "destructive", title: "Error" });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -86,10 +89,13 @@ export default function AdminTestsPage() {
         tests={tests} 
         loading={loading}
         onEdit={(item) => { setEditingItem(item); setDialogs({ ...dialogs, test: true }); }}
-        onDelete={(id) => {
+        onDelete={async (id) => {
           const t = tests.find(t => t.id === id);
-          handlePost('deleteTest', { id });
-          logActivity("Test deleted", t?.title || id);
+          const ok = await handlePost('deleteTest', { id });
+          if (ok) {
+            logActivity("Test deleted", t?.title || id);
+            trackEvent('admin_test_delete', { test_id: id, test_name: t?.title });
+          }
         }}
         onManageQuestions={(id) => router.push(`/admin/tests/${id}`)}
         onViewAnalytics={openAnalytics}
@@ -103,20 +109,23 @@ export default function AdminTestsPage() {
         editingItem={editingItem}
         selectedTestId=""
         questions={[]}
-        onSaveTest={(testData) => {
+        onSaveTest={async (testData) => {
           const payload = { ...testData };
-          // Registry Guard: Preserve immutable ID in edit mode
           if (!payload.id) {
             const slug = (payload.title as string || 'test').toLowerCase().replace(/[^a-z0-9]/g, '-');
             payload.id = `${slug}-${Date.now().toString().slice(-4)}`;
           } else if (editingItem && payload.id !== editingItem.id) {
-            // Safety Protocol: Ensure we are not accidentally overriding the identifier
-            console.error('[Registry Violation] Attempted ID mutation on existing record');
             payload.id = editingItem.id;
           }
           
-          handlePost('saveTest', { data: payload });
-          logActivity(editingItem ? "Test edited" : "Test created", payload.title);
+          const ok = await handlePost('saveTest', { data: payload });
+          if (ok) {
+            logActivity(editingItem ? "Test edited" : "Test created", payload.title);
+            trackEvent(editingItem ? 'admin_test_edit' : 'admin_test_create', { 
+              test_id: payload.id, 
+              test_name: payload.title 
+            });
+          }
         }}
         onSaveUser={() => {}}
         onSaveQuestion={() => {}}

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { API_URL } from '@/lib/api-config';
 import { useSettings } from '@/context/settings-context';
+import { trackEvent } from '@/lib/tracker';
 
 interface User {
   email: string;
@@ -33,19 +34,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (savedUser && savedUser.trim() !== "" && loginTs) {
         try {
-          // Session Integrity Protocol
           const timeoutHours = Number(settings.session_timeout_hours || '24');
           const elapsed = Date.now() - Number(loginTs);
           const timeoutMs = timeoutHours * 60 * 60 * 1000;
 
           if (elapsed > timeoutMs) {
-            // Authentication cycle expired
             logout();
           } else {
             setUser(JSON.parse(savedUser));
           }
         } catch (e) {
-          console.error('[Auth Registry] Identity hydration failed. Clearing session.');
           logout();
         }
       }
@@ -77,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return `${device} (${browser})`;
   };
 
-  const logActivity = async (email: string, name: string, event: 'Login' | 'Logout') => {
+  const logActivityToRegistry = async (email: string, name: string, event: 'Login' | 'Logout') => {
     if (!API_URL) return;
     try {
       let ip = 'N/A';
@@ -85,9 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const ipRes = await fetch('https://api.ipify.org?format=json');
         const ipData = await ipRes.json();
         ip = ipData.ip;
-      } catch (e) {
-        // IP fetch error does not block the activity log
-      }
+      } catch (e) {}
 
       const device = getDeviceDetails();
 
@@ -103,9 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           device
         })
       });
-    } catch (e) {
-      // Activity logging is a non-critical background task
-    }
+    } catch (e) {}
   };
 
   const login = async (email: string, password?: string): Promise<{ success: boolean; message?: string }> => {
@@ -143,7 +137,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('questflow_user', JSON.stringify(newUser));
         localStorage.setItem('questflow_login_ts', Date.now().toString());
         
-        logActivity(newUser.email, newUser.displayName || 'User', 'Login');
+        logActivityToRegistry(newUser.email, newUser.displayName || 'User', 'Login');
+        trackEvent('login', { details: { role: newUser.role } });
         return { success: true };
       }
       return { success: false, message: "invalid_credentials" };
@@ -154,7 +149,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     if (user) {
-      logActivity(user.email, user.displayName || 'User', 'Logout');
+      logActivityToRegistry(user.email, user.displayName || 'User', 'Logout');
+      trackEvent('logout', { details: { role: user.role } });
     }
     setUser(null);
     localStorage.removeItem('questflow_user');

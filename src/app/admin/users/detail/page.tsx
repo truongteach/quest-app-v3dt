@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
@@ -18,7 +17,8 @@ import {
   Search,
   CheckCircle2,
   XCircle,
-  Filter
+  Filter,
+  Eye
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -41,6 +41,7 @@ import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 import { useRegistryFilter } from '@/hooks/useRegistryFilter';
 import { Pagination } from '@/components/admin/Pagination';
+import { trackEvent } from '@/lib/tracker';
 
 function UserDetailContent() {
   const searchParams = useSearchParams();
@@ -72,13 +73,16 @@ function UserDetailContent() {
       const rData = await rRes.json();
       
       const foundUser = uData.find((u: any) => String(u.email || "").toLowerCase() === email.toLowerCase());
-      // Protocol: Sort by timestamp descending (most recent first)
       const userResponses = rData
         .filter((r: any) => String(r['User Email'] || "").toLowerCase() === email.toLowerCase())
         .sort((a: any, b: any) => new Date(b.Timestamp).getTime() - new Date(a.Timestamp).getTime());
       
       setUser(foundUser);
       setResponses(userResponses);
+      
+      if (foundUser) {
+        trackEvent('admin_student_view', { details: { studentId: email } });
+      }
     } catch (err) {
       toast({ variant: "destructive", title: "Sync Error", description: "Could not load user profile." });
     } finally {
@@ -90,7 +94,6 @@ function UserDetailContent() {
     fetchData();
   }, [email]);
 
-  // Registry Filtering Engine
   const {
     searchTerm,
     setSearchTerm,
@@ -161,6 +164,8 @@ function UserDetailContent() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    trackEvent('admin_results_export', { details: { student: user?.email, count: responses.length } });
   };
 
   if (loading) return (
@@ -201,7 +206,6 @@ function UserDetailContent() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Left Column: Identity Card */}
         <div className="lg:col-span-4 space-y-8">
           <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white dark:bg-slate-900">
             <div className="h-32 bg-slate-900 relative">
@@ -258,7 +262,6 @@ function UserDetailContent() {
           </Card>
         </div>
 
-        {/* Right Column: Stats & Logs */}
         <div className="lg:col-span-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatSmall icon={Database} label="Sessions" value={stats.total} color="blue" />

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { AILoader } from '@/components/ui/ai-loader';
 import { logActivity } from '@/lib/activity-log';
+import { trackEvent } from '@/lib/tracker';
 
 export default function AdminTestDetailPage() {
   const { id } = useParams();
@@ -34,7 +35,6 @@ export default function AdminTestDetailPage() {
       const qData = await qRes.json();
       const tData = await tRes.json();
 
-      // Module Existence Protocol: Validate test exists in library
       const testExists = Array.isArray(tData) && tData.some(t => String(t.id) === String(testId));
       if (!testExists && !loading) {
         toast({
@@ -48,6 +48,9 @@ export default function AdminTestDetailPage() {
 
       setQuestions(Array.isArray(qData) ? qData : []);
       setTests(Array.isArray(tData) ? tData : []);
+      
+      const currentTest = tData.find((t: any) => String(t.id) === String(testId));
+      trackEvent('admin_test_view', { test_id: testId, test_name: currentTest?.title });
     } catch (err) {
       toast({ variant: "destructive", title: "Error", description: "Failed to load module data." });
       router.replace('/admin/tests');
@@ -72,8 +75,10 @@ export default function AdminTestDetailPage() {
       toast({ title: "Success", description: "Registry updated." });
       setDialogs({ ...dialogs, question: false, test: false, user: false, bulk: false });
       setTimeout(fetchData, 1500);
+      return true;
     } catch (err) {
       toast({ variant: "destructive", title: "Error" });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -98,11 +103,14 @@ export default function AdminTestDetailPage() {
           selectedTestId={testId}
           setSelectedTestId={(newId) => router.push(`/admin/tests/${newId}`)}
           onEdit={(q) => { setEditingItem(q); setDialogs({ ...dialogs, question: true }); }}
-          onDelete={(qid) => {
+          onDelete={async (qid) => {
             const q = questions.find(q => q.id === qid);
             const updated = questions.filter(q => q.id !== qid);
-            handlePost('saveQuestions', { testId, questions: updated });
-            logActivity("Question deleted", q?.question_text || qid);
+            const ok = await handlePost('saveQuestions', { testId, questions: updated });
+            if (ok) {
+              logActivity("Question deleted", q?.question_text || qid);
+              trackEvent('admin_question_delete', { test_id: testId, question_id: qid });
+            }
           }}
           onAdd={() => { setEditingItem(null); setDialogs({ ...dialogs, question: true }); }}
           onBulkEdit={() => setDialogs({ ...dialogs, bulk: true })}
@@ -118,17 +126,30 @@ export default function AdminTestDetailPage() {
         questions={questions}
         onSaveTest={() => {}}
         onSaveUser={() => {}}
-        onSaveQuestion={(qData, isRequired) => {
+        onSaveQuestion={async (qData, isRequired) => {
           const newId = (qData.id as string)?.trim() || `q_${Date.now().toString().slice(-6)}`;
           const prepared = { ...qData, id: newId, required: isRequired ? "TRUE" : "FALSE" };
-          handlePost('saveQuestion', { testId, question: prepared });
-          logActivity(editingItem ? "Question edited" : "Question added", qData.question_text);
+          const ok = await handlePost('saveQuestion', { testId, question: prepared });
+          if (ok) {
+            logActivity(editingItem ? "Question edited" : "Question added", qData.question_text);
+            trackEvent(editingItem ? 'admin_question_edit' : 'admin_question_create', { 
+              test_id: testId, 
+              question_id: newId,
+              details: { questionType: prepared.question_type }
+            });
+          }
         }}
-        onSaveBulk={(json) => {
+        onSaveBulk={async (json) => {
           try {
             const parsed = JSON.parse(json);
-            handlePost('saveQuestions', { testId, questions: parsed });
-            logActivity("Bulk intelligence push", `${parsed.length} questions committed to ${testId}`);
+            const ok = await handlePost('saveQuestions', { testId, questions: parsed });
+            if (ok) {
+              logActivity("Bulk intelligence push", `${parsed.length} questions committed to ${testId}`);
+              trackEvent('admin_question_bulk_import', { 
+                test_id: testId, 
+                details: { count: parsed.length } 
+              });
+            }
           } catch (e) {
             toast({ variant: "destructive", title: "Invalid JSON" });
           }

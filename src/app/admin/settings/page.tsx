@@ -34,6 +34,7 @@ import { Switch } from "@/components/ui/switch";
 import { useLanguage } from '@/context/language-context';
 import { AILoader } from '@/components/ui/ai-loader';
 import { logActivity } from '@/lib/activity-log';
+import { trackEvent } from '@/lib/tracker';
 
 export default function AdminSettingsPage() {
   const { settings, loading: settingsLoading, refreshSettings } = useSettings();
@@ -41,7 +42,6 @@ export default function AdminSettingsPage() {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   
-  // Controlled form state
   const [formData, setFormData] = useState<Record<string, string>>({
     platform_name: '',
     logo_url: '',
@@ -128,7 +128,6 @@ export default function AdminSettingsPage() {
 
     setSaving(true);
     try {
-      // PERFORMANCE: Use Promise.all for parallel synchronization
       await Promise.all(changedKeys.map(key => handlePost('saveSetting', { key, value: formData[key] })));
       
       toast({ 
@@ -137,6 +136,13 @@ export default function AdminSettingsPage() {
       });
       
       logActivity("System settings updated", `${changedKeys.length} preference(s) calibrated`);
+      
+      // TELEMETRY: Track settings save and key changes
+      trackEvent('admin_settings_save', { details: { keys: changedKeys.join(', '), platform: formData.platform_name } });
+      if (changedKeys.includes('daily_key_salt')) {
+        trackEvent('admin_access_key_change');
+      }
+      
       await refreshSettings();
     } catch (err) {
       toast({ 

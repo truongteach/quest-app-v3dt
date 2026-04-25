@@ -7,6 +7,7 @@ import { Clock, ListChecks, FileText, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { trackEvent } from '@/lib/tracker';
 
 interface ListViewProps {
   tests: any[];
@@ -40,12 +41,15 @@ export function ListView({ tests }: ListViewProps) {
   return (
     <>
       {tests.map((test, index) => (
-        <Link key={test.id} href={`/quiz?id=${test.id}`} className="group block focus-visible:ring-2 focus-visible:ring-primary rounded-[12px] outline-none">
+        <Link 
+          key={test.id} 
+          href={`/quiz?id=${test.id}`} 
+          className="group block focus-visible:ring-2 focus-visible:ring-primary rounded-[12px] outline-none"
+          onClick={() => trackEvent('test_card_click', { test_id: test.id, test_name: test.title })}
+        >
           <div className="relative bg-white dark:bg-slate-900 rounded-[12px] border-[0.5px] border-slate-200 dark:border-slate-800 overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all flex h-auto min-h-[100px]">
-            {/* Left Accent Strip */}
             <div className={cn("w-[5px] shrink-0", getDifficultyClasses(test.difficulty).split(' ')[0])} />
             
-            {/* Thumbnail (80px) */}
             <div className={cn("w-[80px] shrink-0 flex items-center justify-center bg-gradient-to-br relative", getCategoryGradient(test.category))}>
               {test.image_url ? (
                 <Image 
@@ -63,7 +67,6 @@ export function ListView({ tests }: ListViewProps) {
               )}
             </div>
 
-            {/* Content Area */}
             <div className="flex-1 p-[12px_14px] flex flex-col justify-between">
               <div className="flex items-center justify-between gap-4 mb-1">
                 <div className="flex gap-2">

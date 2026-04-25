@@ -128,7 +128,19 @@ function QuizContent() {
       setGeneratedCertificateId(certId);
     }
     
-    trackEvent('quiz_submit', { test_id: testId || '', score: finalScore, details: { total: quiz.questions.length, mode: quiz.mode } });
+    // TELEMETRY: Track final submission and completeness
+    trackEvent('quiz_submit', { 
+      test_id: testId || '', 
+      test_name: testMetadata?.title,
+      score: finalScore, 
+      details: { 
+        total: quiz.questions.length, 
+        mode: quiz.mode,
+        correct: finalScore,
+        incorrect: quiz.questions.length - finalScore 
+      } 
+    });
+    
     if (testId) sessionStorage.removeItem(`quiz_session_${testId}`);
     setQuiz({ ...quiz, isSubmitted: true, score: finalScore, endTime: timestamp });
     if (user?.email) globalMutate(`results-${user.email}`);
@@ -151,13 +163,14 @@ function QuizContent() {
             certificateId: certId
           })
         });
+        trackEvent('quiz_complete', { test_id: testId || '', test_name: testMetadata?.title });
       } catch (e) {}
     }
   };
 
   const handleStart = (mode: QuizMode) => {
     setIsStarted(true);
-    trackEvent('quiz_start', { test_id: testId || '', details: mode });
+    trackEvent('quiz_start', { test_id: testId || '', test_name: testMetadata?.title, details: { mode } });
     let q = [...(questionsData || [])];
     if (mode === 'test') q = q.sort(() => Math.random() - 0.5);
     setQuiz(prev => ({ ...prev, questions: q, startTime: Date.now(), mode: mode }));
@@ -194,7 +207,11 @@ function QuizContent() {
         questions={quiz.questions}
         responses={quiz.responses}
         userName={user?.displayName || guestName || 'Guest User'}
-        onRestart={() => { trackEvent('quiz_reset'); setIsStarted(false); setQuiz(prev => ({...prev, isSubmitted: false, responses: []})); }}
+        onRestart={() => { 
+          trackEvent('quiz_retake', { test_id: testId || '', test_name: testMetadata?.title });
+          setIsStarted(false); 
+          setQuiz(prev => ({...prev, isSubmitted: false, responses: []})); 
+        }}
         startTime={quiz.startTime}
         endTime={quiz.endTime}
         testMetadata={testMetadata}
@@ -215,7 +232,15 @@ function QuizContent() {
       onPrev={() => setQuiz({ ...quiz, currentQuestionIndex: Math.max(0, quiz.currentQuestionIndex - 1) })}
       onSubmit={submit}
       onJump={(i) => setQuiz({ ...quiz, currentQuestionIndex: i })}
-      onToggleFlag={(id) => { onToggleFlag(id); trackEvent('quiz_flag', { test_id: testId || '', question_id: id }); }}
+      onToggleFlag={(id) => { 
+        setQuiz(prev => ({ 
+          ...prev, 
+          flaggedQuestionIds: prev.flaggedQuestionIds?.includes(id) 
+            ? prev.flaggedQuestionIds.filter(f => f !== id) 
+            : [...(prev.flaggedQuestionIds || []), id] 
+        }));
+        trackEvent('quiz_flag', { test_id: testId || '', question_id: id }); 
+      }}
     />
   );
 }

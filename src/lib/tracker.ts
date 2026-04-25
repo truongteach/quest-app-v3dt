@@ -8,8 +8,8 @@ export type EventType =
   | 'page_view' | 'quiz_start' | 'quiz_question_view' | 'quiz_answer' 
   | 'quiz_answer_change' | 'quiz_flag' | 'quiz_skip' | 'quiz_hint_used' 
   | 'quiz_submit' | 'quiz_complete' | 'certificate_download' | 'quiz_reset' | 'quiz_retake'
-  | 'page_view_home' | 'page_view_tests' | 'page_view_profile' | 'test_search' 
-  | 'test_filter' | 'test_card_click' | 'login' | 'logout' | 'register'
+  | 'quiz_retake_from_profile' | 'page_view_home' | 'page_view_tests' | 'page_view_profile' 
+  | 'test_search' | 'test_filter' | 'test_filter_category' | 'test_card_click' | 'login' | 'logout' | 'register'
   | 'admin_test_create' | 'admin_test_edit' | 'admin_test_delete' | 'admin_test_duplicate' | 'admin_test_view'
   | 'admin_question_create' | 'admin_question_edit' | 'admin_question_delete' | 'admin_question_bulk_import' | 'admin_question_reorder'
   | 'admin_student_add' | 'admin_student_edit' | 'admin_student_delete' | 'admin_student_view'
@@ -26,51 +26,55 @@ interface TrackOptions {
 export function trackEvent(eventType: EventType, options: TrackOptions = {}) {
   if (typeof window === 'undefined') return;
 
-  // Retrieve current session ID or generate one
-  let sessionId = sessionStorage.getItem('dntrng_session_id');
-  if (!sessionId) {
-    sessionId = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-    sessionStorage.setItem('dntrng_session_id', sessionId);
-  }
-
-  // Retrieve user data
-  let user: any = null;
   try {
-    const saved = localStorage.getItem('questflow_user');
-    if (saved) user = JSON.parse(saved);
-  } catch (e) {}
+    // Retrieve current session ID or generate one
+    let sessionId = sessionStorage.getItem('dntrng_session_id');
+    if (!sessionId) {
+      sessionId = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+      sessionStorage.setItem('dntrng_session_id', sessionId);
+    }
 
-  // Device & Browser Detection
-  const ua = navigator.userAgent;
-  let device = "Desktop";
-  if (/tablet|ipad/i.test(ua)) device = "Tablet";
-  else if (/mobile|iphone|android/i.test(ua)) device = "Mobile";
+    // Retrieve user data
+    let user: any = null;
+    try {
+      const saved = localStorage.getItem('questflow_user');
+      if (saved) user = JSON.parse(saved);
+    } catch (e) {}
 
-  let browser = "Other";
-  if (ua.includes("Chrome")) browser = "Chrome";
-  else if (ua.includes("Firefox")) browser = "Firefox";
-  else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
-  else if (ua.includes("Edge")) browser = "Edge";
+    // Device & Browser Detection
+    const ua = navigator.userAgent;
+    let device = "Desktop";
+    if (/tablet|ipad/i.test(ua)) device = "Tablet";
+    else if (/mobile|iphone|android/i.test(ua)) device = "Mobile";
 
-  const eventData = {
-    timestamp: new Date().toISOString(),
-    session_id: sessionId,
-    user_id: user?.id || user?.email || "anonymous",
-    user_name: user?.displayName || "Anonymous",
-    user_role: user?.role || "anonymous",
-    event_type: eventType,
-    page: window.location.pathname,
-    device,
-    browser,
-    ...options
-  };
+    let browser = "Other";
+    if (ua.includes("Chrome")) browser = "Chrome";
+    else if (ua.includes("Firefox")) browser = "Firefox";
+    else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
+    else if (ua.includes("Edge")) browser = "Edge";
 
-  // Fire and forget
-  fetch('/api/track', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(eventData),
-  }).catch(() => {
-    // Fail silently - do not interrupt user flow
-  });
+    const eventData = {
+      timestamp: new Date().toISOString(),
+      session_id: sessionId,
+      user_id: user?.id || user?.email || "anonymous",
+      user_name: user?.displayName || "Anonymous",
+      user_role: user?.role || "anonymous",
+      event_type: eventType,
+      page: window.location.pathname,
+      device,
+      browser,
+      ...options
+    };
+
+    // Fire and forget - do not await
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventData),
+    }).catch(err => {
+      console.warn('[Telemetry Silenced]', err);
+    });
+  } catch (error) {
+    // Non-critical background failure
+  }
 }

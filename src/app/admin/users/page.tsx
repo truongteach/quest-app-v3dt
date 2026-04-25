@@ -7,6 +7,7 @@ import { UsersTab } from '@/components/admin/UsersTab';
 import { AdminDialogs } from '@/components/admin/AdminDialogs';
 import { AILoader } from '@/components/ui/ai-loader';
 import { logActivity } from '@/lib/activity-log';
+import { trackEvent } from '@/lib/tracker';
 
 export default function AdminUsersPage() {
   const [loading, setLoading] = useState(false);
@@ -51,8 +52,10 @@ export default function AdminUsersPage() {
       toast({ title: "Success", description: "Identity record updated." });
       setDialogs({ ...dialogs, user: false });
       setTimeout(fetchData, 1500);
+      return true;
     } catch (err) {
       toast({ variant: "destructive", title: "Error" });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -70,10 +73,13 @@ export default function AdminUsersPage() {
           responses={responses}
           loading={loading}
           onEdit={(item) => { setEditingItem(item); setDialogs({ ...dialogs, user: true }); }}
-          onDelete={(email) => {
+          onDelete={async (email) => {
             const u = users.find(u => u.email === email);
-            handlePost('deleteUser', { email });
-            logActivity("Student deleted", u?.name || email);
+            const ok = await handlePost('deleteUser', { email });
+            if (ok) {
+              logActivity("Student deleted", u?.name || email);
+              trackEvent('admin_student_delete', { details: { studentId: email } });
+            }
           }}
           onAdd={() => { setEditingItem(null); setDialogs({ ...dialogs, user: true }); }}
           onRefresh={fetchData}
@@ -87,13 +93,21 @@ export default function AdminUsersPage() {
         selectedTestId=""
         questions={[]}
         onSaveTest={() => {}}
-        onSaveUser={(userData) => {
-          handlePost('saveUser', { data: userData });
-          logActivity(editingItem ? "Student record edited" : "Student added", userData.name);
+        onSaveUser={async (userData) => {
+          const ok = await handlePost('saveUser', { data: userData });
+          if (ok) {
+            logActivity(editingItem ? "Student record edited" : "Student added", userData.name);
+            trackEvent(editingItem ? 'admin_student_edit' : 'admin_student_add', { 
+              details: { studentEmail: userData.email, studentName: userData.name } 
+            });
+          }
         }}
-        onSaveUsers={(usersData) => {
-          handlePost('saveUsers', { data: usersData });
-          logActivity("Bulk student provisioning", `${usersData.length} records committed`);
+        onSaveUsers={async (usersData) => {
+          const ok = await handlePost('saveUsers', { data: usersData });
+          if (ok) {
+            logActivity("Bulk student provisioning", `${usersData.length} records committed`);
+            trackEvent('admin_student_add', { details: { count: usersData.length, type: 'batch' } });
+          }
         }}
         onSaveQuestion={() => {}}
         onSaveBulk={() => {}}

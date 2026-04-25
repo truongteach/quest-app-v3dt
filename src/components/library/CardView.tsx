@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { trackEvent } from '@/lib/tracker';
 
 interface CardViewProps {
   tests: any[];
@@ -33,7 +34,12 @@ export function CardView({ tests }: CardViewProps) {
   return (
     <>
       {tests.map((test, index) => (
-        <Link key={test.id} href={`/quiz?id=${test.id}`} className="group block focus-visible:ring-2 focus-visible:ring-primary rounded-[16px] outline-none">
+        <Link 
+          key={test.id} 
+          href={`/quiz?id=${test.id}`} 
+          className="group block focus-visible:ring-2 focus-visible:ring-primary rounded-[16px] outline-none"
+          onClick={() => trackEvent('test_card_click', { test_id: test.id, test_name: test.title })}
+        >
           <Card className="h-full flex flex-col overflow-hidden border-[0.5px] border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 rounded-[16px] bg-white dark:bg-slate-900">
             <div className="relative h-[130px] w-full overflow-hidden aspect-video">
               {test.image_url ? (

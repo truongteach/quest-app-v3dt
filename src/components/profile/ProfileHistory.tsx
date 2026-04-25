@@ -17,21 +17,14 @@ interface ProfileHistoryProps {
 
 const REGISTRY_PAGE_SIZE = 10;
 
-/**
- * DNTRNG™ INTERACTION REGISTRY
- * 
- * Displays a chronological, paginated list of all assessment interactions.
- */
 export function ProfileHistory({ responses, settings, hasHistory }: ProfileHistoryProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Pagination Registry: Slice the responses into discrete pages
   const paginatedResponses = useMemo(() => {
     const start = (currentPage - 1) * REGISTRY_PAGE_SIZE;
     return responses.slice(start, start + REGISTRY_PAGE_SIZE);
   }, [responses, currentPage]);
 
-  // Reset to first page if responses change (e.g. dynamic refresh)
   useEffect(() => {
     setCurrentPage(1);
   }, [responses.length]);
@@ -85,7 +78,13 @@ export function ProfileHistory({ responses, settings, hasHistory }: ProfileHisto
                 )}>
                   {isPass ? "Mastered" : "Needs Practice"}
                 </Badge>
-                <Link href={`/quiz?id=${r['Test ID']}`} onClick={() => trackEvent('quiz_retake', { test_id: r['Test ID'] })}>
+                <Link 
+                  href={`/quiz?id=${r['Test ID']}`} 
+                  onClick={() => trackEvent('quiz_retake_from_profile', { 
+                    test_id: r['Test ID'],
+                    test_name: r['Test ID'] 
+                  })}
+                >
                   <Button variant="outline" className="h-10 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 hover:bg-slate-50 transition-all gap-2">
                     Retake <ChevronRight className="w-3 h-3" />
                   </Button>
@@ -103,7 +102,6 @@ export function ProfileHistory({ responses, settings, hasHistory }: ProfileHisto
               pageSize={REGISTRY_PAGE_SIZE}
               onPageChange={(page) => {
                 setCurrentPage(page);
-                // UX Protocol: Scroll back to section header on page change
                 window.scrollTo({ top: 400, behavior: 'smooth' });
               }}
               className="bg-transparent border-none px-0"

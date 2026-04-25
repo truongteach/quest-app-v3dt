@@ -29,6 +29,15 @@ export default function TestsLibrary() {
     trackEvent('page_view_tests');
   }, []);
 
+  // TELEMETRY: Debounced search tracking
+  useEffect(() => {
+    if (!search.trim()) return;
+    const handler = setTimeout(() => {
+      trackEvent('test_search', { details: { query: search } });
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
+
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     API_URL ? `${API_URL}?action=getTests` : 'tests-demo',
     async (url) => {
@@ -52,17 +61,8 @@ export default function TestsLibrary() {
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
     localStorage.setItem('dntrng_selected_cat', cat);
-    trackEvent('test_filter', { details: `Category: ${cat}` });
+    trackEvent('test_filter_category', { details: { category: cat } });
   };
-
-  useEffect(() => {
-    if (search) {
-      const timer = setTimeout(() => {
-        trackEvent('test_search', { details: search });
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [search]);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -121,11 +121,6 @@ export default function TestsLibrary() {
                   </div>
                   <h1 className="text-[36px] font-bold text-[#1a2340] dark:text-white leading-tight">{t('chooseTest')}</h1>
                   <p className="text-[15px] text-slate-500 dark:text-slate-400 max-w-[480px] leading-relaxed font-medium">{t('testSubtitle')}</p>
-                  <div className="flex items-center gap-2 text-[12px] text-slate-400 font-medium pt-1">
-                    <span>{tests.length} tests available</span>
-                    <span className="opacity-30">•</span>
-                    <span>Start immediately</span>
-                  </div>
                 </div>
               </div>
             </section>
@@ -160,10 +155,7 @@ export default function TestsLibrary() {
                   {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
                 </div>
               ) : filteredTests.length > 0 ? (
-                <div className="px-4" onClick={(e) => {
-                  const card = (e.target as HTMLElement).closest('a');
-                  if (card) trackEvent('test_card_click', { details: card.getAttribute('href') || '' });
-                }}>
+                <div className="px-4">
                   {viewMode === 'card' ? <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4"><CardView tests={filteredTests} /></div> : <div className="flex flex-col gap-[10px]"><ListView tests={filteredTests} /></div>}
                 </div>
               ) : <EmptyState onClear={() => { setSearch(""); handleCategoryChange("All"); }} />}

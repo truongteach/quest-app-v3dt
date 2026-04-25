@@ -32,6 +32,7 @@ import { PerformanceGauge } from './PerformanceGauge';
 import { BenchmarkingSection } from './BenchmarkingSection';
 import { StepAnalytics } from './StepAnalytics';
 import { generateCertificatePDF } from '@/lib/certificate-utils';
+import { trackEvent } from '@/lib/tracker';
 import confetti from 'canvas-confetti';
 
 interface QuizResultsProps {
@@ -173,7 +174,9 @@ export function QuizResults({
         certificateId: certificateId,
         platformName: String(settings.platform_name || "DNTRNG")
       });
-    } catch (error) {} finally {
+      trackEvent('certificate_download', { test_id: testId, test_name: title, details: { score } });
+    } catch (error) {
+    } finally {
       setIsGenerating(false);
     }
   };
@@ -202,8 +205,6 @@ export function QuizResults({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center py-12 px-4 md:px-8 selection:bg-primary selection:text-white pb-32 transition-colors duration-500">
       <div className="w-full max-w-5xl space-y-8 animate-in fade-in duration-700">
-        
-        {/* Header: Identity Bar */}
         <div className="flex flex-col items-center text-center space-y-6">
           <div className="inline-flex items-center gap-4 px-10 py-5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
             <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-blue-400 flex items-center justify-center shadow-lg shadow-primary/20">
@@ -219,7 +220,6 @@ export function QuizResults({
           </div>
         </div>
 
-        {/* 1. TOP ROW: Summary Diagnostic */}
         <Card className="p-8 md:p-10 border-none shadow-2xl rounded-[3rem] bg-white dark:bg-slate-900 overflow-hidden flex flex-col md:flex-row items-center gap-10">
           <div className="shrink-0">
             <PerformanceGauge 
@@ -261,14 +261,12 @@ export function QuizResults({
           </div>
         </Card>
 
-        {/* 2. MIDDLE ROW: Benchmarking */}
         {isBenchmarkingEnabled && (
           <div className="w-full">
             <BenchmarkingSection testId={testId} percentage={percentage} enabled={true} />
           </div>
         )}
 
-        {/* 3. CERTIFICATE ROW */}
         {certificateId && isPass && (
           <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white relative overflow-hidden group shadow-2xl animate-in zoom-in-95 duration-500 w-full">
             <div className="absolute top-0 right-0 p-6 opacity-10 rotate-12 group-hover:rotate-45 transition-transform duration-700">
@@ -291,7 +289,6 @@ export function QuizResults({
           </div>
         )}
 
-        {/* 4. BUTTONS ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
           <Button onClick={onRestart} variant="outline" className="h-16 rounded-full font-black border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
             <RotateCcw className="w-5 h-5 mr-3" />
@@ -305,7 +302,6 @@ export function QuizResults({
           </Link>
         </div>
 
-        {/* 5. SUGGESTIONS ROW */}
         {suggestions.length > 0 && (
           <div className="w-full p-8 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
             <div className="flex items-center gap-3 mb-6">
@@ -337,7 +333,6 @@ export function QuizResults({
           </div>
         )}
 
-        {/* 6. STATS ROW: 4 Columns */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
           <StatMetric icon={History} label="Attempts" value="01" />
           <StatMetric icon={Target} label="Accuracy" value={percentage >= 80 ? "High" : isPass ? "Med" : "Low"} />
@@ -345,14 +340,12 @@ export function QuizResults({
           <StatMetric icon={Activity} label="Status" value="Verified" />
         </div>
 
-        {/* 7. QUESTION REVIEW */}
         <StepAnalytics 
           questions={questions} 
           responses={responses} 
           textSize={textSize} 
         />
 
-        {/* Bottom Navigation */}
         <div className="flex justify-center pt-12">
           <Link href="/">
             <Button variant="ghost" className="rounded-full font-black text-slate-400 hover:text-slate-900 transition-all uppercase tracking-[0.6em] text-[11px] h-14 px-12 group">
