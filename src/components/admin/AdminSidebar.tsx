@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useLanguage, Language } from '@/context/language-context';
+import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 import {
   DropdownMenu,
@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Image from 'next/image';
+import { trackEvent } from '@/lib/tracker';
 
 export type AdminTab = 'overview' | 'tests' | 'users' | 'responses' | 'activity' | 'settings' | 'events';
 
@@ -54,7 +55,7 @@ export const AdminSidebar = React.memo(({ activeTab, user, logout }: AdminSideba
   const { language, setLanguage, t } = useLanguage();
   const { settings } = useSettings();
 
-  const brandName = settings.platform_name || "DNTRNG";
+  const brandName = String(settings.platform_name || "DNTRNG");
   const sheetUrl = settings.google_sheet_url;
 
   const menuItems = [
@@ -86,7 +87,11 @@ export const AdminSidebar = React.memo(({ activeTab, user, logout }: AdminSideba
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
-                  <Link href={item.href} aria-current={activeTab === item.id ? "page" : undefined}>
+                  <Link 
+                    href={item.href} 
+                    aria-current={activeTab === item.id ? "page" : undefined}
+                    onClick={() => trackEvent('page_view', { details: `Sidebar Navigation: ${item.label}` })}
+                  >
                     <SidebarMenuButton 
                       isActive={activeTab === item.id} 
                       className={cn(
@@ -100,7 +105,8 @@ export const AdminSidebar = React.memo(({ activeTab, user, logout }: AdminSideba
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
-              </SidebarMenu>
+              ))}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
@@ -111,7 +117,12 @@ export const AdminSidebar = React.memo(({ activeTab, user, logout }: AdminSideba
               <SidebarMenuItem>
                 {sheetUrl ? (
                   <SidebarMenuButton asChild className="h-14 px-5 rounded-2xl font-black text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all mb-2">
-                    <a href={sheetUrl} target="_blank" rel="noopener noreferrer">
+                    <a 
+                      href={sheetUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      onClick={() => trackEvent('admin_results_export', { details: 'Quick Access Sheet Open' })}
+                    >
                       <FileSpreadsheet className="w-5 h-5 mr-4 text-primary" />
                       <div className="flex flex-1 items-center justify-between">
                         <span>{t('dataSheet')}</span>
@@ -164,7 +175,16 @@ export const AdminSidebar = React.memo(({ activeTab, user, logout }: AdminSideba
             <span className="text-sm font-black text-slate-900 dark:text-white truncate">{user?.displayName || 'Admin'}</span>
             <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest truncate">{user?.role}</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={logout} className="rounded-full text-destructive hover:bg-destructive/10" aria-label="Sign out">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => {
+              trackEvent('logout', { details: { role: user?.role } });
+              logout();
+            }} 
+            className="rounded-full text-destructive hover:bg-destructive/10" 
+            aria-label="Sign out"
+          >
             <LogOut className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
