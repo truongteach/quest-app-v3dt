@@ -1,416 +1,59 @@
+
+/**
+ * src/components/admin/TestsTab.tsx
+ * 
+ * Purpose: Master control terminal for the assessment module library.
+ * Key components: TestsTable, TestsGrid, EventsFilterBar.
+ * Props: Standard administrative crud handlers.
+ */
+
 "use client";
 
-import React from 'react';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  LayoutGrid,
-  List,
-  MoreVertical,
-  ChevronRight,
-  Clock,
-  ListChecks,
-  FileEdit,
-  RefreshCcw,
-  BarChart3
-} from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Plus, Search, LayoutGrid, List, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/context/language-context';
-import { Skeleton } from "@/components/ui/skeleton";
-import { Pagination } from './Pagination';
 import { useRegistryFilter } from '@/hooks/useRegistryFilter';
 
-interface TestsTabProps {
-  tests: any[];
-  loading?: boolean;
-  onEdit: (test: any) => void;
-  onDelete: (id: string) => void;
-  onManageQuestions: (id: string) => void;
-  onViewAnalytics: (test: any) => void;
-  onAdd: () => void;
-  onRefresh: () => void;
-}
+// Sub-components per Protocol v18.9
+import { TestsTable } from './tests/TestsTable';
 
-export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, onViewAnalytics, onAdd, onRefresh }: TestsTabProps) {
+export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, onViewAnalytics, onAdd, onRefresh }: any) {
   const { t } = useLanguage();
-  const [viewMode, setViewMode] = React.useState<'list' | 'card'>('list');
-  const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
 
-  const {
-    searchTerm,
-    setSearchTerm,
-    currentPage,
-    setCurrentPage,
-    paginatedData,
-    totalItems,
-    pageSize
-  } = useRegistryFilter({
+  const { searchTerm, setSearchTerm, currentPage, setCurrentPage, paginatedData, totalItems, pageSize } = useRegistryFilter({
     data: tests,
-    searchFields: (test) => [
-      String(test.title || ""),
-      String(test.id || ""),
-      String(test.category || ""),
-      String(test.description || "")
-    ]
+    searchFields: (test: any) => [test.title, test.id, test.category]
   });
 
-  const handleDelete = () => {
-    if (deleteConfirmId) {
-      onDelete(deleteConfirmId);
-      setDeleteConfirmId(null);
-    }
-  };
-
   return (
-    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-[2rem] border shadow-sm dark:border-slate-800">
-        <div>
-          <h2 className="font-black text-2xl text-slate-900 dark:text-white tracking-tight uppercase">{t('testLibrary')}</h2>
-        </div>
-        
+    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border shadow-sm">
+        <h2 className="font-black text-2xl text-slate-900 tracking-tight uppercase">{t('testLibrary')}</h2>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative w-full md:w-64 flex items-center gap-2" role="search">
+          <div className="relative w-full md:w-64 flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-              <Input 
-                placeholder={t('searchTests')} 
-                aria-label="Search tests"
-                className="pl-10 rounded-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 h-11" 
-                value={searchTerm} 
-                disabled={loading}
-                onChange={(e) => setSearchTerm(e.target.value)} 
-              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder={t('searchTests')} className="pl-10 rounded-full bg-slate-50 border-slate-200 h-11" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={onRefresh} 
-              disabled={loading}
-              aria-label="Refresh tests"
-              className="rounded-full h-11 w-11 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              <RefreshCcw className={cn("w-4 h-4 text-slate-400", loading && "animate-spin text-primary")} />
-            </Button>
+            <Button variant="outline" size="icon" onClick={onRefresh} className="rounded-full h-11 w-11"><RefreshCcw className={cn("w-4 h-4", loading && "animate-spin")} /></Button>
           </div>
-
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-full border dark:border-slate-700">
-            <Button 
-              variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
-              size="icon" 
-              onClick={() => setViewMode('list')}
-              disabled={loading}
-              aria-label="Switch to list view"
-              className={cn("rounded-full h-9 w-9", viewMode === 'list' && "bg-white dark:bg-slate-700 shadow-sm")}
-            >
-              <List className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant={viewMode === 'card' ? 'secondary' : 'ghost'} 
-              size="icon" 
-              onClick={() => setViewMode('card')}
-              disabled={loading}
-              aria-label="Switch to card view"
-              className={cn("rounded-full h-9 w-9", viewMode === 'card' && "bg-white dark:bg-slate-700 shadow-sm")}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
+          <div className="flex items-center bg-slate-100 p-1 rounded-full border">
+            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')} className={cn("rounded-full h-9 w-9", viewMode === 'list' && "bg-white shadow-sm")}><List className="w-4 h-4" /></Button>
+            <Button variant={viewMode === 'card' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('card')} className={cn("rounded-full h-9 w-9", viewMode === 'card' && "bg-white shadow-sm")}><LayoutGrid className="w-4 h-4" /></Button>
           </div>
-
-          <Button onClick={onAdd} disabled={loading} className="rounded-full h-11 px-6 gap-2 font-black shadow-lg bg-primary">
-            <Plus className="w-4 h-4" /> {t('newTest')}
-          </Button>
+          <Button onClick={onAdd} className="rounded-full h-11 px-6 gap-2 font-black shadow-lg bg-primary"><Plus className="w-4 h-4" /> {t('newTest')}</Button>
         </div>
       </div>
 
-      {viewMode === 'list' ? (
-        <div className="space-y-4">
-          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden rounded-[2rem] border dark:border-slate-800">
-            <CardContent className="p-0">
-              <Table aria-label="Test library">
-                <TableHeader>
-                  <TableRow className="bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-none">
-                    <TableHead scope="col" className="px-8 py-5 font-black uppercase text-[10px] tracking-widest text-slate-400">{t('id')}</TableHead>
-                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-slate-400">{t('title')}</TableHead>
-                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-center text-slate-400">Items</TableHead>
-                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-slate-400">{t('category')}</TableHead>
-                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-center text-slate-400">Status</TableHead>
-                    <TableHead scope="col" className="font-black uppercase text-[10px] tracking-widest px-8 text-right text-slate-400 min-w-[320px]">{t('actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading && tests.length === 0 ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <TableRow key={i} className="border-b border-slate-50 dark:border-slate-800 last:border-none">
-                        <TableCell className="px-8 py-6"><Skeleton className="h-4 w-12 rounded" /></TableCell>
-                        <TableCell className="px-8 py-6"><Skeleton className="h-5 w-48 rounded" /></TableCell>
-                        <TableCell className="px-8 py-6"><Skeleton className="h-5 w-12 mx-auto rounded" /></TableCell>
-                        <TableCell className="px-8 py-6"><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
-                        <TableCell className="px-8 py-6"><Skeleton className="h-5 w-20 mx-auto rounded-full" /></TableCell>
-                        <TableCell className="px-8 py-6 text-right">
-                          <div className="flex justify-end gap-2">
-                            <Skeleton className="h-8 w-20 rounded-full" />
-                            <Skeleton className="h-8 w-8 rounded-full" />
-                            <Skeleton className="h-8 w-8 rounded-full" />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : paginatedData.map((t_item, i) => (
-                    <TableRow key={i} className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-none">
-                      <TableCell className="px-8 py-5">
-                        <Badge variant="outline" className="font-mono text-[10px] bg-slate-50 dark:bg-slate-800 rounded-md border-slate-200 dark:border-slate-700">
-                          {t_item.id}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-8 font-black text-slate-700 dark:text-slate-200">{t_item.title}</TableCell>
-                      <TableCell className="px-8 text-center font-bold text-slate-500 dark:text-slate-400">
-                        {t_item.questions_count ?? "---"}
-                      </TableCell>
-                      <TableCell className="px-8">
-                        <Badge variant="secondary" aria-label={`Category: ${t_item.category || 'General'}`} className="font-black text-[10px] uppercase tracking-wider px-3 rounded-full bg-primary/5 text-primary border-none">
-                          {t_item.category || 'General'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-8 text-center">
-                        <Badge aria-label="Status: Published" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-none text-[9px] font-black uppercase px-3 py-1 rounded-full">
-                          Published
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-8 text-right">
-                        <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap transition-all opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto duration-150">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            disabled={loading} 
-                            onClick={() => onViewAnalytics(t_item)} 
-                            aria-label={`View analytics for ${t_item.title}`}
-                            className="rounded-full text-primary font-black text-xs hover:bg-primary/5"
-                          >
-                            <BarChart3 className="w-4 h-4 mr-1.5" /> Analytics
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            disabled={loading} 
-                            onClick={() => onManageQuestions(t_item.id)} 
-                            aria-label={`Questions for ${t_item.title}`}
-                            className="rounded-full text-slate-600 dark:text-slate-400 font-black text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
-                          >
-                            <FileEdit className="w-4 h-4 mr-1.5" /> {t('questions')}
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            disabled={loading} 
-                            onClick={() => onEdit(t_item)} 
-                            aria-label={`Edit ${t_item.title}`}
-                            className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            disabled={loading} 
-                            onClick={() => setDeleteConfirmId(t_item.id)} 
-                            aria-label={`Delete ${t_item.title}`}
-                            className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/5"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {!loading && totalItems === 0 && (
-                <div className="py-24 text-center">
-                  <p className="font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">{t('noTests')}</p>
-                </div>
-              )}
-              {totalItems > 0 && (
-                <Pagination 
-                  currentPage={currentPage}
-                  totalItems={totalItems}
-                  pageSize={pageSize}
-                  onPageChange={setCurrentPage}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {loading && tests.length === 0 ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden border-none shadow-sm rounded-[2.5rem] bg-white dark:bg-slate-900 flex flex-col border dark:border-slate-800">
-                  <Skeleton className="aspect-video w-full" />
-                  <CardHeader className="flex-1 pb-2">
-                    <div className="flex justify-between items-start gap-2 mb-2">
-                      <Skeleton className="h-4 w-12 rounded" />
-                      <Skeleton className="h-4 w-16 rounded" />
-                    </div>
-                    <Skeleton className="h-7 w-3/4 rounded mt-2" />
-                    <Skeleton className="h-4 w-full rounded mt-4" />
-                    <Skeleton className="h-4 w-5/6 rounded mt-2" />
-                  </CardHeader>
-                  <CardFooter className="pt-0 p-4 mt-auto">
-                    <Skeleton className="h-12 w-full rounded-full" />
-                  </CardFooter>
-                </Card>
-              ))
-            ) : paginatedData.map((t_item, i) => (
-              <Card key={i} className="group overflow-hidden border-none shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 rounded-[2.5rem] bg-white dark:bg-slate-900 flex flex-col border dark:border-slate-800">
-                <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800">
-                  <img 
-                    src={t_item.image_url || `https://picsum.photos/seed/${t_item.id}/800/450`} 
-                    alt={t_item.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-white/95 dark:bg-slate-900/95 text-primary hover:bg-white shadow-xl border-none backdrop-blur-md font-black text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-full">
-                      {t_item.category || "General"}
-                    </Badge>
-                  </div>
-                  <div className="absolute top-4 right-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild disabled={loading}>
-                        <Button size="icon" variant="secondary" aria-label="Module options" className="rounded-full h-10 w-10 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="rounded-2xl p-2 w-48 shadow-2xl border-none dark:bg-slate-900 dark:border dark:border-slate-800" align="end">
-                        <DropdownMenuItem onClick={() => onViewAnalytics(t_item)} className="rounded-xl font-bold p-3 cursor-pointer">
-                          <BarChart3 className="w-4 h-4 mr-2" /> Analytics
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(t_item)} className="rounded-xl font-bold p-3 cursor-pointer">
-                          <Edit className="w-4 h-4 mr-2" /> {t('edit')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteConfirmId(t_item.id)} className="rounded-xl font-bold p-3 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
-                          <Trash2 className="w-4 h-4 mr-2" /> {t('delete')}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-
-                <CardHeader className="flex-1 pb-2">
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <Badge variant="outline" className="font-mono text-[9px] uppercase tracking-tighter opacity-50 px-2 rounded-md dark:border-slate-700">
-                      {t_item.id}
-                    </Badge>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t_item.difficulty || 'Easy'}</span>
-                  </div>
-                  <CardTitle className="text-xl font-black text-slate-900 dark:text-white line-clamp-1 group-hover:text-primary transition-colors">
-                    {t_item.title}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2 mt-2 font-medium text-slate-500 dark:text-slate-400 text-sm">
-                    {t_item.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="pb-6">
-                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                    <div className="flex items-center gap-1.5">
-                      <ListChecks className="w-4 h-4 text-primary opacity-40" />
-                      <span>{t_item.questions_count !== undefined ? `${t_item.questions_count} Steps` : 'Live Sync'}</span>
-                    </div>
-                    <div className="h-4 w-px bg-slate-100 dark:bg-slate-800" />
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-4 h-4 text-primary opacity-40" />
-                      <span>{t_item.duration || '15m'}</span>
-                    </div>
-                  </div>
-                </CardContent>
-
-                <CardFooter className="pt-0 p-4 mt-auto">
-                  <Button 
-                    onClick={() => onManageQuestions(t_item.id)}
-                    disabled={loading}
-                    className="w-full h-12 rounded-full font-black text-xs uppercase tracking-widest shadow-lg group-hover:shadow-primary/20 transition-all hover:scale-[1.02] bg-primary"
-                  >
-                    {t('questions')}
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-          {totalItems > 0 && (
-            <Card className="border-none shadow-sm rounded-[2rem] overflow-hidden border dark:border-slate-800">
-              <Pagination 
-                currentPage={currentPage}
-                totalItems={totalItems}
-                pageSize={pageSize}
-                onPageChange={setCurrentPage}
-              />
-            </Card>
-          )}
-          {!loading && totalItems === 0 && (
-            <div className="col-span-full py-24 text-center">
-              <p className="font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">{t('noTests')}</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && !loading && setDeleteConfirmId(null)}>
-        <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl dark:bg-slate-900">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
-              {t('confirmDeleteTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-lg font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-              {t('confirmDeleteDesc')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
-            <AlertDialogCancel disabled={loading} className="h-14 rounded-full border-2 font-black uppercase text-xs tracking-widest flex-1 dark:border-slate-700 dark:text-slate-400">
-              {t('cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              disabled={loading}
-              className="h-14 rounded-full bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-xs tracking-widest flex-1 shadow-xl shadow-destructive/20 border-none"
-            >
-              {loading ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : null}
-              {t('delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <TestsTable 
+        data={paginatedData} loading={loading} onEdit={onEdit} onDelete={onDelete} 
+        onManageQuestions={onManageQuestions} onViewAnalytics={onViewAnalytics} t={t}
+        pagination={{ currentPage, totalItems, pageSize, onPageChange: setCurrentPage }}
+      />
     </div>
   );
 }
