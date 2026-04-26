@@ -18,7 +18,34 @@ export function EventDetailRow({ event }: { event: any }) {
     return String(val || 'N/A');
   };
 
-  const details = typeof event.details === 'string' ? JSON.parse(event.details || '{}') : event.details;
+  /**
+   * REGISTRY DEFENSE PROTOCOL
+   * 
+   * Safely parses event details. Handles both JSON strings and plain text
+   * to prevent terminal SyntaxErrors during forensic audit.
+   */
+  const getParsedDetails = (input: any) => {
+    if (!input) return {};
+    if (typeof input === 'object') return input;
+    
+    const str = String(input).trim();
+    if (!str) return {};
+    
+    // Check if string looks like JSON before parsing
+    if (str.startsWith('{') || str.startsWith('[')) {
+      try {
+        return JSON.parse(str);
+      } catch (e) {
+        // Fallback for malformed JSON
+        return { info: str };
+      }
+    }
+    
+    // Return as plain info if not a JSON string
+    return { info: str };
+  };
+
+  const details = getParsedDetails(event.details);
 
   return (
     <TableRow className="bg-slate-50/30 border-b border-slate-100">
