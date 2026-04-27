@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { parseRegistryArray } from '@/lib/quiz-utils';
+import { parseRegistryArray, shuffleArray } from '@/lib/quiz-utils';
 
 interface Props {
   question: Question;
@@ -56,7 +56,10 @@ export const TrueFalseModule: React.FC<Props> = ({ question, value, onChange, re
             >
               {o}
             </Label>
-            {reviewMode && o === correctArr[0] && <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />}
+            {/* CORRECT INDICATOR: Strictly gated behind reviewMode to prevent premature leaks */}
+            {reviewMode && o === correctArr[0] && (
+              <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0 animate-in fade-in zoom-in duration-300" />
+            )}
           </div>
          );
        })}

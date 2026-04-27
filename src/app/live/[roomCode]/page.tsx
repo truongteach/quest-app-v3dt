@@ -3,7 +3,7 @@
  * 
  * Route: /live/[roomCode]
  * Purpose: Student terminal for synchronized live assessments.
- * Updated: v18.9.2 - Updated status handlers to recognize 'active' state.
+ * Updated: v18.9.3 - Refined reveal phase to show question review alongside results.
  */
 
 "use client";
@@ -204,9 +204,10 @@ export default function LiveStudentPage() {
     );
   }
 
-  if (status === 'active' && currentQuestion) {
+  if ((status === 'active' || status === 'revealed') && currentQuestion) {
     const hasTransmitted = currentAnswer !== undefined;
     const isExpired = currentAnswer === "__expired__";
+    const isRevealed = status === 'revealed';
 
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -221,7 +222,7 @@ export default function LiveStudentPage() {
           <div className="flex items-center gap-4">
              <div className="p-2 bg-primary/10 rounded-xl"><Clock className="w-4 h-4 text-primary" /></div>
              <span className={cn("text-2xl font-black tabular-nums", timeLeft === 0 && "text-rose-500")}>
-               {timeLeft !== null ? `${timeLeft}s` : '---'}
+               {isRevealed ? 'REVEALED' : (timeLeft !== null ? `${timeLeft}s` : '---')}
              </span>
           </div>
           <div className="flex flex-col items-end">
@@ -231,26 +232,54 @@ export default function LiveStudentPage() {
         </header>
         
         <main className="flex-1 p-6 md:p-12 animate-in fade-in duration-500">
-          <div className="max-w-3xl mx-auto bg-white rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-slate-100">
-            <QuestionRenderer 
-              question={currentQuestion} 
-              value={isExpired ? null : currentAnswer} 
-              onChange={submitAnswer} 
-              reviewMode={false} 
-            />
-            {hasTransmitted && (
-              <div className={cn(
-                "mt-10 p-8 rounded-3xl border-2 border-dashed text-center animate-in zoom-in-95",
-                isExpired ? "bg-rose-50 border-rose-200" : "bg-blue-50 border-blue-200"
-              )}>
-                <p className={cn("text-lg font-black uppercase tracking-tight", isExpired ? "text-rose-600" : "text-blue-600")}>
-                  {isExpired ? 'Time Expired — Answer Transmitted' : 'Answer Transmitted'}
-                </p>
-                <p className={cn("text-sm font-medium mt-1", isExpired ? "text-rose-400" : "text-blue-400")}>
-                  Waiting for terminal reveal protocol...
-                </p>
-              </div>
+          <div className="max-w-3xl mx-auto space-y-8">
+            {isRevealed && result && (
+               <div className={cn(
+                 "p-8 rounded-[2.5rem] text-white flex items-center gap-6 shadow-2xl animate-in zoom-in-95 duration-500",
+                 result.correct ? "bg-emerald-500" : "bg-rose-500"
+               )}>
+                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shrink-0 shadow-lg">
+                    {result.correct ? <CheckCircle2 className="w-10 h-10 text-emerald-500" /> : <XCircle className="w-10 h-10 text-rose-500" />}
+                 </div>
+                 <div>
+                    <h2 className="text-3xl font-black uppercase tracking-tight">{result.correct ? 'Correct!' : 'Incorrect'}</h2>
+                    <p className="text-sm font-bold opacity-80 uppercase tracking-widest">{result.correct ? '+100 Intelligence Points' : 'Identity Alignment Error'}</p>
+                 </div>
+                 <div className="ml-auto text-right border-l border-white/20 pl-6 hidden sm:block">
+                    <p className="text-[9px] font-black uppercase opacity-60">Global Rank</p>
+                    <p className="text-2xl font-black">#{studentRank || '--'}</p>
+                 </div>
+               </div>
             )}
+
+            <div className="bg-white rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-slate-100">
+              <QuestionRenderer 
+                question={currentQuestion} 
+                value={isExpired ? null : currentAnswer} 
+                onChange={submitAnswer} 
+                reviewMode={isRevealed} 
+              />
+              
+              {hasTransmitted && !isRevealed && (
+                <div className={cn(
+                  "mt-10 p-8 rounded-3xl border-2 border-dashed text-center animate-in zoom-in-95",
+                  isExpired ? "bg-rose-50 border-rose-200" : "bg-blue-50 border-blue-200"
+                )}>
+                  <p className={cn("text-lg font-black uppercase tracking-tight", isExpired ? "text-rose-600" : "text-blue-600")}>
+                    {isExpired ? 'Time Expired — Answer Transmitted' : 'Answer Transmitted'}
+                  </p>
+                  <p className={cn("text-sm font-medium mt-1", isExpired ? "text-rose-400" : "text-blue-400")}>
+                    Waiting for terminal reveal protocol...
+                  </p>
+                </div>
+              )}
+              
+              {isRevealed && (
+                <div className="mt-10 pt-8 border-t border-slate-100 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">Waiting for host to cycle step...</p>
+                </div>
+              )}
+            </div>
           </div>
         </main>
 
@@ -264,36 +293,6 @@ export default function LiveStudentPage() {
              </Button>
           </div>
         )}
-      </div>
-    );
-  }
-
-  if (status === 'revealed' && result) {
-    const isCorrect = result.correct;
-    return (
-      <div className={cn("min-h-screen flex flex-col items-center justify-center p-8 text-center text-white", isCorrect ? "bg-emerald-500" : "bg-rose-500")}>
-        <div className="max-w-md w-full space-y-10 animate-in zoom-in-95 duration-500">
-          <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mx-auto shadow-2xl">
-            {isCorrect ? <CheckCircle2 className="w-20 h-20 text-emerald-500" /> : <XCircle className="w-20 h-20 text-rose-500" />}
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-5xl font-black uppercase tracking-tighter">{isCorrect ? 'Correct!' : 'Incorrect'}</h2>
-            <p className="text-xl font-bold opacity-80">{isCorrect ? '+100 Intelligence Points' : 'Identity Alignment Error'}</p>
-          </div>
-          <div className="p-8 bg-white/20 backdrop-blur-md rounded-[2.5rem] border border-white/20">
-            <div className="flex justify-between items-center px-4 mb-4 border-b border-white/10 pb-4">
-               <div className="text-left">
-                  <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Global Rank</p>
-                  <p className="text-2xl font-black">#{studentRank || '--'}</p>
-               </div>
-               <div className="text-right">
-                  <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Total Score</p>
-                  <p className="text-2xl font-black">{result.score}</p>
-               </div>
-            </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Waiting for host to cycle step...</p>
-          </div>
-        </div>
       </div>
     );
   }

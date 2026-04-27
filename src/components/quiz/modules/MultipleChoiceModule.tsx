@@ -73,8 +73,9 @@ export const MultipleChoiceModule: React.FC<Props> = ({ question, value, onChang
             >
               {option}
             </Label>
+            {/* CORRECT INDICATOR: Strictly gated behind reviewMode to prevent premature leaks */}
             {reviewMode && correctArr.includes(option) && (
-              <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />
+              <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0 animate-in fade-in zoom-in duration-300" />
             )}
           </div>
         );
