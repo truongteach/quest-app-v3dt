@@ -8,14 +8,14 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { getPusherClient } from '@/lib/pusher';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Play, CheckCircle2, Clock, Trophy, Copy, LogOut, Loader2, Radio, ArrowRight, ListChecks, AlertCircle } from 'lucide-react';
+import { Users, Play, CheckCircle2, Clock, Trophy, Copy, LogOut, Loader2, Radio, ArrowRight, ListChecks, AlertCircle, RefreshCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AILoader } from '@/components/ui/ai-loader';
 import { Question } from '@/types/quiz';
@@ -63,6 +63,9 @@ export default function LiveHostPage() {
   const initTerminal = useCallback(async (retryCount = 0) => {
     if (!roomCode) return;
     
+    // Ensure loading gate is locked during sync cycle
+    let shouldFinishLoading = true;
+
     try {
       // GAS: getRoomDetails
       const roomRes = await fetch(`/api/live/room-details?code=${roomCode}`);
@@ -83,7 +86,6 @@ export default function LiveHostPage() {
         if (!API_URL) {
           if (String(roomData.testId).includes('demo')) {
             setQuestions(DEMO_QUESTIONS);
-            setLoading(false);
             return;
           }
           throw new Error('API_URL_MISSING');
@@ -95,6 +97,7 @@ export default function LiveHostPage() {
         
         if (validQuestions.length === 0 && retryCount < 2) {
           console.warn(`[Sync Retry ${retryCount + 1}] Intelligence bank empty. Retrying...`);
+          shouldFinishLoading = false; // Maintain loading state for retry
           setTimeout(() => initTerminal(retryCount + 1), 1000);
           return;
         }
@@ -104,12 +107,14 @@ export default function LiveHostPage() {
     } catch (err) {
       console.error('[Sync Failure] Registry nodes failed to report:', err);
       if (retryCount < 2) {
+        shouldFinishLoading = false; // Maintain loading state for retry
         setTimeout(() => initTerminal(retryCount + 1), 1000);
         return;
       }
     } finally {
-      // Only release the loading gate once questions are confirmed or retries exhausted
-      setLoading(false);
+      if (shouldFinishLoading) {
+        setLoading(false);
+      }
     }
   }, [roomCode, router, toast]);
 
@@ -288,25 +293,32 @@ export default function LiveHostPage() {
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={startQuiz}
-                    disabled={!canStartAssessment}
-                    className={cn(
-                      "h-20 px-12 rounded-full font-black text-2xl uppercase tracking-tighter shadow-2xl transition-all border-none relative z-30",
-                      !canStartAssessment 
-                        ? "bg-slate-800 text-slate-500 cursor-not-allowed opacity-50" 
-                        : "bg-primary hover:bg-primary/90 text-white hover:scale-[1.05] shadow-primary/30 cursor-pointer"
+                  <div className="flex flex-col items-center gap-4">
+                    <Button 
+                      onClick={startQuiz}
+                      disabled={!canStartAssessment}
+                      className={cn(
+                        "h-20 px-12 rounded-full font-black text-2xl uppercase tracking-tighter shadow-2xl transition-all border-none relative z-30",
+                        !canStartAssessment 
+                          ? "bg-slate-800 text-slate-500 cursor-not-allowed opacity-50" 
+                          : "bg-primary hover:bg-primary/90 text-white hover:scale-[1.05] shadow-primary/30 cursor-pointer"
+                      )}
+                    >
+                      <Play className="w-6 h-6 mr-3 fill-current" />
+                      Start Assessment
+                    </Button>
+                    
+                    {!hasQuestions && !loading && (
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-2 animate-pulse">
+                          <AlertCircle className="w-3 h-3" /> Error: Intelligence Nodes Not Synchronized
+                        </p>
+                        <Button variant="link" onClick={() => initTerminal()} className="text-[9px] text-slate-500 font-bold uppercase hover:text-primary">
+                          <RefreshCcw className="w-3 h-3 mr-1" /> Retry Registry Pull
+                        </Button>
+                      </div>
                     )}
-                  >
-                    <Play className="w-6 h-6 mr-3 fill-current" />
-                    Start Assessment
-                  </Button>
-                  
-                  {!hasQuestions && !loading && (
-                    <p className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-2 animate-pulse">
-                      <AlertCircle className="w-3 h-3" /> Error: Intelligence Nodes Not Synchronized
-                    </p>
-                  )}
+                  </div>
                </div>
             </div>
           ) : (
