@@ -1,8 +1,10 @@
+
 /**
  * live/[roomCode]/page.tsx
  * 
  * Route: /live/[roomCode]
  * Purpose: Student terminal for synchronized live assessments.
+ * Updated: v18.9 - Added session status audit and direct-navigation guards.
  */
 
 "use client";
@@ -67,6 +69,43 @@ export default function LiveStudentPage() {
       router.push('/join');
       return;
     }
+
+    // SESSION INTEGRITY PROTOCOL: Verify current room status on mount
+    const checkInitialStatus = async () => {
+      try {
+        const res = await fetch(`/api/live/room-details?code=${roomCode}`);
+        if (!res.ok) {
+           router.push('/join');
+           return;
+        }
+        const data = await res.json();
+        
+        // Verify if current identity was part of this session
+        const isMyIdentityPresent = data.students?.some((s: any) => s.id === studentId);
+
+        if (data.status === 'ended') {
+          if (isMyIdentityPresent) {
+            // Restore final results view for existing participants who refresh
+            setLeaderboard(data.students.sort((a: any, b: any) => b.score - a.score));
+            setStatus('ended');
+          } else {
+            // Redirect intruders/late-joiners attempting direct access to closed rooms
+            router.push('/join?error=session-ended');
+          }
+          return;
+        }
+
+        // Redirect to join if session is active but current student is not in registry
+        if (!isMyIdentityPresent) {
+           router.push('/join');
+           return;
+        }
+      } catch (e) {
+        console.error('[Session Audit Failed]', e);
+      }
+    };
+
+    checkInitialStatus();
 
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`room-${roomCode}`);

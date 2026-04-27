@@ -3,6 +3,7 @@
  * /api/live/join-room
  * 
  * Purpose: Student entry node for Live Mode sessions.
+ * Updated: v18.9 - Added session status validation and descriptive error protocol.
  */
 
 import { NextResponse } from 'next/server';
@@ -19,8 +20,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Room not found' }, { status: 404 });
     }
 
+    // STATUS AUDIT PROTOCOL
+    if (room.status === 'ended') {
+      return NextResponse.json({ 
+        error: 'THIS SESSION HAS ENDED — The host has closed this room.' 
+      }, { status: 403 });
+    }
+
     if (room.status !== 'waiting') {
-      return NextResponse.json({ error: 'Session already started' }, { status: 403 });
+      return NextResponse.json({ 
+        error: 'Session already in progress. Join attempts are locked once the mission starts.' 
+      }, { status: 403 });
     }
 
     if (room.students.length >= 50) {

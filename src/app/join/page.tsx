@@ -4,27 +4,42 @@
  * 
  * Route: /join
  * Purpose: Student entry gateway for live classroom sessions.
+ * Updated: v18.9 - Added error parameter handling and session termination awareness.
  */
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Zap, ArrowRight, Loader2, User, Key } from "lucide-react";
+import { Zap, ArrowRight, Loader2, User, Key, AlertCircle } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 
-export default function JoinPage() {
+function JoinContent() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [roomCode, setRoomCode] = useState('');
   const [name, setName] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+
+  const errorParam = searchParams.get('error');
+
+  // SESSION AUDIT PROTOCOL: Display errors from terminated or restricted sessions
+  useEffect(() => {
+    if (errorParam === 'session-ended') {
+      toast({ 
+        variant: "destructive", 
+        title: "Session Closed", 
+        description: "THIS SESSION HAS ENDED — The host has closed this room." 
+      });
+    }
+  }, [errorParam, toast]);
 
   // Identity Auto-fill Protocol: Synchronize input with authenticated profile on load
   useEffect(() => {
@@ -73,6 +88,13 @@ export default function JoinPage() {
           <CardDescription className="text-white/60 font-bold uppercase text-[10px] tracking-widest mt-2">Classroom Session Protocol</CardDescription>
         </CardHeader>
         <CardContent className="p-10 pt-12">
+          {errorParam === 'session-ended' && (
+            <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 text-rose-600 animate-in fade-in slide-in-from-top-2">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <p className="text-xs font-bold uppercase tracking-tight">This session has ended.</p>
+            </div>
+          )}
+
           <form onSubmit={handleJoin} className="space-y-6">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Room Access Code</label>
@@ -117,5 +139,13 @@ export default function JoinPage() {
       
       <p className="mt-8 text-[9px] font-black uppercase tracking-[0.6em] text-slate-300">DNTRNG™ • LIVE CLASSROOM ENGINE</p>
     </div>
+  );
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense fallback={null}>
+      <JoinContent />
+    </Suspense>
   );
 }
