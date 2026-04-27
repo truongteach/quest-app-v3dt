@@ -1,7 +1,8 @@
 /**
- * /api/live/room-details
+ * room-details/route.ts
  * 
  * Purpose: Retrieves metadata for an active live room.
+ * Updated: v18.9 - Added score and answers to student mapping for results processing.
  */
 
 import { NextResponse } from 'next/server';
@@ -30,7 +31,12 @@ export async function GET(request: Request) {
       status: room.status,
       currentQuestion: room.currentQuestion,
       studentCount: room.students.length,
-      students: room.students.map(s => ({ id: s.id, name: s.name }))
+      students: room.students.map(s => ({ 
+        id: s.id, 
+        name: s.name,
+        score: s.score,
+        answers: s.answers 
+      }))
     });
   } catch (err) {
     return NextResponse.json({ error: 'Internal Error' }, { status: 500 });

@@ -3,6 +3,7 @@
  * 
  * Route: /live/results/[roomCode]
  * Purpose: Teacher-facing dashboard for finalized live session results.
+ * Auth: Admin only (Host).
  */
 
 "use client";
@@ -23,7 +24,6 @@ import {
   ArrowLeft, 
   Download, 
   CheckCircle2, 
-  XCircle,
   BarChart3,
   ListChecks
 } from 'lucide-react';
@@ -47,12 +47,14 @@ export default function LiveResultsDashboard() {
   const stats = useMemo(() => {
     if (!roomData || !questions) return null;
 
-    const students = [...roomData.students].sort((a, b) => b.score - a.score);
+    const students = [...roomData.students].sort((a, b) => (b.score || 0) - (a.score || 0));
     const questionSummary = questions.map((q: any, qIdx: number) => {
       let correct = 0;
       let incorrect = 0;
       roomData.students.forEach((s: any) => {
-        const isCorrect = calculateScoreForQuestion(q, s.answers[qIdx]);
+        // Defensive Registry Check: Fallback to empty object if answers are missing
+        const studentAnswers = s.answers || {};
+        const isCorrect = calculateScoreForQuestion(q, studentAnswers[qIdx]);
         if (isCorrect) correct++;
         else incorrect++;
       });
@@ -60,7 +62,7 @@ export default function LiveResultsDashboard() {
     });
 
     const avgScore = roomData.students.length > 0 
-      ? Math.round(roomData.students.reduce((acc: number, s: any) => acc + s.score, 0) / roomData.students.length)
+      ? Math.round(roomData.students.reduce((acc: number, s: any) => acc + (s.score || 0), 0) / roomData.students.length)
       : 0;
 
     return { students, questionSummary, avgScore };
@@ -71,7 +73,9 @@ export default function LiveResultsDashboard() {
   if (!roomData) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-slate-50 text-center">
-        <AlertCircle className="w-16 h-16 text-rose-500 mb-6" />
+        <div className="w-16 h-16 text-rose-500 mb-6">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
         <h2 className="text-3xl font-black uppercase tracking-tight text-slate-900">Session Registry Lost</h2>
         <p className="text-slate-500 mt-2 mb-8">The requested live room could not be located in the terminal memory.</p>
         <Button onClick={() => router.push('/admin')} className="rounded-full px-8">Return to Base</Button>
@@ -96,7 +100,6 @@ export default function LiveResultsDashboard() {
              </div>
           </div>
           <div className="flex items-center gap-4">
-             {/* // TODO: Implement Excel/CSV download for live sessions */}
              <Button variant="outline" className="rounded-full h-12 px-6 font-black uppercase text-[10px] tracking-widest gap-2 bg-white shadow-sm opacity-50 cursor-not-allowed">
                <Download className="w-4 h-4" /> Export Report (Soon)
              </Button>
@@ -122,7 +125,7 @@ export default function LiveResultsDashboard() {
                    <div className="divide-y">
                       {stats?.students.map((s, i) => {
                         const totalQuestions = questions?.length || 0;
-                        const correctCount = s.score / 100;
+                        const correctCount = (s.score || 0) / 100;
                         return (
                           <div key={s.id} className="p-8 flex items-center justify-between group hover:bg-slate-50 transition-colors">
                              <div className="flex items-center gap-6">
@@ -137,7 +140,7 @@ export default function LiveResultsDashboard() {
                                    <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                                    <span className="text-[10px] font-black text-emerald-600">{Math.round((correctCount / totalQuestions) * 100)}%</span>
                                 </div>
-                                <span className="text-3xl font-black text-primary tabular-nums">{s.score}</span>
+                                <span className="text-3xl font-black text-primary tabular-nums">{s.score || 0}</span>
                              </div>
                           </div>
                         );
@@ -206,13 +209,5 @@ function AnalysisStat({ icon: Icon, label, value, color }: any) {
         <p className="text-4xl font-black text-slate-900 tracking-tighter tabular-nums">{value}</p>
       </div>
     </Card>
-  );
-}
-
-function AlertCircle({ className }: any) {
-  return (
-    <div className={className}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    </div>
   );
 }
