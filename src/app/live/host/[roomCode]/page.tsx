@@ -4,6 +4,7 @@
  * Route: /live/host/[roomCode]
  * Purpose: Command terminal for teachers hosting a live session.
  * Used by: Admin operators.
+ * Updated: v18.9.2 - Updated status transitions to recognize 'active' and 'revealed'.
  */
 
 "use client";
@@ -63,7 +64,7 @@ export default function LiveHostPage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [status, setStatus] = useState<'lobby' | 'question' | 'revealed'>('lobby');
+  const [status, setStatus] = useState<'lobby' | 'active' | 'revealed'>('lobby');
   const [isEndConfirmOpen, setIsEndConfirmOpen] = useState(false);
 
   const hasStudents = room?.students && room.students.length > 0;
@@ -142,7 +143,7 @@ export default function LiveHostPage() {
 
   const startQuiz = () => {
     if (!canStartAssessment) return;
-    setSessionStarted(true); setStatus('question'); setAnsweredCount(0);
+    setSessionStarted(true); setStatus('active'); setAnsweredCount(0);
     handleAction('start_question', { questionIndex: 0, questionData: questions[0], timeLimit: 30 });
   };
 
@@ -151,7 +152,7 @@ export default function LiveHostPage() {
   const nextQuestion = () => {
     const nextIdx = currentIdx + 1;
     if (nextIdx < questions.length) {
-      setCurrentIdx(nextIdx); setStatus('question'); setAnsweredCount(0);
+      setCurrentIdx(nextIdx); setStatus('active'); setAnsweredCount(0);
       handleAction('start_question', { questionIndex: nextIdx, questionData: questions[nextIdx], timeLimit: 30 });
     } else {
       setIsEndConfirmOpen(true);
@@ -292,7 +293,7 @@ export default function LiveHostPage() {
                 <QuestionRenderer question={questions[currentIdx]} value={null} onChange={() => {}} reviewMode={status === 'revealed'} />
               </div>
               <div className="flex justify-center gap-6 pt-4">
-                {status === 'question' ? (
+                {status === 'active' ? (
                   <Button onClick={revealAnswer} disabled={answeredCount === 0} className="h-16 px-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg uppercase shadow-xl transition-all hover:scale-[1.02] border-none"><CheckCircle2 className="w-5 h-5 mr-3" /> Reveal Answer</Button>
                 ) : (
                   <Button onClick={nextQuestion} className="h-16 px-12 rounded-full bg-primary hover:bg-primary/90 text-white font-black text-lg uppercase shadow-xl transition-all hover:scale-[1.02] border-none">

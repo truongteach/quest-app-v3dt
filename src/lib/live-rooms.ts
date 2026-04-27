@@ -3,6 +3,7 @@
  * 
  * Purpose: In-memory registry for real-time assessment rooms.
  * Features: Automatic cleanup, room state management, student tracking.
+ * Updated: v18.9.2 - Transitioned status to 'active' for in-progress questions.
  */
 
 export interface LiveStudent {
@@ -20,7 +21,7 @@ export interface LiveRoom {
   hostId: string;
   hostName: string;
   students: LiveStudent[];
-  status: 'waiting' | 'question' | 'revealed' | 'ended';
+  status: 'waiting' | 'active' | 'revealed' | 'ended';
   currentQuestion: number;
   createdAt: number;
   questionStartTime?: number;

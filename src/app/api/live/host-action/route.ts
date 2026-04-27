@@ -2,6 +2,7 @@
  * /api/live/host-action
  * 
  * Purpose: Teacher authorization node for controlling the quiz sequence.
+ * Updated: v18.9.2 - Updated status transition to 'active' on question start.
  */
 
 import { NextResponse } from 'next/server';
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
 
     switch (action) {
       case 'start_question':
-        room.status = 'question';
+        room.status = 'active'; // Transition to active blocks new joins
         room.currentQuestion = data.questionIndex;
         room.timeLimit = data.timeLimit;
         room.questionStartTime = Date.now();
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
         break;
 
       case 'next_question':
-        room.status = 'waiting';
+        // status remains active/revealed until explicitly changed by next_question or end
         await pusherServer.trigger(`room-${roomCode}`, 'next-question', {});
         break;
 
@@ -95,8 +96,6 @@ export async function POST(request: Request) {
         }
 
         await pusherServer.trigger(`room-${roomCode}`, 'session-ended', { finalLeaderboard });
-        // Room stays in memory as 'ended' for a period to allow results dashboard to fetch details
-        // Automatic cleanup protocol in live-rooms.ts will handle deletion
         break;
     }
 

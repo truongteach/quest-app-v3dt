@@ -1,9 +1,8 @@
-
 /**
  * /api/live/join-room
  * 
  * Purpose: Student entry node for Live Mode sessions.
- * Updated: v18.9 - Added session status validation and descriptive error protocol.
+ * Updated: v18.9.2 - Block joins if session is in progress (active/revealed).
  */
 
 import { NextResponse } from 'next/server';
@@ -27,9 +26,15 @@ export async function POST(request: Request) {
       }, { status: 403 });
     }
 
+    if (room.status === 'active' || room.status === 'revealed') {
+      return NextResponse.json({ 
+        error: 'SESSION IN PROGRESS — This assessment has already started. You cannot join mid-session.' 
+      }, { status: 403 });
+    }
+
     if (room.status !== 'waiting') {
       return NextResponse.json({ 
-        error: 'Session already in progress. Join attempts are locked once the mission starts.' 
+        error: 'Join attempts are locked for this session.' 
       }, { status: 403 });
     }
 

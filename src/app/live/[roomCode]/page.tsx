@@ -1,10 +1,9 @@
-
 /**
  * live/[roomCode]/page.tsx
  * 
  * Route: /live/[roomCode]
  * Purpose: Student terminal for synchronized live assessments.
- * Updated: v18.9.1 - Added Host Connection Watchdog and watchdog UI components.
+ * Updated: v18.9.2 - Updated status handlers to recognize 'active' state.
  */
 
 "use client";
@@ -30,7 +29,7 @@ export default function LiveStudentPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [status, setStatus] = useState<'waiting' | 'question' | 'revealed' | 'ended'>('waiting');
+  const [status, setStatus] = useState<'waiting' | 'active' | 'revealed' | 'ended'>('waiting');
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [currentAnswer, setCurrentAnswer] = useState<any>(undefined);
   const [answeredCount, setAnsweredCount] = useState(0);
@@ -47,7 +46,7 @@ export default function LiveStudentPage() {
 
   // Sync Protocol: Local Countdown Engine
   useEffect(() => {
-    if (status !== 'question' || timeLeft === null || timeLeft <= 0 || currentAnswer !== undefined) return;
+    if (status !== 'active' || timeLeft === null || timeLeft <= 0 || currentAnswer !== undefined) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -73,7 +72,7 @@ export default function LiveStudentPage() {
 
   // Terminal Guard: Handle auto-submit on expiry
   useEffect(() => {
-    if (status === 'question' && timeLeft === 0 && currentAnswer === undefined) {
+    if (status === 'active' && timeLeft === 0 && currentAnswer === undefined) {
       submitAnswer("__expired__");
     }
   }, [timeLeft, status, currentAnswer]);
@@ -127,7 +126,7 @@ export default function LiveStudentPage() {
       setCurrentQuestion(data.questionData);
       setCurrentAnswer(undefined);
       setResult(null);
-      setStatus('question');
+      setStatus('active');
       setTimeLeft(data.timeLimit);
     });
 
@@ -162,7 +161,7 @@ export default function LiveStudentPage() {
   }, [roomCode, studentId, router]);
 
   const submitAnswer = async (answer: any) => {
-    if (status !== 'question' || currentAnswer !== undefined) return;
+    if (status !== 'active' || currentAnswer !== undefined) return;
     
     const transmissionValue = answer === "__expired__" ? null : answer;
     setCurrentAnswer(answer);
@@ -205,7 +204,7 @@ export default function LiveStudentPage() {
     );
   }
 
-  if (status === 'question' && currentQuestion) {
+  if (status === 'active' && currentQuestion) {
     const hasTransmitted = currentAnswer !== undefined;
     const isExpired = currentAnswer === "__expired__";
 
@@ -237,7 +236,7 @@ export default function LiveStudentPage() {
               question={currentQuestion} 
               value={isExpired ? null : currentAnswer} 
               onChange={submitAnswer} 
-              reviewMode={hasTransmitted} 
+              reviewMode={false} 
             />
             {hasTransmitted && (
               <div className={cn(
