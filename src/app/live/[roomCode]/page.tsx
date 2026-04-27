@@ -1,4 +1,3 @@
-
 /**
  * live/[roomCode]/page.tsx
  * 
@@ -16,7 +15,7 @@ import { AILoader } from '@/components/ui/ai-loader';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Trophy, Clock, CheckCircle2, XCircle, Users, Zap, Loader2, ArrowLeft } from 'lucide-react';
+import { Trophy, Clock, CheckCircle2, XCircle, Users, Zap, Loader2, ArrowLeft, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -89,6 +88,12 @@ export default function LiveStudentPage() {
     }
   };
 
+  const studentRank = useMemo(() => {
+    if (!leaderboard.length) return null;
+    const idx = leaderboard.findIndex(s => s.id === studentId);
+    return idx === -1 ? null : idx + 1;
+  }, [leaderboard, studentId]);
+
   if (status === 'waiting') {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-8 text-center text-white">
@@ -157,29 +162,53 @@ export default function LiveStudentPage() {
             <p className="text-xl font-bold opacity-80">{isCorrect ? '+100 Intelligence Points' : 'Identity Alignment Error'}</p>
           </div>
           <div className="p-8 bg-white/20 backdrop-blur-md rounded-[2.5rem] border border-white/20">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2">Current Score</p>
-            <p className="text-6xl font-black tracking-tighter">{result.score}</p>
+            <div className="flex justify-between items-center px-4 mb-4 border-b border-white/10 pb-4">
+               <div className="text-left">
+                  <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Global Rank</p>
+                  <p className="text-2xl font-black">#{studentRank || '--'}</p>
+               </div>
+               <div className="text-right">
+                  <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Total Score</p>
+                  <p className="text-2xl font-black">{result.score}</p>
+               </div>
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Waiting for host to cycle step...</p>
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 animate-pulse">Waiting for host to cycle step...</p>
         </div>
       </div>
     );
   }
 
   if (status === 'ended') {
+    const myScore = leaderboard.find(s => s.id === studentId)?.score || 0;
+    
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center py-20 px-8 text-white">
         <div className="max-w-2xl w-full space-y-12 text-center animate-in fade-in duration-1000">
           <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-500/20 border border-rose-500/30 rounded-full text-rose-400 text-[10px] font-black uppercase tracking-widest mb-4">
+               SESSION TERMINATED BY HOST
+            </div>
             <Trophy className="w-20 h-20 text-primary mx-auto mb-6 drop-shadow-[0_0_20px_rgba(var(--primary),0.5)]" />
-            <h1 className="text-5xl font-black uppercase tracking-tight leading-none">Assessment Complete</h1>
-            <p className="text-xl font-medium text-slate-400">Real-time performance audit finalized.</p>
+            <h1 className="text-5xl font-black uppercase tracking-tight leading-none">Mission Finalized</h1>
+            <p className="text-xl font-medium text-slate-400">Your performance registry has been archived.</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+             <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">Final Rank</p>
+                <p className="text-4xl font-black text-primary">#{studentRank || '--'}</p>
+             </div>
+             <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">Total Score</p>
+                <p className="text-4xl font-black text-primary">{myScore}</p>
+             </div>
           </div>
 
           <Card className="border-none bg-white/5 rounded-[3rem] overflow-hidden">
             <div className="bg-white/5 p-6 border-b border-white/5 flex items-center justify-center gap-3">
               <Users className="w-5 h-5 text-primary" />
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">Final Leaderboard</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">Classroom Standings</h3>
             </div>
             <CardContent className="p-0">
               <div className="divide-y divide-white/5">
@@ -202,9 +231,9 @@ export default function LiveStudentPage() {
             </CardContent>
           </Card>
 
-          <Link href="/tests" className="block w-full">
+          <Link href="/" className="block w-full">
             <Button className="w-full h-20 rounded-full bg-primary text-white font-black text-2xl uppercase tracking-tight shadow-2xl border-none">
-              <ArrowLeft className="w-6 h-6 mr-3" /> Back to Base
+              <Home className="w-6 h-6 mr-3" /> Return to Base
             </Button>
           </Link>
         </div>

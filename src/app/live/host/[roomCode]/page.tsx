@@ -15,7 +15,22 @@ import { getPusherClient } from '@/lib/pusher';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Play, CheckCircle2, Clock, Trophy, Copy, LogOut, Loader2, Radio, ArrowRight, ListChecks, AlertCircle, RefreshCcw } from 'lucide-react';
+import { 
+  Users, 
+  Play, 
+  CheckCircle2, 
+  Clock, 
+  Trophy, 
+  Copy, 
+  LogOut, 
+  Loader2, 
+  Radio, 
+  ArrowRight, 
+  ListChecks, 
+  AlertCircle, 
+  RefreshCcw,
+  Flag
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AILoader } from '@/components/ui/ai-loader';
 import { Question } from '@/types/quiz';
@@ -23,6 +38,17 @@ import { API_URL } from '@/lib/api-config';
 import { cn } from '@/lib/utils';
 import { QuestionRenderer } from '@/components/quiz/QuestionRenderer';
 import { DEMO_QUESTIONS } from '@/app/lib/demo-data';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function LiveHostPage() {
   const { roomCode } = useParams();
@@ -38,117 +64,68 @@ export default function LiveHostPage() {
   const [answeredCount, setAnsweredCount] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [status, setStatus] = useState<'lobby' | 'question' | 'revealed'>('lobby');
+  const [isEndConfirmOpen, setIsEndConfirmOpen] = useState(false);
 
   const hasStudents = room?.students && room.students.length > 0;
   const hasQuestions = questions && questions.length > 0;
   
-  // Protocol: canStartAssessment is the singular source of truth for the primary action node
   const canStartAssessment = useMemo(() => {
     if (!hasStudents || !hasQuestions || loading || sessionStarted) return false;
     return true; 
   }, [hasStudents, hasQuestions, loading, sessionStarted]);
 
-  // Forensic Diagnostics
-  useEffect(() => {
-    console.log('[LOBBY DIAGNOSTIC AUDIT]', {
-      roomCode,
-      loadingState: loading,
-      nodeCount: room?.students?.length || 0,
-      intelligenceBankSize: questions.length,
-      canStart: canStartAssessment,
-      syncStatus: hasQuestions ? 'SYNCED' : 'UNSYNCHRONIZED'
-    });
-  }, [room, questions, loading, canStartAssessment, roomCode, hasQuestions]);
-
   const initTerminal = useCallback(async (retryCount = 0) => {
     if (!roomCode) return;
-    
-    // Ensure loading gate is locked during sync cycle
     let shouldFinishLoading = true;
 
     try {
-      // GAS: getRoomDetails
       const roomRes = await fetch(`/api/live/room-details?code=${roomCode}`);
-      
       if (roomRes.status === 404) {
-        toast({ variant: "destructive", title: "Room Not Found", description: "This session may have expired." });
+        toast({ variant: "destructive", title: "Room Not Found" });
         router.push('/admin');
         return;
       }
-
       const roomData = await roomRes.json();
       setRoom(roomData);
 
-      // GAS: getQuestions - Intelligence Node Fetch Protocol
       if (roomData.testId) {
-        console.log(`[Registry Fetch] Initializing Intelligence Sync: ${roomData.testId}`);
-        
         if (!API_URL) {
-          if (String(roomData.testId).includes('demo')) {
-            setQuestions(DEMO_QUESTIONS);
-            return;
-          }
+          if (String(roomData.testId).includes('demo')) { setQuestions(DEMO_QUESTIONS); return; }
           throw new Error('API_URL_MISSING');
         }
-
         const qRes = await fetch(`${API_URL}?action=getQuestions&id=${roomData.testId}`);
         const qData = await qRes.json();
         const validQuestions = Array.isArray(qData) ? qData : [];
         
         if (validQuestions.length === 0 && retryCount < 2) {
-          console.warn(`[Sync Retry ${retryCount + 1}] Intelligence bank empty. Retrying...`);
-          shouldFinishLoading = false; // Maintain loading state for retry
+          shouldFinishLoading = false;
           setTimeout(() => initTerminal(retryCount + 1), 1000);
           return;
         }
-
         setQuestions(validQuestions);
       }
     } catch (err) {
-      console.error('[Sync Failure] Registry nodes failed to report:', err);
       if (retryCount < 2) {
-        shouldFinishLoading = false; // Maintain loading state for retry
+        shouldFinishLoading = false;
         setTimeout(() => initTerminal(retryCount + 1), 1000);
         return;
       }
     } finally {
-      if (shouldFinishLoading) {
-        setLoading(false);
-      }
+      if (shouldFinishLoading) setLoading(false);
     }
   }, [roomCode, router, toast]);
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/');
-      return;
-    }
-
+    if (!user || user.role !== 'admin') { router.push('/'); return; }
     initTerminal();
-
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`room-${roomCode}`);
-
     channel.bind('student-joined', (data: any) => {
-      setRoom((prev: any) => ({ 
-        ...prev, 
-        students: data.students || prev.students, 
-        studentCount: data.totalStudents 
-      }));
+      setRoom((prev: any) => ({ ...prev, students: data.students || prev.students, studentCount: data.totalStudents }));
     });
-
-    channel.bind('student-answered', (data: any) => {
-      setAnsweredCount(data.answeredCount);
-    });
-
-    channel.bind('answer-reveal', (data: any) => {
-      setLeaderboard(data.leaderboard);
-      setStatus('revealed');
-    });
-
-    return () => {
-      pusher.unsubscribe(`room-${roomCode}`);
-    };
+    channel.bind('student-answered', (data: any) => setAnsweredCount(data.answeredCount));
+    channel.bind('answer-reveal', (data: any) => { setLeaderboard(data.leaderboard); setStatus('revealed'); });
+    return () => { pusher.unsubscribe(`room-${roomCode}`); };
   }, [roomCode, user, router, initTerminal]);
 
   const handleAction = async (action: string, data: any = {}) => {
@@ -165,35 +142,25 @@ export default function LiveHostPage() {
 
   const startQuiz = () => {
     if (!canStartAssessment) return;
-    setSessionStarted(true);
-    setStatus('question');
-    setAnsweredCount(0);
-    handleAction('start_question', { 
-      questionIndex: 0, 
-      questionData: questions[0], 
-      timeLimit: 30 
-    });
+    setSessionStarted(true); setStatus('question'); setAnsweredCount(0);
+    handleAction('start_question', { questionIndex: 0, questionData: questions[0], timeLimit: 30 });
   };
 
-  const revealAnswer = () => {
-    handleAction('reveal_answer', {});
-  };
+  const revealAnswer = () => handleAction('reveal_answer', {});
 
   const nextQuestion = () => {
     const nextIdx = currentIdx + 1;
     if (nextIdx < questions.length) {
-      setCurrentIdx(nextIdx);
-      setStatus('question');
-      setAnsweredCount(0);
-      handleAction('start_question', { 
-        questionIndex: nextIdx, 
-        questionData: questions[nextIdx], 
-        timeLimit: 30 
-      });
+      setCurrentIdx(nextIdx); setStatus('question'); setAnsweredCount(0);
+      handleAction('start_question', { questionIndex: nextIdx, questionData: questions[nextIdx], timeLimit: 30 });
     } else {
-      handleAction('end_session', {});
-      router.push('/admin/responses');
+      setIsEndConfirmOpen(true);
     }
+  };
+
+  const handleEndMission = async () => {
+    await handleAction('end_session', {});
+    router.push(`/live/results/${roomCode}`);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950"><AILoader /></div>;
@@ -220,7 +187,24 @@ export default function LiveHostPage() {
              </div>
              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
-          <Button variant="ghost" onClick={() => router.push('/admin')} className="rounded-full text-slate-400 hover:text-white font-bold uppercase text-[10px] tracking-widest hover:bg-white/5"><LogOut className="w-4 h-4 mr-2" /> Terminate</Button>
+          
+          <AlertDialog open={isEndConfirmOpen} onOpenChange={setIsEndConfirmOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" className="rounded-full text-slate-400 hover:text-white font-bold uppercase text-[10px] tracking-widest hover:bg-white/5"><Flag className="w-4 h-4 mr-2" /> End Mission</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl bg-white text-slate-900">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-2xl font-black uppercase tracking-tight">End Assessment?</AlertDialogTitle>
+                <AlertDialogDescription className="text-slate-500 font-medium">
+                  This will terminate the session for all connected students and finalize the results registry.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-8 gap-3">
+                <AlertDialogCancel className="rounded-full font-bold uppercase text-[10px] tracking-widest h-12">Keep Running</AlertDialogCancel>
+                <AlertDialogAction onClick={handleEndMission} className="rounded-full bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest h-12 border-none">Terminate Session</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </header>
 
@@ -270,7 +254,6 @@ export default function LiveHostPage() {
                   <h3 className="text-5xl font-black uppercase tracking-tight leading-none text-white">Lobby Ready</h3>
                   <p className="text-xl font-medium text-slate-400 max-w-lg mx-auto leading-relaxed">Sync protocol established. Initialize the assessment sequence when all student nodes are connected.</p>
                </div>
-
                <div className="p-10 rounded-[3rem] bg-white/5 border-4 border-dashed border-white/10 flex flex-col items-center gap-8 relative z-20">
                   <div className="flex flex-col gap-4">
                     <div className="space-y-2">
@@ -280,102 +263,45 @@ export default function LiveHostPage() {
                     <div className="flex items-center justify-center gap-6 py-4 border-t border-white/10 mt-2">
                       <div className="flex items-center gap-2">
                         <Users className={cn("w-3.5 h-3.5", hasStudents ? "text-emerald-500" : "text-slate-500")} />
-                        <span className={cn("text-[9px] font-black uppercase tracking-widest", hasStudents ? "text-emerald-500" : "text-slate-500")}>
-                          {room?.studentCount || 0} Ready
-                        </span>
+                        <span className={cn("text-[9px] font-black uppercase tracking-widest", hasStudents ? "text-emerald-500" : "text-slate-500")}>{room?.studentCount || 0} Ready</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <ListChecks className={cn("w-3.5 h-3.5", hasQuestions ? "text-emerald-500" : "text-rose-500")} />
-                        <span className={cn("text-[9px] font-black uppercase tracking-widest", hasQuestions ? "text-emerald-500" : "text-rose-500")}>
-                          {questions.length} Items
-                        </span>
+                        <span className={cn("text-[9px] font-black uppercase tracking-widest", hasQuestions ? "text-emerald-500" : "text-rose-500")}>{questions.length} Items</span>
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex flex-col items-center gap-4">
-                    <Button 
-                      onClick={startQuiz}
-                      disabled={!canStartAssessment}
-                      className={cn(
-                        "h-20 px-12 rounded-full font-black text-2xl uppercase tracking-tighter shadow-2xl transition-all border-none relative z-30",
-                        !canStartAssessment 
-                          ? "bg-slate-800 text-slate-500 cursor-not-allowed opacity-50" 
-                          : "bg-primary hover:bg-primary/90 text-white hover:scale-[1.05] shadow-primary/30 cursor-pointer"
-                      )}
-                    >
-                      <Play className="w-6 h-6 mr-3 fill-current" />
-                      Start Assessment
-                    </Button>
-                    
-                    {!hasQuestions && !loading && (
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-2 animate-pulse">
-                          <AlertCircle className="w-3 h-3" /> Error: Intelligence Nodes Not Synchronized
-                        </p>
-                        <Button variant="link" onClick={() => initTerminal()} className="text-[9px] text-slate-500 font-bold uppercase hover:text-primary">
-                          <RefreshCcw className="w-3 h-3 mr-1" /> Retry Registry Pull
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  <Button onClick={startQuiz} disabled={!canStartAssessment} className={cn("h-20 px-12 rounded-full font-black text-2xl uppercase tracking-tighter shadow-2xl transition-all border-none relative z-30", !canStartAssessment ? "bg-slate-800 text-slate-500" : "bg-primary hover:bg-primary/90 text-white hover:scale-[1.05] shadow-primary/30")}>
+                    <Play className="w-6 h-6 mr-3 fill-current" /> Start Assessment
+                  </Button>
                </div>
             </div>
           ) : (
             <div className="w-full max-w-4xl space-y-10 animate-in fade-in duration-700">
               <div className="flex items-center justify-between border-b border-white/10 pb-8">
                 <div className="flex items-center gap-6">
-                  <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
-                    <ListChecks className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Question {currentIdx + 1} of {questions.length}</p>
-                    <h3 className="text-2xl font-black uppercase tracking-tight">Intelligence Transmission</h3>
-                  </div>
+                  <div className="p-3 bg-white/5 rounded-2xl border border-white/10"><ListChecks className="w-6 h-6 text-primary" /></div>
+                  <div><p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Question {currentIdx + 1} of {questions.length}</p><h3 className="text-2xl font-black uppercase tracking-tight">Intelligence Transmission</h3></div>
                 </div>
                 <div className="flex items-center gap-6">
-                   <div className="text-right">
-                     <p className="text-[10px] font-black uppercase text-slate-500">Live Progress</p>
-                     <p className="text-xl font-black text-primary tabular-nums">{answeredCount} / {room?.studentCount}</p>
-                   </div>
-                   <div className="w-16 h-16 rounded-full border-4 border-primary/20 flex items-center justify-center relative">
-                     <Clock className="w-6 h-6 text-primary" />
-                   </div>
+                   <div className="text-right"><p className="text-[10px] font-black uppercase text-slate-500">Live Progress</p><p className="text-xl font-black text-primary tabular-nums">{answeredCount} / {room?.studentCount}</p></div>
+                   <div className="w-16 h-16 rounded-full border-4 border-primary/20 flex items-center justify-center"><Clock className="w-6 h-6 text-primary" /></div>
                 </div>
               </div>
-
               <div className="bg-white rounded-[2.5rem] p-10 text-slate-900 shadow-2xl">
-                <QuestionRenderer 
-                  question={questions[currentIdx]} 
-                  value={null} 
-                  onChange={() => {}} 
-                  reviewMode={status === 'revealed'} 
-                />
+                <QuestionRenderer question={questions[currentIdx]} value={null} onChange={() => {}} reviewMode={status === 'revealed'} />
               </div>
-
               <div className="flex justify-center gap-6 pt-4">
                 {status === 'question' ? (
-                  <Button 
-                    onClick={revealAnswer}
-                    disabled={answeredCount === 0}
-                    className="h-16 px-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg uppercase shadow-xl transition-all hover:scale-[1.02] border-none"
-                  >
-                    <CheckCircle2 className="w-5 h-5 mr-3" /> Reveal Answer
-                  </Button>
+                  <Button onClick={revealAnswer} disabled={answeredCount === 0} className="h-16 px-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg uppercase shadow-xl transition-all hover:scale-[1.02] border-none"><CheckCircle2 className="w-5 h-5 mr-3" /> Reveal Answer</Button>
                 ) : (
-                  <Button 
-                    onClick={nextQuestion}
-                    className="h-16 px-12 rounded-full bg-primary hover:bg-primary/90 text-white font-black text-lg uppercase shadow-xl transition-all hover:scale-[1.02] border-none"
-                  >
-                    {currentIdx === questions.length - 1 ? 'End Mission' : 'Next Question'} 
-                    <ArrowRight className="w-5 h-5 ml-3" />
+                  <Button onClick={nextQuestion} className="h-16 px-12 rounded-full bg-primary hover:bg-primary/90 text-white font-black text-lg uppercase shadow-xl transition-all hover:scale-[1.02] border-none">
+                    {currentIdx === questions.length - 1 ? 'Finalize Mission' : 'Next Question'} <ArrowRight className="w-5 h-5 ml-3" />
                   </Button>
                 )}
               </div>
             </div>
           )}
-          
-          <p className="absolute bottom-10 text-[9px] font-black uppercase tracking-[0.5em] text-white/5">DNTRNG™ • REAL-TIME CLASSROOM PROTOCOL</p>
         </div>
       </main>
     </div>

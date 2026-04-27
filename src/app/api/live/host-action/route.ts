@@ -95,7 +95,8 @@ export async function POST(request: Request) {
         }
 
         await pusherServer.trigger(`room-${roomCode}`, 'session-ended', { finalLeaderboard });
-        rooms.delete(roomCode); 
+        // Room stays in memory as 'ended' for a period to allow results dashboard to fetch details
+        // Automatic cleanup protocol in live-rooms.ts will handle deletion
         break;
     }
 
