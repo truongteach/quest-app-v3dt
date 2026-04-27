@@ -3,11 +3,12 @@
  * 
  * Route: /live/host/[roomCode]
  * Purpose: Command terminal for teachers hosting a live session.
+ * Used by: Admin operators.
  */
 
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { getPusherClient } from '@/lib/pusher';
@@ -28,7 +29,6 @@ export default function LiveHostPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  // Protocol: Initialize with structured defaults to prevent logical mismatch during hydration
   const [room, setRoom] = useState<any>({ students: [], studentCount: 0 });
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,23 +38,26 @@ export default function LiveHostPage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [status, setStatus] = useState<'lobby' | 'question' | 'revealed'>('lobby');
 
-  // Logic: Computed state for button accessibility
+  // REGISTRY LOGIC CONSOLIDATION (v18.9)
   const hasStudents = room?.students && room.students.length > 0;
   const hasQuestions = questions && questions.length > 0;
-  const buttonDisabled = !hasStudents || !hasQuestions || loading;
+  
+  // Protocol: canStartAssessment is the singular source of truth for the primary action node
+  const canStartAssessment = hasStudents && hasQuestions && !loading && !sessionStarted;
 
-  // Forensic Log: Audit state on every change
-  useEffect(() => {
-    if (status === 'lobby') {
-      console.log('[Lobby Registry Audit]', {
-        roomCode,
-        studentsCount: room?.students?.length || 0,
-        questionsCount: questions.length,
-        loadingState: loading,
-        finalDisabledStatus: buttonDisabled
-      });
+  // FORENSIC DIAGNOSTICS: Execute on every render cycle for terminal visibility
+  console.log('[LOBBY DIAGNOSTIC AUDIT]', {
+    roomCode,
+    loadingState: loading,
+    nodeCount: room?.students?.length || 0,
+    participantRegistry: room?.students,
+    intelligenceBankSize: questions.length,
+    evaluation: {
+      hasStudents,
+      hasQuestions,
+      canStart: canStartAssessment
     }
-  }, [room, questions, loading, buttonDisabled, status, roomCode]);
+  });
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -64,7 +67,7 @@ export default function LiveHostPage() {
 
     const initTerminal = async () => {
       try {
-        // 1. Fetch Room Metadata
+        // GAS: getRoomDetails
         const roomRes = await fetch(`/api/live/room-details?code=${roomCode}`);
         const roomData = await roomRes.json();
         
@@ -76,14 +79,12 @@ export default function LiveHostPage() {
 
         setRoom(roomData);
 
-        // 2. Fetch Questions from Registry
+        // GAS: getQuestions
         if (roomData.testId && API_URL) {
-          // GAS: getQuestions
           const qRes = await fetch(`${API_URL}?action=getQuestions&id=${roomData.testId}`);
           const qData = await qRes.json();
           const validQuestions = Array.isArray(qData) ? qData : [];
           setQuestions(validQuestions);
-          console.log(`[Registry Sync] Loaded ${validQuestions.length} intelligence nodes for ${roomData.testId}`);
         }
       } catch (err) {
         toast({ variant: "destructive", title: "Registry Sync Failure" });
@@ -97,7 +98,6 @@ export default function LiveHostPage() {
     const pusher = getPusherClient();
     const channel = pusher.subscribe(`room-${roomCode}`);
 
-    // Protocol: Use functional state updates to prevent Pusher events from wiping room metadata
     channel.bind('student-joined', (data: any) => {
       setRoom((prev: any) => ({ 
         ...prev, 
@@ -133,10 +133,7 @@ export default function LiveHostPage() {
   };
 
   const startQuiz = () => {
-    if (questions.length === 0) {
-      toast({ variant: "destructive", title: "Empty Registry", description: "This test has no questions to synchronize." });
-      return;
-    }
+    if (!canStartAssessment) return;
     setSessionStarted(true);
     setStatus('question');
     setAnsweredCount(0);
@@ -239,13 +236,13 @@ export default function LiveHostPage() {
         {/* Center: Content Area */}
         <div className="lg:col-span-9 p-12 bg-slate-950 relative overflow-hidden flex flex-col items-center justify-center">
           {!sessionStarted ? (
-            <div className="max-w-2xl w-full space-y-12 text-center animate-in zoom-in-95 duration-700">
+            <div className="max-w-2xl w-full space-y-12 text-center animate-in zoom-in-95 duration-700 relative z-10">
                <div className="space-y-6">
                   <h3 className="text-5xl font-black uppercase tracking-tight leading-none text-white">Lobby Ready</h3>
                   <p className="text-xl font-medium text-slate-400 max-w-lg mx-auto leading-relaxed">Sync protocol established. Initialize the assessment sequence when all student nodes are connected.</p>
                </div>
 
-               <div className="p-10 rounded-[3rem] bg-white/5 border-4 border-dashed border-white/10 flex flex-col items-center gap-8">
+               <div className="p-10 rounded-[3rem] bg-white/5 border-4 border-dashed border-white/10 flex flex-col items-center gap-8 relative z-20 pointer-events-auto">
                   <div className="flex flex-col gap-4">
                     <div className="space-y-2">
                       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Join URL</p>
@@ -270,12 +267,12 @@ export default function LiveHostPage() {
 
                   <Button 
                     onClick={startQuiz}
-                    disabled={buttonDisabled}
+                    disabled={!canStartAssessment}
                     className={cn(
-                      "h-20 px-12 rounded-full font-black text-2xl uppercase tracking-tighter shadow-2xl transition-all border-none",
-                      buttonDisabled 
-                        ? "bg-slate-800 text-slate-500 cursor-not-allowed" 
-                        : "bg-primary hover:bg-primary/90 text-white hover:scale-[1.05] shadow-primary/30"
+                      "h-20 px-12 rounded-full font-black text-2xl uppercase tracking-tighter shadow-2xl transition-all border-none relative z-30",
+                      !canStartAssessment 
+                        ? "bg-slate-800 text-slate-500 cursor-not-allowed opacity-50" 
+                        : "bg-primary hover:bg-primary/90 text-white hover:scale-[1.05] shadow-primary/30 cursor-pointer"
                     )}
                   >
                     {loading ? (
