@@ -15,6 +15,7 @@ import { AILoader } from '@/components/ui/ai-loader';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { Trophy, Clock, CheckCircle2, XCircle, Users, Zap, Loader2, ArrowLeft, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
