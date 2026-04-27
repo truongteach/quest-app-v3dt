@@ -9,6 +9,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Zap, ShieldCheck, ShieldAlert, LogIn } from "lucide-react";
 import { QuizMode } from '@/types/quiz';
 import { generateDailyPassword } from '@/lib/security-utils';
