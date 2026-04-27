@@ -30,12 +30,37 @@ export default function LiveStudentPage() {
 
   const [status, setStatus] = useState<'waiting' | 'question' | 'revealed' | 'ended'>('waiting');
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
-  const [currentAnswer, setCurrentAnswer] = useState<any>(null);
+  // Registry Protocol: Use undefined as "not yet interacted" to support null as a valid (but empty) submission
+  const [currentAnswer, setCurrentAnswer] = useState<any>(undefined);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [result, setResult] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  // Sync Protocol: Local Countdown Engine
+  useEffect(() => {
+    if (status !== 'question' || timeLeft === null || timeLeft <= 0 || currentAnswer !== undefined) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev === null || prev <= 0) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [status, timeLeft === null, currentAnswer !== undefined]);
+
+  // Terminal Guard: Handle auto-submit on expiry
+  useEffect(() => {
+    if (status === 'question' && timeLeft === 0 && currentAnswer === undefined) {
+      submitAnswer("__expired__");
+    }
+  }, [timeLeft, status]);
 
   useEffect(() => {
     if (!studentId || !roomCode) {
@@ -48,7 +73,7 @@ export default function LiveStudentPage() {
 
     channel.bind('question-start', (data: any) => {
       setCurrentQuestion(data.questionData);
-      setCurrentAnswer(null);
+      setCurrentAnswer(undefined);
       setResult(null);
       setStatus('question');
       setTimeLeft(data.timeLimit);
@@ -77,15 +102,21 @@ export default function LiveStudentPage() {
   }, [roomCode, studentId, router]);
 
   const submitAnswer = async (answer: any) => {
-    if (status !== 'question' || currentAnswer) return;
+    // Protocol Audit: Prevent double-submission or submission during inactive phases
+    if (status !== 'question' || currentAnswer !== undefined) return;
+    
+    // Explicitly handle "expired" string as a null-value score for the registry
+    const transmissionValue = answer === "__expired__" ? null : answer;
     setCurrentAnswer(answer);
+
     try {
       await fetch('/api/live/student-answer', {
         method: 'POST',
-        body: JSON.stringify({ roomCode, studentId, answer })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomCode, studentId, answer: transmissionValue })
       });
     } catch (e) {
-      toast({ variant: "destructive", title: "Sync Failure" });
+      toast({ variant: "destructive", title: "Sync Failure", description: "Answer could not be committed to registry." });
     }
   };
 
@@ -117,12 +148,17 @@ export default function LiveStudentPage() {
   }
 
   if (status === 'question' && currentQuestion) {
+    const hasTransmitted = currentAnswer !== undefined;
+    const isExpired = currentAnswer === "__expired__";
+
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
         <header className="bg-white border-b p-6 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-4">
              <div className="p-2 bg-primary/10 rounded-xl"><Clock className="w-4 h-4 text-primary" /></div>
-             <span className="text-2xl font-black tabular-nums">{timeLeft !== null ? `${timeLeft}s` : '---'}</span>
+             <span className={cn("text-2xl font-black tabular-nums", timeLeft === 0 && "text-rose-500")}>
+               {timeLeft !== null ? `${timeLeft}s` : '---'}
+             </span>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-[9px] font-black uppercase text-slate-400">Global Progress</span>
@@ -134,14 +170,21 @@ export default function LiveStudentPage() {
           <div className="max-w-3xl mx-auto bg-white rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-slate-100">
             <QuestionRenderer 
               question={currentQuestion} 
-              value={currentAnswer} 
+              value={isExpired ? null : currentAnswer} 
               onChange={submitAnswer} 
-              reviewMode={false} 
+              reviewMode={hasTransmitted} 
             />
-            {currentAnswer && (
-              <div className="mt-10 p-8 bg-blue-50 rounded-3xl border-2 border-dashed border-blue-200 text-center animate-in zoom-in-95">
-                <p className="text-lg font-black uppercase tracking-tight text-blue-600">Answer Transmitted</p>
-                <p className="text-sm font-medium text-blue-400 mt-1">Waiting for terminal reveal protocol...</p>
+            {hasTransmitted && (
+              <div className={cn(
+                "mt-10 p-8 rounded-3xl border-2 border-dashed text-center animate-in zoom-in-95",
+                isExpired ? "bg-rose-50 border-rose-200" : "bg-blue-50 border-blue-200"
+              )}>
+                <p className={cn("text-lg font-black uppercase tracking-tight", isExpired ? "text-rose-600" : "text-blue-600")}>
+                  {isExpired ? 'Time Expired — Answer Transmitted' : 'Answer Transmitted'}
+                </p>
+                <p className={cn("text-sm font-medium mt-1", isExpired ? "text-rose-400" : "text-blue-400")}>
+                  Waiting for terminal reveal protocol...
+                </p>
               </div>
             )}
           </div>
