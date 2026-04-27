@@ -1,4 +1,3 @@
-
 /**
  * src/components/admin/TestsTab.tsx
  * 
@@ -16,6 +15,16 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/context/language-context';
 import { useRegistryFilter } from '@/hooks/useRegistryFilter';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Sub-components per Protocol v18.9
 import { TestsTable } from './tests/TestsTable';
@@ -23,11 +32,26 @@ import { TestsTable } from './tests/TestsTable';
 export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, onViewAnalytics, onAdd, onRefresh }: any) {
   const { t } = useLanguage();
   const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<{ id: string, title: string } | null>(null);
 
   const { searchTerm, setSearchTerm, currentPage, setCurrentPage, paginatedData, totalItems, pageSize } = useRegistryFilter({
     data: tests,
     searchFields: (test: any) => [test.title, test.id, test.category]
   });
+
+  const handleDeleteTrigger = (id: string) => {
+    const item = tests.find((test: any) => test.id === id);
+    if (item) {
+      setDeleteConfirmItem({ id, title: item.title });
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmItem) {
+      onDelete(deleteConfirmItem.id);
+      setDeleteConfirmItem(null);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
@@ -50,10 +74,34 @@ export function TestsTab({ tests, loading, onEdit, onDelete, onManageQuestions, 
       </div>
 
       <TestsTable 
-        data={paginatedData} loading={loading} onEdit={onEdit} onDelete={onDelete} 
+        data={paginatedData} loading={loading} onEdit={onEdit} onDelete={handleDeleteTrigger} 
         onManageQuestions={onManageQuestions} onViewAnalytics={onViewAnalytics} t={t}
         pagination={{ currentPage, totalItems, pageSize, onPageChange: setCurrentPage }}
       />
+
+      <AlertDialog open={!!deleteConfirmItem} onOpenChange={(open) => !open && setDeleteConfirmItem(null)}>
+        <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl dark:bg-slate-900">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+              Delete Test?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+              This action cannot be undone. All questions and session data for <span className="font-bold text-slate-900 dark:text-white">"{deleteConfirmItem?.title}"</span> will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex flex-col sm:flex-row gap-4">
+            <AlertDialogCancel className="h-14 rounded-full border-2 font-black uppercase text-xs tracking-widest flex-1 dark:border-slate-700 dark:text-slate-400">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="h-14 rounded-full bg-destructive hover:bg-destructive/90 text-white font-black uppercase text-xs tracking-widest flex-1 shadow-xl shadow-destructive/20 border-none"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

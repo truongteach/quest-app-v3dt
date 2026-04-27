@@ -97,7 +97,12 @@ export default function AdminTestsPage() {
             trackEvent('admin_test_delete', { 
               test_id: id, 
               test_name: t?.title,
-              details: { question_count: t?.questions_count || 0 }
+              details: { 
+                testId: id,
+                testName: t?.title,
+                deletedAt: new Date().toISOString(),
+                question_count: t?.questions_count || 0 
+              }
             });
           }
         }}
