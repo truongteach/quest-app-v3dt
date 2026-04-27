@@ -3,7 +3,7 @@
  * 
  * Route: /live/[roomCode]
  * Purpose: Student terminal for synchronized live assessments.
- * Updated: v18.9.3 - Refined reveal phase to show question review alongside results.
+ * Updated: v18.9.4 - Implemented staged answer protocol for multi-select and complex types.
  */
 
 "use client";
@@ -17,10 +17,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Trophy, Clock, CheckCircle2, XCircle, Users, Zap, Loader2, ArrowLeft, Home, AlertTriangle, WifiOff } from 'lucide-react';
+import { Trophy, Clock, CheckCircle2, XCircle, Users, Zap, Loader2, ArrowLeft, Home, AlertTriangle, WifiOff, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { parseRegistryArray } from '@/lib/quiz-utils';
 
 export default function LiveStudentPage() {
   const { roomCode } = useParams();
@@ -31,7 +32,11 @@ export default function LiveStudentPage() {
 
   const [status, setStatus] = useState<'waiting' | 'active' | 'revealed' | 'ended'>('waiting');
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+  
+  // Staged Answer Protocol: Track local interaction before final transmission
+  const [stagedAnswer, setStagedAnswer] = useState<any>(undefined);
   const [currentAnswer, setCurrentAnswer] = useState<any>(undefined);
+  
   const [answeredCount, setAnsweredCount] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -73,9 +78,10 @@ export default function LiveStudentPage() {
   // Terminal Guard: Handle auto-submit on expiry
   useEffect(() => {
     if (status === 'active' && timeLeft === 0 && currentAnswer === undefined) {
-      submitAnswer("__expired__");
+      // Logic: If user has a staged answer, submit that. Otherwise, mark as expired.
+      submitAnswer(stagedAnswer !== undefined ? stagedAnswer : "__expired__");
     }
-  }, [timeLeft, status, currentAnswer]);
+  }, [timeLeft, status, currentAnswer, stagedAnswer]);
 
   useEffect(() => {
     if (!studentId || !roomCode) {
@@ -125,6 +131,7 @@ export default function LiveStudentPage() {
       updateHeartbeat();
       setCurrentQuestion(data.questionData);
       setCurrentAnswer(undefined);
+      setStagedAnswer(undefined);
       setResult(null);
       setStatus('active');
       setTimeLeft(data.timeLimit);
@@ -159,6 +166,61 @@ export default function LiveStudentPage() {
       pusher.unsubscribe(`room-${roomCode}`);
     };
   }, [roomCode, studentId, router]);
+
+  // Registry Normalization Protocol
+  const normalizedType = useMemo(() => {
+    if (!currentQuestion) return '';
+    return String(currentQuestion.question_type || '').toLowerCase().replace(/[\s_]/g, '');
+  }, [currentQuestion]);
+
+  // Classification: Identify types that require a staged confirmation phase
+  const isComplexType = useMemo(() => {
+    return ['multiplechoice', 'manyanswers', 'multipletruefalse', 'matrixchoice', 'ordering', 'matching', 'shorttext', 'hotspot'].includes(normalizedType);
+  }, [normalizedType]);
+
+  const handleModuleChange = (val: any) => {
+    if (status !== 'active' || currentAnswer !== undefined) return;
+    
+    if (isComplexType) {
+      setStagedAnswer(val);
+    } else {
+      // Simple types (single choice, etc) transmit immediately
+      submitAnswer(val);
+    }
+  };
+
+  const isStagedAnswerComplete = useMemo(() => {
+    if (!currentQuestion || stagedAnswer === undefined) return false;
+    const val = stagedAnswer;
+
+    if (normalizedType === 'multiplechoice' || normalizedType === 'manyanswers') {
+      return Array.isArray(val) && val.length > 0;
+    }
+    if (normalizedType === 'multipletruefalse') {
+      const statements = parseRegistryArray(currentQuestion.order_group);
+      return val && typeof val === 'object' && Object.keys(val).length === statements.length;
+    }
+    if (normalizedType === 'matrixchoice') {
+      const rows = parseRegistryArray(currentQuestion.order_group);
+      return val && typeof val === 'object' && Object.keys(val).length === rows.length;
+    }
+    if (normalizedType === 'matching') {
+      const pairs = parseRegistryArray(currentQuestion.order_group);
+      return val && typeof val === 'object' && Object.keys(val).length === pairs.length;
+    }
+    if (normalizedType === 'shorttext') {
+      return typeof val === 'string' && val.trim().length > 0;
+    }
+    if (normalizedType === 'ordering') {
+      const options = parseRegistryArray(currentQuestion.options || currentQuestion.order_group);
+      return Array.isArray(val) && val.length === options.length;
+    }
+    if (normalizedType === 'hotspot') {
+      return Array.isArray(val) && val.length > 0;
+    }
+    
+    return val !== undefined && val !== null;
+  }, [currentQuestion, stagedAnswer, normalizedType]);
 
   const submitAnswer = async (answer: any) => {
     if (status !== 'active' || currentAnswer !== undefined) return;
@@ -255,11 +317,23 @@ export default function LiveStudentPage() {
             <div className="bg-white rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-slate-100">
               <QuestionRenderer 
                 question={currentQuestion} 
-                value={isExpired ? null : currentAnswer} 
-                onChange={submitAnswer} 
+                value={currentAnswer !== undefined ? (isExpired ? null : currentAnswer) : stagedAnswer} 
+                onChange={handleModuleChange} 
                 reviewMode={isRevealed} 
               />
               
+              {status === 'active' && currentAnswer === undefined && isComplexType && (
+                <div className="mt-10 flex justify-center animate-in slide-in-from-bottom-2 duration-500">
+                  <Button 
+                    onClick={() => submitAnswer(stagedAnswer)} 
+                    disabled={!isStagedAnswerComplete}
+                    className="h-16 px-12 rounded-full bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all border-none"
+                  >
+                    Confirm Answer <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
+              )}
+
               {hasTransmitted && !isRevealed && (
                 <div className={cn(
                   "mt-10 p-8 rounded-3xl border-2 border-dashed text-center animate-in zoom-in-95",
