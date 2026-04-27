@@ -130,7 +130,7 @@ export default function LiveStudentPage() {
               question={currentQuestion} 
               value={currentAnswer} 
               onChange={submitAnswer} 
-              reviewMode={!!currentAnswer} 
+              reviewMode={false} 
             />
             {currentAnswer && (
               <div className="mt-10 p-8 bg-blue-50 rounded-3xl border-2 border-dashed border-blue-200 text-center animate-in zoom-in-95">
