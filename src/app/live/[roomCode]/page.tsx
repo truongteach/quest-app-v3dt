@@ -4,12 +4,12 @@
  * 
  * Route: /live/[roomCode]
  * Purpose: Student terminal for synchronized live assessments.
- * Updated: v18.9 - Added session status audit and direct-navigation guards.
+ * Updated: v18.9.1 - Added Host Connection Watchdog and watchdog UI components.
  */
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { getPusherClient } from '@/lib/pusher';
 import { QuestionRenderer } from '@/components/quiz/QuestionRenderer';
@@ -18,7 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Trophy, Clock, CheckCircle2, XCircle, Users, Zap, Loader2, ArrowLeft, Home } from 'lucide-react';
+import { Trophy, Clock, CheckCircle2, XCircle, Users, Zap, Loader2, ArrowLeft, Home, AlertTriangle, WifiOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -32,13 +32,18 @@ export default function LiveStudentPage() {
 
   const [status, setStatus] = useState<'waiting' | 'question' | 'revealed' | 'ended'>('waiting');
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
-  // Registry Protocol: Use undefined as "not yet interacted" to support null as a valid (but empty) submission
   const [currentAnswer, setCurrentAnswer] = useState<any>(undefined);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [result, setResult] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  // WATCHDOG PROTOCOL: Track host connectivity
+  const [lastHostActivity, setLastHostActivity] = useState(Date.now());
+  const [hostConnectivityMs, setHostConnectivityMs] = useState(0);
+
+  const updateHeartbeat = () => setLastHostActivity(Date.now());
 
   // Sync Protocol: Local Countdown Engine
   useEffect(() => {
@@ -55,14 +60,23 @@ export default function LiveStudentPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [status, timeLeft === null, currentAnswer !== undefined]);
+  }, [status, timeLeft, currentAnswer]);
+
+  // Watchdog Engine: Monitor for host disconnection
+  useEffect(() => {
+    const watchdog = setInterval(() => {
+      setHostConnectivityMs(Date.now() - lastHostActivity);
+    }, 5000);
+
+    return () => clearInterval(watchdog);
+  }, [lastHostActivity]);
 
   // Terminal Guard: Handle auto-submit on expiry
   useEffect(() => {
     if (status === 'question' && timeLeft === 0 && currentAnswer === undefined) {
       submitAnswer("__expired__");
     }
-  }, [timeLeft, status]);
+  }, [timeLeft, status, currentAnswer]);
 
   useEffect(() => {
     if (!studentId || !roomCode) {
@@ -79,27 +93,25 @@ export default function LiveStudentPage() {
            return;
         }
         const data = await res.json();
-        
-        // Verify if current identity was part of this session
         const isMyIdentityPresent = data.students?.some((s: any) => s.id === studentId);
 
         if (data.status === 'ended') {
           if (isMyIdentityPresent) {
-            // Restore final results view for existing participants who refresh
             setLeaderboard(data.students.sort((a: any, b: any) => b.score - a.score));
             setStatus('ended');
           } else {
-            // Redirect intruders/late-joiners attempting direct access to closed rooms
             router.push('/join?error=session-ended');
           }
           return;
         }
 
-        // Redirect to join if session is active but current student is not in registry
         if (!isMyIdentityPresent) {
            router.push('/join');
            return;
         }
+        
+        // Initial Heartbeat Sync
+        updateHeartbeat();
       } catch (e) {
         console.error('[Session Audit Failed]', e);
       }
@@ -111,6 +123,7 @@ export default function LiveStudentPage() {
     const channel = pusher.subscribe(`room-${roomCode}`);
 
     channel.bind('question-start', (data: any) => {
+      updateHeartbeat();
       setCurrentQuestion(data.questionData);
       setCurrentAnswer(undefined);
       setResult(null);
@@ -119,18 +132,26 @@ export default function LiveStudentPage() {
     });
 
     channel.bind('student-answered', (data: any) => {
+      updateHeartbeat();
       setAnsweredCount(data.answeredCount);
       setTotalStudents(data.totalStudents);
     });
 
     channel.bind('answer-reveal', (data: any) => {
+      updateHeartbeat();
       const myResult = data.studentResults.find((s: any) => s.id === studentId);
       setResult(myResult);
       setLeaderboard(data.leaderboard);
       setStatus('revealed');
     });
 
+    channel.bind('next-question', () => {
+      updateHeartbeat();
+      setStatus('waiting');
+    });
+
     channel.bind('session-ended', (data: any) => {
+      updateHeartbeat();
       setLeaderboard(data.finalLeaderboard);
       setStatus('ended');
     });
@@ -141,10 +162,8 @@ export default function LiveStudentPage() {
   }, [roomCode, studentId, router]);
 
   const submitAnswer = async (answer: any) => {
-    // Protocol Audit: Prevent double-submission or submission during inactive phases
     if (status !== 'question' || currentAnswer !== undefined) return;
     
-    // Explicitly handle "expired" string as a null-value score for the registry
     const transmissionValue = answer === "__expired__" ? null : answer;
     setCurrentAnswer(answer);
 
@@ -192,6 +211,13 @@ export default function LiveStudentPage() {
 
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
+        {hostConnectivityMs > 30000 && hostConnectivityMs < 60000 && (
+          <div className="bg-amber-500 text-white py-2 px-4 flex items-center justify-center gap-3 animate-in slide-in-from-top duration-300">
+            <WifiOff className="w-4 h-4 animate-pulse" />
+            <p className="text-[10px] font-black uppercase tracking-widest">Host Connection Lost — Waiting to reconnect...</p>
+          </div>
+        )}
+
         <header className="bg-white border-b p-6 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-4">
              <div className="p-2 bg-primary/10 rounded-xl"><Clock className="w-4 h-4 text-primary" /></div>
@@ -228,6 +254,17 @@ export default function LiveStudentPage() {
             )}
           </div>
         </main>
+
+        {hostConnectivityMs >= 60000 && (
+          <div className="fixed inset-0 z-[200] bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center text-white animate-in fade-in duration-500">
+             <AlertTriangle className="w-20 h-20 text-rose-500 mb-8 animate-bounce" />
+             <h2 className="text-4xl font-black uppercase tracking-tight mb-4">Session Interrupted</h2>
+             <p className="text-xl text-slate-400 max-w-md mb-12">The host has disconnected. Please contact your teacher or return to base.</p>
+             <Button onClick={() => router.push('/')} className="h-16 px-12 rounded-full bg-primary text-white font-black uppercase tracking-widest border-none shadow-2xl hover:scale-105 transition-transform">
+               <Home className="w-5 h-5 mr-3" /> Return to Base
+             </Button>
+          </div>
+        )}
       </div>
     );
   }
