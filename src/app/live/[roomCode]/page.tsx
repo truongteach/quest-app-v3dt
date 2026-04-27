@@ -3,7 +3,7 @@
  * 
  * Route: /live/[roomCode]
  * Purpose: Student terminal for synchronized live assessments.
- * Updated: v18.9.4 - Implemented staged answer protocol for multi-select and complex types.
+ * Refactored: v18.9.5 - Extracted UI modules for cleaner lifecycle management.
  */
 
 "use client";
@@ -11,17 +11,16 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { getPusherClient } from '@/lib/pusher';
-import { QuestionRenderer } from '@/components/quiz/QuestionRenderer';
 import { AILoader } from '@/components/ui/ai-loader';
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { AlertTriangle, Home } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Trophy, Clock, CheckCircle2, XCircle, Users, Zap, Loader2, ArrowLeft, Home, AlertTriangle, WifiOff, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
 import { parseRegistryArray } from '@/lib/quiz-utils';
+
+// Refactored Sub-components
+import { StudentLobby } from '@/components/live/StudentLobby';
+import { StudentQuestionView } from '@/components/live/StudentQuestionView';
+import { StudentFinalScore } from '@/components/live/StudentFinalScore';
 
 export default function LiveStudentPage() {
   const { roomCode } = useParams();
@@ -32,27 +31,20 @@ export default function LiveStudentPage() {
 
   const [status, setStatus] = useState<'waiting' | 'active' | 'revealed' | 'ended'>('waiting');
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
-  
-  // Staged Answer Protocol: Track local interaction before final transmission
   const [stagedAnswer, setStagedAnswer] = useState<any>(undefined);
   const [currentAnswer, setCurrentAnswer] = useState<any>(undefined);
-  
   const [answeredCount, setAnsweredCount] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [result, setResult] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-
-  // WATCHDOG PROTOCOL: Track host connectivity
   const [lastHostActivity, setLastHostActivity] = useState(Date.now());
   const [hostConnectivityMs, setHostConnectivityMs] = useState(0);
 
   const updateHeartbeat = () => setLastHostActivity(Date.now());
 
-  // Sync Protocol: Local Countdown Engine
   useEffect(() => {
     if (status !== 'active' || timeLeft === null || timeLeft <= 0 || currentAnswer !== undefined) return;
-
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev === null || prev <= 0) {
@@ -62,23 +54,18 @@ export default function LiveStudentPage() {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [status, timeLeft, currentAnswer]);
 
-  // Watchdog Engine: Monitor for host disconnection
   useEffect(() => {
     const watchdog = setInterval(() => {
       setHostConnectivityMs(Date.now() - lastHostActivity);
     }, 5000);
-
     return () => clearInterval(watchdog);
   }, [lastHostActivity]);
 
-  // Terminal Guard: Handle auto-submit on expiry
   useEffect(() => {
     if (status === 'active' && timeLeft === 0 && currentAnswer === undefined) {
-      // Logic: If user has a staged answer, submit that. Otherwise, mark as expired.
       submitAnswer(stagedAnswer !== undefined ? stagedAnswer : "__expired__");
     }
   }, [timeLeft, status, currentAnswer, stagedAnswer]);
@@ -89,14 +76,10 @@ export default function LiveStudentPage() {
       return;
     }
 
-    // SESSION INTEGRITY PROTOCOL: Verify current room status on mount
     const checkInitialStatus = async () => {
       try {
         const res = await fetch(`/api/live/room-details?code=${roomCode}`);
-        if (!res.ok) {
-           router.push('/join');
-           return;
-        }
+        if (!res.ok) { router.push('/join'); return; }
         const data = await res.json();
         const isMyIdentityPresent = data.students?.some((s: any) => s.id === studentId);
 
@@ -110,16 +93,9 @@ export default function LiveStudentPage() {
           return;
         }
 
-        if (!isMyIdentityPresent) {
-           router.push('/join');
-           return;
-        }
-        
-        // Initial Heartbeat Sync
+        if (!isMyIdentityPresent) { router.push('/join'); return; }
         updateHeartbeat();
-      } catch (e) {
-        console.error('[Session Audit Failed]', e);
-      }
+      } catch (e) {}
     };
 
     checkInitialStatus();
@@ -162,40 +138,28 @@ export default function LiveStudentPage() {
       setStatus('ended');
     });
 
-    return () => {
-      pusher.unsubscribe(`room-${roomCode}`);
-    };
+    return () => { pusher.unsubscribe(`room-${roomCode}`); };
   }, [roomCode, studentId, router]);
 
-  // Registry Normalization Protocol
   const normalizedType = useMemo(() => {
     if (!currentQuestion) return '';
     return String(currentQuestion.question_type || '').toLowerCase().replace(/[\s_]/g, '');
   }, [currentQuestion]);
 
-  // Classification: Identify types that require a staged confirmation phase
   const isComplexType = useMemo(() => {
     return ['multiplechoice', 'manyanswers', 'multipletruefalse', 'matrixchoice', 'ordering', 'matching', 'shorttext', 'hotspot'].includes(normalizedType);
   }, [normalizedType]);
 
   const handleModuleChange = (val: any) => {
     if (status !== 'active' || currentAnswer !== undefined) return;
-    
-    if (isComplexType) {
-      setStagedAnswer(val);
-    } else {
-      // Simple types (single choice, etc) transmit immediately
-      submitAnswer(val);
-    }
+    if (isComplexType) setStagedAnswer(val);
+    else submitAnswer(val);
   };
 
   const isStagedAnswerComplete = useMemo(() => {
     if (!currentQuestion || stagedAnswer === undefined) return false;
     const val = stagedAnswer;
-
-    if (normalizedType === 'multiplechoice' || normalizedType === 'manyanswers') {
-      return Array.isArray(val) && val.length > 0;
-    }
+    if (normalizedType === 'multiplechoice' || normalizedType === 'manyanswers') return Array.isArray(val) && val.length > 0;
     if (normalizedType === 'multipletruefalse') {
       const statements = parseRegistryArray(currentQuestion.order_group);
       return val && typeof val === 'object' && Object.keys(val).length === statements.length;
@@ -208,26 +172,19 @@ export default function LiveStudentPage() {
       const pairs = parseRegistryArray(currentQuestion.order_group);
       return val && typeof val === 'object' && Object.keys(val).length === pairs.length;
     }
-    if (normalizedType === 'shorttext') {
-      return typeof val === 'string' && val.trim().length > 0;
-    }
+    if (normalizedType === 'shorttext') return typeof val === 'string' && val.trim().length > 0;
     if (normalizedType === 'ordering') {
       const options = parseRegistryArray(currentQuestion.options || currentQuestion.order_group);
       return Array.isArray(val) && val.length === options.length;
     }
-    if (normalizedType === 'hotspot') {
-      return Array.isArray(val) && val.length > 0;
-    }
-    
+    if (normalizedType === 'hotspot') return Array.isArray(val) && val.length > 0;
     return val !== undefined && val !== null;
   }, [currentQuestion, stagedAnswer, normalizedType]);
 
   const submitAnswer = async (answer: any) => {
     if (status !== 'active' || currentAnswer !== undefined) return;
-    
     const transmissionValue = answer === "__expired__" ? null : answer;
     setCurrentAnswer(answer);
-
     try {
       await fetch('/api/live/student-answer', {
         method: 'POST',
@@ -235,7 +192,7 @@ export default function LiveStudentPage() {
         body: JSON.stringify({ roomCode, studentId, answer: transmissionValue })
       });
     } catch (e) {
-      toast({ variant: "destructive", title: "Sync Failure", description: "Answer could not be committed to registry." });
+      toast({ variant: "destructive", title: "Sync Failure" });
     }
   };
 
@@ -245,193 +202,42 @@ export default function LiveStudentPage() {
     return idx === -1 ? null : idx + 1;
   }, [leaderboard, studentId]);
 
-  if (status === 'waiting') {
-    return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-8 text-center text-white">
-        <div className="max-w-md w-full space-y-12">
-          <div className="mx-auto w-24 h-24 bg-primary/20 rounded-[2rem] flex items-center justify-center ring-4 ring-primary/10 animate-pulse">
-            <Zap className="w-12 h-12 text-primary fill-current" />
-          </div>
-          <div className="space-y-4">
-            <h1 className="text-4xl font-black uppercase tracking-tight">Synchronizing...</h1>
-            <p className="text-lg font-medium text-slate-400">Connected to room <span className="text-white font-black">{roomCode}</span>. Waiting for host to initialize the next step.</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-6 bg-white/5 rounded-3xl border border-white/5"><p className="text-[10px] font-black uppercase text-slate-500 mb-1">Status</p><p className="font-bold">Authorized</p></div>
-            <div className="p-6 bg-white/5 rounded-3xl border border-white/5"><p className="text-[10px] font-black uppercase text-slate-500 mb-1">Identity</p><p className="font-bold">Verified</p></div>
-          </div>
-          <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
-        </div>
-      </div>
-    );
-  }
+  if (status === 'waiting') return <StudentLobby roomCode={String(roomCode)} />;
 
   if ((status === 'active' || status === 'revealed') && currentQuestion) {
-    const hasTransmitted = currentAnswer !== undefined;
-    const isExpired = currentAnswer === "__expired__";
-    const isRevealed = status === 'revealed';
-
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
-        {hostConnectivityMs > 30000 && hostConnectivityMs < 60000 && (
-          <div className="bg-amber-500 text-white py-2 px-4 flex items-center justify-center gap-3 animate-in slide-in-from-top duration-300">
-            <WifiOff className="w-4 h-4 animate-pulse" />
-            <p className="text-[10px] font-black uppercase tracking-widest">Host Connection Lost — Waiting to reconnect...</p>
-          </div>
-        )}
-
-        <header className="bg-white border-b p-6 flex items-center justify-between sticky top-0 z-50">
-          <div className="flex items-center gap-4">
-             <div className="p-2 bg-primary/10 rounded-xl"><Clock className="w-4 h-4 text-primary" /></div>
-             <span className={cn("text-2xl font-black tabular-nums", timeLeft === 0 && "text-rose-500")}>
-               {isRevealed ? 'REVEALED' : (timeLeft !== null ? `${timeLeft}s` : '---')}
-             </span>
-          </div>
-          <div className="flex flex-col items-end">
-            <span className="text-[9px] font-black uppercase text-slate-400">Global Progress</span>
-            <span className="text-xs font-bold text-primary">{answeredCount} / {totalStudents} Answered</span>
-          </div>
-        </header>
-        
-        <main className="flex-1 p-6 md:p-12 animate-in fade-in duration-500">
-          <div className="max-w-3xl mx-auto space-y-8">
-            {isRevealed && result && (
-               <div className={cn(
-                 "p-8 rounded-[2.5rem] text-white flex items-center gap-6 shadow-2xl animate-in zoom-in-95 duration-500",
-                 result.correct ? "bg-emerald-500" : "bg-rose-500"
-               )}>
-                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shrink-0 shadow-lg">
-                    {result.correct ? <CheckCircle2 className="w-10 h-10 text-emerald-500" /> : <XCircle className="w-10 h-10 text-rose-500" />}
-                 </div>
-                 <div>
-                    <h2 className="text-3xl font-black uppercase tracking-tight">{result.correct ? 'Correct!' : 'Incorrect'}</h2>
-                    <p className="text-sm font-bold opacity-80 uppercase tracking-widest">{result.correct ? '+100 Intelligence Points' : 'Identity Alignment Error'}</p>
-                 </div>
-                 <div className="ml-auto text-right border-l border-white/20 pl-6 hidden sm:block">
-                    <p className="text-[9px] font-black uppercase opacity-60">Global Rank</p>
-                    <p className="text-2xl font-black">#{studentRank || '--'}</p>
-                 </div>
-               </div>
-            )}
-
-            <div className="bg-white rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-slate-100">
-              <QuestionRenderer 
-                question={currentQuestion} 
-                value={currentAnswer !== undefined ? (isExpired ? null : currentAnswer) : stagedAnswer} 
-                onChange={handleModuleChange} 
-                reviewMode={isRevealed} 
-              />
-              
-              {status === 'active' && currentAnswer === undefined && isComplexType && (
-                <div className="mt-10 flex justify-center animate-in slide-in-from-bottom-2 duration-500">
-                  <Button 
-                    onClick={() => submitAnswer(stagedAnswer)} 
-                    disabled={!isStagedAnswerComplete}
-                    className="h-16 px-12 rounded-full bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all border-none"
-                  >
-                    Confirm Answer <ChevronRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </div>
-              )}
-
-              {hasTransmitted && !isRevealed && (
-                <div className={cn(
-                  "mt-10 p-8 rounded-3xl border-2 border-dashed text-center animate-in zoom-in-95",
-                  isExpired ? "bg-rose-50 border-rose-200" : "bg-blue-50 border-blue-200"
-                )}>
-                  <p className={cn("text-lg font-black uppercase tracking-tight", isExpired ? "text-rose-600" : "text-blue-600")}>
-                    {isExpired ? 'Time Expired — Answer Transmitted' : 'Answer Transmitted'}
-                  </p>
-                  <p className={cn("text-sm font-medium mt-1", isExpired ? "text-rose-400" : "text-blue-400")}>
-                    Waiting for terminal reveal protocol...
-                  </p>
-                </div>
-              )}
-              
-              {isRevealed && (
-                <div className="mt-10 pt-8 border-t border-slate-100 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">Waiting for host to cycle step...</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </main>
-
+      <>
+        <StudentQuestionView 
+          status={status}
+          timeLeft={timeLeft}
+          answeredCount={answeredCount}
+          totalStudents={totalStudents}
+          result={result}
+          studentRank={studentRank}
+          currentQuestion={currentQuestion}
+          currentAnswer={currentAnswer}
+          stagedAnswer={stagedAnswer}
+          isComplexType={isComplexType}
+          isStagedAnswerComplete={isStagedAnswerComplete}
+          hostConnectivityMs={hostConnectivityMs}
+          handleModuleChange={handleModuleChange}
+          submitAnswer={submitAnswer}
+        />
         {hostConnectivityMs >= 60000 && (
-          <div className="fixed inset-0 z-[200] bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center text-white animate-in fade-in duration-500">
+          <div className="fixed inset-0 z-[200] bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center text-white">
              <AlertTriangle className="w-20 h-20 text-rose-500 mb-8 animate-bounce" />
-             <h2 className="text-4xl font-black uppercase tracking-tight mb-4">Session Interrupted</h2>
+             <h2 className="text-4xl font-black uppercase tracking-tight mb-4">Mission Interrupted</h2>
              <p className="text-xl text-slate-400 max-w-md mb-12">The host has disconnected. Please contact your teacher or return to base.</p>
              <Button onClick={() => router.push('/')} className="h-16 px-12 rounded-full bg-primary text-white font-black uppercase tracking-widest border-none shadow-2xl hover:scale-105 transition-transform">
                <Home className="w-5 h-5 mr-3" /> Return to Base
              </Button>
           </div>
         )}
-      </div>
+      </>
     );
   }
 
-  if (status === 'ended') {
-    const myScore = leaderboard.find(s => s.id === studentId)?.score || 0;
-    
-    return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center py-20 px-8 text-white">
-        <div className="max-w-2xl w-full space-y-12 text-center animate-in fade-in duration-1000">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-500/20 border border-rose-500/30 rounded-full text-rose-400 text-[10px] font-black uppercase tracking-widest mb-4">
-               SESSION TERMINATED BY HOST
-            </div>
-            <Trophy className="w-20 h-20 text-primary mx-auto mb-6 drop-shadow-[0_0_20px_rgba(var(--primary),0.5)]" />
-            <h1 className="text-5xl font-black uppercase tracking-tight leading-none">Mission Finalized</h1>
-            <p className="text-xl font-medium text-slate-400">Your performance registry has been archived.</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-             <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">Final Rank</p>
-                <p className="text-4xl font-black text-primary">#{studentRank || '--'}</p>
-             </div>
-             <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">Total Score</p>
-                <p className="text-4xl font-black text-primary">{myScore}</p>
-             </div>
-          </div>
-
-          <Card className="border-none bg-white/5 rounded-[3rem] overflow-hidden">
-            <div className="bg-white/5 p-6 border-b border-white/5 flex items-center justify-center gap-3">
-              <Users className="w-5 h-5 text-primary" />
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">Classroom Standings</h3>
-            </div>
-            <CardContent className="p-0">
-              <div className="divide-y divide-white/5">
-                {leaderboard.slice(0, 5).map((s, i) => (
-                  <div key={s.id} className={cn(
-                    "p-6 flex items-center justify-between",
-                    s.id === studentId ? "bg-primary/20" : ""
-                  )}>
-                    <div className="flex items-center gap-6">
-                      <span className="text-2xl font-black text-slate-500 w-8">{i + 1}</span>
-                      <div className="flex flex-col text-left">
-                        <span className="font-black uppercase tracking-tight text-white">{s.name}</span>
-                        {s.id === studentId && <span className="text-[8px] font-black uppercase tracking-widest text-primary">Your Identity</span>}
-                      </div>
-                    </div>
-                    <span className="text-2xl font-black text-primary tabular-nums">{s.score}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Link href="/" className="block w-full">
-            <Button className="w-full h-20 rounded-full bg-primary text-white font-black text-2xl uppercase tracking-tight shadow-2xl border-none">
-              <Home className="w-6 h-6 mr-3" /> Return to Base
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  if (status === 'ended') return <StudentFinalScore leaderboard={leaderboard} studentId={studentId} studentRank={studentRank} />;
 
   return <div className="min-h-screen flex items-center justify-center bg-slate-900"><AILoader /></div>;
 }
