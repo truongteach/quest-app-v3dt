@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Save, Code2, Eye, EyeOff, X, AlertCircle, Loader2 } from "lucide-react";
+import { Save, Code2, Eye, EyeOff, X, AlertCircle, Loader2, Target } from "lucide-react";
 import { QuestionType, Question } from '@/types/quiz';
 import { cn } from "@/lib/utils";
 import { getRegistryValue, parseRegistryArray } from '@/lib/quiz-utils';
