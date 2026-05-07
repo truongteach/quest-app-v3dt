@@ -61,6 +61,9 @@ function JoinContent() {
       const data = await res.json();
 
       if (res.ok) {
+        // Commit guest identity to session registry for telemetry attribution
+        sessionStorage.setItem('dntrng_guest_name', name);
+        
         toast({ title: "Connected", description: `Joined ${data.hostName}'s session.` });
         router.push(`/live/${roomCode}?studentId=${data.studentId}`);
       } else {

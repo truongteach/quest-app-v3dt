@@ -63,6 +63,13 @@ export function QuizStart({ title, questionsCount, duration, user, guestName, se
     }
   };
 
+  const handleIdentityContinue = () => {
+    if (guestName) {
+      sessionStorage.setItem('dntrng_guest_name', guestName);
+    }
+    setStep('mode');
+  };
+
   const returnToUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
 
   return (
@@ -94,7 +101,15 @@ export function QuizStart({ title, questionsCount, duration, user, guestName, se
             </div>
           )}
 
-          {step === 'identity' && <QuizIdentity guestName={guestName} setGuestName={setGuestName} onContinue={() => setStep('mode')} questionsCount={questionsCount} duration={duration} />}
+          {step === 'identity' && (
+            <QuizIdentity 
+              guestName={guestName} 
+              setGuestName={setGuestName} 
+              onContinue={handleIdentityContinue} 
+              questionsCount={questionsCount} 
+              duration={duration} 
+            />
+          )}
           
           {step === 'mode' && (
             <QuizModes 

@@ -34,12 +34,15 @@ export function trackEvent(eventType: EventType, options: TrackOptions = {}) {
       sessionStorage.setItem('dntrng_session_id', sessionId);
     }
 
-    // Retrieve user data
+    // Retrieve user data (Authenticated)
     let user: any = null;
     try {
       const saved = localStorage.getItem('questflow_user');
       if (saved) user = JSON.parse(saved);
     } catch (e) {}
+
+    // Retrieve guest data if no formal user session exists
+    const guestName = sessionStorage.getItem('dntrng_guest_name');
 
     // Device & Browser Detection
     const ua = navigator.userAgent;
@@ -53,12 +56,16 @@ export function trackEvent(eventType: EventType, options: TrackOptions = {}) {
     else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
     else if (ua.includes("Edge")) browser = "Edge";
 
+    // Identity Resolution Protocol: Prioritize User Account -> Guest Name -> Anonymous
+    const finalUserId = user?.id || user?.email || (guestName ? `guest_${guestName.toLowerCase().trim().replace(/\s+/g, '_')}` : "anonymous");
+    const finalUserName = user?.displayName || guestName || "Anonymous";
+
     const eventData = {
       timestamp: new Date().toISOString(),
       session_id: sessionId,
-      user_id: user?.id || user?.email || "anonymous",
-      user_name: user?.displayName || "Anonymous",
-      user_role: user?.role || "anonymous",
+      user_id: finalUserId,
+      user_name: finalUserName,
+      user_role: user?.role || (guestName ? "guest" : "anonymous"),
       event_type: eventType,
       page: window.location.pathname,
       device,
