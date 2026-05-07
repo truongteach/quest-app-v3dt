@@ -11,6 +11,12 @@ interface Props {
   reviewMode?: boolean;
 }
 
+/**
+ * Hotspot Interaction Module
+ * 
+ * Features a high-precision spatial identification protocol.
+ * Markers and diagnostic zones are strictly rectangular (rounded-none) per Protocol v18.9.5.
+ */
 export const HotspotModule: React.FC<Props> = ({ question, value, onChange, reviewMode }) => {
   const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
   const [aspectRatio, setAspectRatio] = useState<number>(0.5625);
@@ -82,7 +88,7 @@ export const HotspotModule: React.FC<Props> = ({ question, value, onChange, revi
   return (
     <div className="space-y-6">
       <div 
-        className="relative w-full shadow-2xl rounded-[2.5rem] overflow-hidden bg-slate-900"
+        className="relative w-full shadow-2xl rounded-none overflow-hidden bg-slate-900"
         style={{ paddingBottom: `${aspectRatio * 100}%`, height: 0 }}
       >
         <div 

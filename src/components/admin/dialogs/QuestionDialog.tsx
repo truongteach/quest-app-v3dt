@@ -1,15 +1,9 @@
-
 /**
  * QuestionDialog.tsx
  * 
  * Purpose: Primary orchestration modal for editing assessment questions.
  * Key components: QuestionTypeSidebar, QuestionPreviewPane, HotspotMapperDialog.
- * Props:
- *   - open: boolean — visibility state
- *   - onOpenChange: (open: boolean) => void — state dispatcher
- *   - editingItem: any — existing question data if editing
- *   - selectedTestId: string — parent registry key
- *   - onSave: (data: any, isRequired: boolean) => void — commit handler
+ * Design: Visual asset previews are strictly rectangular (rounded-none).
  */
 
 "use client";
@@ -118,7 +112,7 @@ function QuestionDialogContent({ open, onOpenChange, editingItem, selectedTestId
                 <div className="space-y-3"><Label className="text-[10px] font-black uppercase text-slate-400">Question Prompt</Label><Textarea value={questionText} onChange={(e) => setQuestionText(e.target.value)} disabled={loading} required placeholder="Enter the assessment prompt..." className="rounded-2xl min-h-[100px] text-xl bg-slate-50 border-none ring-1 ring-slate-100" /></div>
                 <div className="p-8 bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 space-y-6">
                   <div className="space-y-2"><Label className="text-[10px] font-black uppercase text-slate-400">Visual Asset (URL)</Label><Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} disabled={loading} placeholder="https://..." className="rounded-xl h-12 bg-white ring-1 ring-slate-200 border-none" /></div>
-                  {imageUrl && <div className="relative inline-block group"><div className="overflow-hidden rounded-2xl border-2 shadow-sm bg-white"><SafeImage src={imageUrl} alt="Preview" className="max-h-[120px] w-auto object-contain" /></div></div>}
+                  {imageUrl && <div className="relative inline-block group"><div className="overflow-hidden rounded-none border-2 shadow-sm bg-white"><SafeImage src={imageUrl} alt="Preview" className="max-h-[120px] w-auto object-contain" /></div></div>}
                   {selectedType === 'hotspot' && <Button type="button" onClick={() => setMapperOpen(true)} disabled={loading} className="w-full h-12 bg-slate-900 text-white font-black uppercase text-[10px] rounded-xl"><Target className="w-4 h-4 mr-2" /> Open Zone Mapper</Button>}
                 </div>
                 <div className="space-y-6">

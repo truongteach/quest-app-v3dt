@@ -214,7 +214,7 @@ export default function NewTestPage() {
                     />
                   </div>
                   {imageUrl && (
-                    <div className="rounded-2xl overflow-hidden border-2 border-slate-100 dark:border-slate-800 aspect-[16/6] bg-slate-50 dark:bg-slate-800 flex items-center justify-center relative group">
+                    <div className="rounded-none overflow-hidden border-2 border-slate-100 dark:border-slate-800 aspect-[16/6] bg-slate-50 dark:bg-slate-800 flex items-center justify-center relative group">
                       <img 
                         src={imageUrl} 
                         alt="Thumbnail Preview" 

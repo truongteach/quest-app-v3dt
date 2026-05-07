@@ -1,9 +1,9 @@
-
 /**
  * CardView.tsx
  * 
  * Purpose: Renders the assessment library as a grid of interactive cards.
  * Features "LIVE" badge for active real-time sessions (v18.9).
+ * Design: Images maintain strictly rectangular geometry (rounded-none).
  */
 
 "use client";
@@ -63,11 +63,11 @@ export function CardView({ tests }: CardViewProps) {
           <Link 
             key={test.id} 
             href={`/quiz?id=${test.id}`} 
-            className="group block focus-visible:ring-2 focus-visible:ring-primary rounded-[16px] outline-none"
+            className="group block focus-visible:ring-2 focus-visible:ring-primary rounded-none outline-none"
             onClick={() => trackEvent('test_card_click', { test_id: test.id, test_name: test.title })}
           >
-            <Card className="h-full flex flex-col overflow-hidden border-[0.5px] border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 rounded-[16px] bg-white dark:bg-slate-900">
-              <div className="relative h-[130px] w-full overflow-hidden aspect-video">
+            <Card className="h-full flex flex-col overflow-hidden border-[0.5px] border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 rounded-none bg-white dark:bg-slate-900">
+              <div className="relative h-[130px] w-full overflow-hidden aspect-video rounded-none">
                 {test.image_url ? (
                   <>
                     <Image 
@@ -75,7 +75,7 @@ export function CardView({ tests }: CardViewProps) {
                       alt={`Preview for ${test.title}`}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover"
+                      className="object-cover rounded-none"
                       priority={index < 4}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

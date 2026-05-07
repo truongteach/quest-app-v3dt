@@ -117,7 +117,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
       {!!imgSrc && question.question_type !== 'hotspot' && (
         <div className="relative mb-10">
           <button 
-            className="w-full block rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-100 relative group cursor-zoom-in outline-none focus-visible:ring-4 focus-visible:ring-primary"
+            className="w-full block rounded-none overflow-hidden border-4 border-white shadow-2xl bg-slate-100 relative group cursor-zoom-in outline-none focus-visible:ring-4 focus-visible:ring-primary"
             onClick={() => setIsZoomOpen(true)}
             aria-label="Zoom assessment image"
           >
@@ -152,7 +152,7 @@ export const QuestionRenderer: React.FC<Props> = ({ question, value, onChange, r
                     src={imgSrc} 
                     alt="Zoomed Asset View" 
                     fill
-                    className="object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
+                    className="object-contain rounded-none shadow-2xl animate-in zoom-in-95 duration-300"
                   />
                 </div>
                 <DialogTitle className="sr-only">Image Perspective View</DialogTitle>

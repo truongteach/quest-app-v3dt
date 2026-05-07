@@ -1,8 +1,8 @@
-
 /**
  * ListView.tsx
  * 
  * Purpose: Compact list representation of the assessment library.
+ * Design: Visual elements utilize sharp rectangular geometry (rounded-none).
  */
 
 "use client";
@@ -67,20 +67,20 @@ export function ListView({ tests }: ListViewProps) {
           <Link 
             key={test.id} 
             href={`/quiz?id=${test.id}`} 
-            className="group block focus-visible:ring-2 focus-visible:ring-primary rounded-[12px] outline-none"
+            className="group block focus-visible:ring-2 focus-visible:ring-primary rounded-none outline-none"
             onClick={() => trackEvent('test_card_click', { test_id: test.id, test_name: test.title })}
           >
-            <div className="relative bg-white dark:bg-slate-900 rounded-[12px] border-[0.5px] border-slate-200 dark:border-slate-800 overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all flex h-auto min-h-[100px]">
+            <div className="relative bg-white dark:bg-slate-900 rounded-none border-[0.5px] border-slate-200 dark:border-slate-800 overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all flex h-auto min-h-[100px]">
               <div className={cn("w-[5px] shrink-0", getDifficultyClasses(test.difficulty).split(' ')[0])} />
               
-              <div className={cn("w-[80px] shrink-0 flex items-center justify-center bg-gradient-to-br relative", getCategoryGradient(test.category))}>
+              <div className={cn("w-[80px] shrink-0 flex items-center justify-center bg-gradient-to-br relative rounded-none", getCategoryGradient(test.category))}>
                 {test.image_url ? (
                   <Image 
                     src={test.image_url} 
                     alt="" 
                     fill 
                     sizes="80px"
-                    className="object-cover"
+                    className="object-cover rounded-none"
                     priority={index < 4}
                   />
                 ) : (

@@ -13,6 +13,7 @@ interface SafeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
  * 
  * Prevents UI crashes from empty or broken image URLs.
  * Handles error states with a standardized structural placeholder.
+ * Strictly rectangular (rounded-none) per visual protocol.
  */
 export function SafeImage({ src, alt, className, fallbackClassName, ...props }: SafeImageProps) {
   const [error, setError] = useState(false);
@@ -22,7 +23,7 @@ export function SafeImage({ src, alt, className, fallbackClassName, ...props }: 
   if (error) {
     return (
       <div className={cn(
-        "bg-slate-100 flex flex-col items-center justify-center text-slate-300 p-4 rounded-xl border-2 border-dashed border-slate-200", 
+        "bg-slate-100 flex flex-col items-center justify-center text-slate-300 p-4 rounded-none border-2 border-dashed border-slate-200", 
         className, 
         fallbackClassName
       )}>
@@ -37,7 +38,7 @@ export function SafeImage({ src, alt, className, fallbackClassName, ...props }: 
       src={src} 
       alt={alt || "Asset"} 
       onError={() => setError(true)} 
-      className={className} 
+      className={cn("rounded-none", className)} 
       {...props} 
     />
   );
