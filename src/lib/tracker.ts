@@ -41,8 +41,8 @@ export function trackEvent(eventType: EventType, options: TrackOptions = {}) {
       if (saved) user = JSON.parse(saved);
     } catch (e) {}
 
-    // Retrieve guest data if no formal user session exists
-    const guestName = sessionStorage.getItem('dntrng_guest_name');
+    // Retrieve guest data (Persistent Callsign)
+    const guestName = localStorage.getItem('dntrng_guest_name');
 
     // Device & Browser Detection
     const ua = navigator.userAgent;

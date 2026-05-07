@@ -1,4 +1,3 @@
-
 /**
  * join/page.tsx
  * 
@@ -41,10 +40,13 @@ function JoinContent() {
     }
   }, [errorParam, toast]);
 
-  // Identity Auto-fill Protocol: Synchronize input with authenticated profile on load
+  // Identity Auto-fill Protocol: Synchronize input with authenticated profile or persistent guest registry
   useEffect(() => {
     if (user?.displayName && !name) {
       setName(user.displayName);
+    } else if (!name) {
+      const savedName = localStorage.getItem('dntrng_guest_name');
+      if (savedName) setName(savedName);
     }
   }, [user, name]);
 
@@ -61,8 +63,8 @@ function JoinContent() {
       const data = await res.json();
 
       if (res.ok) {
-        // Commit guest identity to session registry for telemetry attribution
-        sessionStorage.setItem('dntrng_guest_name', name);
+        // Commit identity to persistent registry for cross-navigation stability
+        localStorage.setItem('dntrng_guest_name', name);
         
         toast({ title: "Connected", description: `Joined ${data.hostName}'s session.` });
         router.push(`/live/${roomCode}?studentId=${data.studentId}`);

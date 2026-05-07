@@ -1,4 +1,3 @@
-
 /**
  * src/components/quiz/QuizStart.tsx
  * 
@@ -49,7 +48,12 @@ export function QuizStart({ title, questionsCount, duration, user, guestName, se
   const [step, setStep] = useState<Step>(() => {
     if (isProtectionEnabled) return 'gate';
     if (!user && !guestAccessAllowed) return 'login_required';
-    return user ? 'mode' : 'identity';
+    
+    // Logic: Skip identity step if a callsign already exists in the persistent registry
+    const savedName = typeof window !== 'undefined' ? localStorage.getItem('dntrng_guest_name') : null;
+    if (user || (savedName && savedName.trim().length > 0)) return 'mode';
+    
+    return 'identity';
   });
   const [password, setPassword] = useState('');
   const [selectedMode, setSelectedMode] = useState<QuizMode | 'live'>('test');
@@ -57,7 +61,15 @@ export function QuizStart({ title, questionsCount, duration, user, guestName, se
   const handleVerify = () => {
     if (password.trim().toUpperCase() === generateDailyPassword(undefined, protocolSalt).toUpperCase()) {
       toast({ title: "Access Granted", description: "Security Protocol Cleared." });
-      setStep(!user && !guestAccessAllowed ? 'login_required' : (user ? 'mode' : 'identity'));
+      
+      const savedName = localStorage.getItem('dntrng_guest_name');
+      if (!user && !guestAccessAllowed) {
+        setStep('login_required');
+      } else if (user || (savedName && savedName.trim().length > 0)) {
+        setStep('mode');
+      } else {
+        setStep('identity');
+      }
     } else {
       toast({ variant: "destructive", title: "Access Denied" });
     }
@@ -65,7 +77,7 @@ export function QuizStart({ title, questionsCount, duration, user, guestName, se
 
   const handleIdentityContinue = () => {
     if (guestName) {
-      sessionStorage.setItem('dntrng_guest_name', guestName);
+      localStorage.setItem('dntrng_guest_name', guestName);
     }
     setStep('mode');
   };

@@ -45,6 +45,14 @@ function QuizContent() {
     flaggedQuestionIds: []
   });
 
+  // Persistent Identity Protocol: Load guest name on mount
+  useEffect(() => {
+    const savedName = localStorage.getItem('dntrng_guest_name');
+    if (savedName) {
+      setGuestName(savedName);
+    }
+  }, []);
+
   const { data: questionsData, isLoading: qLoading } = useSWR(
     testId ? `questions-${testId}` : null,
     async () => {
